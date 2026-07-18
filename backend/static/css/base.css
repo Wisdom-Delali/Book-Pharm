@@ -1,0 +1,133 @@
+/* Shared reset + layout primitives. Color and font values come from CSS
+   variables defined in theme-portal.css / theme-storefront.css — this file
+   never hardcodes a color or font-family. */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-on-background);
+  font-family: var(--font-body);
+  font-size: var(--text-body-md-size);
+  line-height: var(--text-body-md-line);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  margin: 0 0 var(--space-stack-sm);
+  color: var(--color-on-surface);
+}
+
+h1 { font-size: var(--text-display-lg-size); font-weight: var(--text-display-lg-weight); line-height: var(--text-display-lg-line); }
+h2 { font-size: var(--text-headline-lg-size); font-weight: var(--text-headline-lg-weight); line-height: var(--text-headline-lg-line); }
+h3 { font-size: var(--text-headline-md-size); font-weight: var(--text-headline-md-weight); line-height: var(--text-headline-md-line); }
+
+a { color: var(--color-primary); }
+
+.container {
+  max-width: var(--container-max, 1200px);
+  margin: 0 auto;
+  padding: 0 var(--space-margin, 24px);
+}
+
+.site-header {
+  background: var(--color-surface-container-lowest);
+  border-bottom: 1px solid var(--color-outline-variant);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-stack-sm) var(--space-margin, 24px);
+}
+
+.site-header__brand {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.site-header__nav { display: flex; gap: var(--space-stack-md); }
+
+.site-header__nav a {
+  color: var(--color-on-surface-variant);
+  text-decoration: none;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--text-label-md-size);
+  letter-spacing: var(--text-label-md-tracking, 0);
+}
+
+.site-header__nav a:hover { color: var(--color-primary); }
+
+.site-footer {
+  background: var(--color-surface-container-low);
+  color: var(--color-on-surface-variant);
+  padding: var(--space-stack-lg) var(--space-margin, 24px);
+  margin-top: var(--space-stack-lg);
+  font-size: var(--text-body-md-size);
+}
+
+.card {
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-lg);
+  padding: var(--space-card-padding, 24px);
+  box-shadow: 0 4px 20px rgba(92, 64, 51, 0.06);
+}
+
+.btn {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--text-body-md-size);
+  border-radius: var(--radius-md);
+  padding: 0.625rem 1.25rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn--primary { background: var(--color-primary); color: var(--color-on-primary); }
+.btn--secondary { background: transparent; color: var(--color-secondary); border-color: var(--color-secondary); }
+
+.badge {
+  display: inline-block;
+  border-radius: var(--radius-full);
+  padding: 0.125rem 0.75rem;
+  font-size: var(--text-label-md-size);
+  font-weight: 600;
+  background: var(--color-tertiary-container);
+  color: var(--color-on-tertiary-container);
+}
+
+.badge--error { background: var(--color-error-container); color: var(--color-on-error-container); }
+.badge--ok { background: var(--color-surface-container-high); color: var(--color-secondary); }
+
+.text-muted { color: var(--color-on-surface-variant); }
+.text-error { color: var(--color-error); font-weight: 700; }
+.text-right { text-align: right; }
+.mono { font-family: monospace; color: var(--color-on-surface-variant); }
+
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+input[type="text"], input[type="search"], input[type="number"], input[type="email"],
+select, textarea {
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  font-family: var(--font-body);
+  font-size: var(--text-body-md-size);
+  color: var(--color-on-surface);
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}

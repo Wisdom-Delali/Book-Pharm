@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Book Pharm | Customers &amp; Loyalty</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700;800&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error-container": "#ffdad6",
+                    "surface-container-high": "#ebe8e1",
+                    "surface-container-low": "#f6f3ec",
+                    "tertiary": "#735c00",
+                    "on-surface": "#1c1c18",
+                    "inverse-primary": "#ffb3b5",
+                    "surface-container-highest": "#e5e2db",
+                    "on-secondary-container": "#795a4c",
+                    "outline-variant": "#e0bfbf",
+                    "inverse-on-surface": "#f3f0ea",
+                    "primary-fixed": "#ffdada",
+                    "surface-variant": "#e5e2db",
+                    "on-surface-variant": "#584141",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed-variant": "#8e0f28",
+                    "surface-bright": "#fcf9f2",
+                    "on-background": "#1c1c18",
+                    "primary-fixed-dim": "#ffb3b5",
+                    "secondary": "#765749",
+                    "surface": "#fcf9f2",
+                    "tertiary-fixed": "#ffe088",
+                    "inverse-surface": "#31312c",
+                    "on-error": "#ffffff",
+                    "background": "#fcf9f2",
+                    "tertiary-container": "#cca730",
+                    "on-tertiary-container": "#4f3d00",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "primary": "#570013",
+                    "secondary-fixed-dim": "#e6bead",
+                    "primary-container": "#800020",
+                    "surface-tint": "#af2b3e",
+                    "error": "#ba1a1a",
+                    "secondary-fixed": "#ffdbcc",
+                    "on-primary-container": "#ff828a",
+                    "on-primary": "#ffffff",
+                    "surface-dim": "#dcdad3",
+                    "outline": "#8c7071",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-fixed-dim": "#e9c349",
+                    "surface-container": "#f0eee7",
+                    "on-tertiary-fixed": "#241a00",
+                    "on-primary-fixed": "#40000b",
+                    "secondary-container": "#fed4c2",
+                    "on-secondary-fixed": "#2c160b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "card-padding": "24px",
+                    "stack-sm": "8px",
+                    "margin-page": "32px",
+                    "gutter": "24px",
+                    "sidebar-width": "260px",
+                    "stack-md": "16px",
+                    "stack-lg": "32px"
+            },
+            "fontFamily": {
+                    "display-lg": ["EB Garamond"],
+                    "label-md": ["Manrope"],
+                    "body-md": ["Manrope"],
+                    "body-lg": ["Manrope"],
+                    "headline-lg": ["EB Garamond"],
+                    "headline-md": ["EB Garamond"],
+                    "headline-lg-mobile": ["EB Garamond"]
+            },
+            "fontSize": {
+                    "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "label-md": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.3", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "1.3", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #fcf9f2;
+            color: #1c1c18;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f6f3ec;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #e0bfbf;
+            border-radius: 10px;
+        }
+        .card-shadow {
+            box-shadow: 0px 4px 20px rgba(92, 64, 51, 0.06);
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+        }
+    </style>
+</head>
+<body class="font-body-md">
+<!-- SideNavBar Shell -->
+<aside class="flex flex-col h-full fixed left-0 top-0 p-stack-md bg-surface-container-low border-r border-outline-variant w-[260px] z-50">
+<div class="px-4 py-6 mb-8">
+<h1 class="font-display-lg text-headline-md font-bold text-primary">Book Pharm</h1>
+<p class="font-label-md text-label-md text-secondary opacity-75">Admin Portal</p>
+</div>
+<nav class="flex-1 space-y-1 px-2">
+<!-- Nav Items -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-all rounded-full group" href="#">
+<span class="material-symbols-outlined text-secondary">dashboard</span>
+<span class="font-label-md">Overview</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-all rounded-full group" href="#">
+<span class="material-symbols-outlined text-secondary">menu_book</span>
+<span class="font-label-md">Inventory</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-all rounded-full group" href="#">
+<span class="material-symbols-outlined text-secondary">shopping_cart</span>
+<span class="font-label-md">Orders</span>
+</a>
+<!-- ACTIVE TAB: Customers -->
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary-container rounded-full shadow-sm translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-label-md">Customers</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-all rounded-full group" href="#">
+<span class="material-symbols-outlined text-secondary">campaign</span>
+<span class="font-label-md">Marketing</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-all rounded-full group" href="#">
+<span class="material-symbols-outlined text-secondary">analytics</span>
+<span class="font-label-md">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-all rounded-full group" href="#">
+<span class="material-symbols-outlined text-secondary">settings</span>
+<span class="font-label-md">Settings</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-outline-variant pt-4 px-2 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-all rounded-full group" href="#">
+<span class="material-symbols-outlined text-secondary">help</span>
+<span class="font-label-md">Help Center</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-all rounded-full group" href="#">
+<span class="material-symbols-outlined text-secondary">logout</span>
+<span class="font-label-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="ml-[260px] min-h-screen p-margin-page">
+<!-- Top Header Area -->
+<header class="flex justify-between items-center mb-10">
+<div>
+<h2 class="font-display-lg text-headline-lg text-primary">Customers &amp; Loyalty</h2>
+<p class="font-body-md text-on-surface-variant">Manage your high-tier patrons and direct engagement campaigns.</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-full text-body-md focus:ring-1 focus:ring-primary outline-none w-64" placeholder="Search patrons..." type="text"/>
+</div>
+<button class="flex items-center gap-2 bg-primary text-on-primary px-6 py-2.5 rounded-full font-label-md hover:opacity-90 transition-all scale-98 active:opacity-80">
+<span class="material-symbols-outlined text-[20px]">person_add</span>
+                    New Patrons
+                </button>
+</div>
+</header>
+<!-- Content Grid -->
+<div class="bento-grid">
+<!-- Statistics Row -->
+<div class="col-span-12 grid grid-cols-4 gap-6 mb-2">
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant card-shadow">
+<p class="font-label-md text-secondary uppercase tracking-widest text-[10px] mb-1">Total Patrons</p>
+<p class="font-display-lg text-headline-md text-primary">4,829</p>
+<div class="mt-2 text-[12px] text-tertiary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+<span>12% from last month</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant card-shadow">
+<p class="font-label-md text-secondary uppercase tracking-widest text-[10px] mb-1">Gold Tier Members</p>
+<p class="font-display-lg text-headline-md text-primary">342</p>
+<div class="mt-2 text-[12px] text-tertiary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">auto_awesome</span>
+<span>Premium loyalty growth</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant card-shadow">
+<p class="font-label-md text-secondary uppercase tracking-widest text-[10px] mb-1">Birthdays Today</p>
+<p class="font-display-lg text-headline-md text-primary">18</p>
+<div class="mt-2 text-[12px] text-tertiary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">cake</span>
+<span>8 active promotions</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant card-shadow">
+<p class="font-label-md text-secondary uppercase tracking-widest text-[10px] mb-1">Points Redeemed</p>
+<p class="font-display-lg text-headline-md text-primary">124k</p>
+<div class="mt-2 text-[12px] text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">history</span>
+<span>Average 2.4k per user</span>
+</div>
+</div>
+</div>
+<!-- Customer List Table -->
+<div class="col-span-8 bg-surface-container-lowest border border-outline-variant rounded-xl card-shadow overflow-hidden">
+<div class="px-card-padding py-4 border-b border-outline-variant flex justify-between items-center bg-surface-bright">
+<h3 class="font-headline-md text-headline-md text-on-surface">Active Patronage</h3>
+<div class="flex gap-2">
+<button class="p-2 hover:bg-surface-container-high rounded-lg text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+<button class="p-2 hover:bg-surface-container-high rounded-lg text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined">download</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="px-6 py-4 font-label-md text-secondary uppercase tracking-wider text-[10px]">Name</th>
+<th class="px-6 py-4 font-label-md text-secondary uppercase tracking-wider text-[10px]">Contact Info</th>
+<th class="px-6 py-4 font-label-md text-secondary uppercase tracking-wider text-[10px]">Birthday</th>
+<th class="px-6 py-4 font-label-md text-secondary uppercase tracking-wider text-[10px]">Tier</th>
+<th class="px-6 py-4 font-label-md text-secondary uppercase tracking-wider text-[10px]">Points</th>
+<th class="px-6 py-4"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<!-- Patron 1 -->
+<tr class="hover:bg-surface-container-low transition-colors cursor-pointer group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-container text-on-secondary-fixed flex items-center justify-center font-bold">EM</div>
+<div>
+<p class="font-semibold text-on-surface">Eleanor Margolis</p>
+<p class="text-[12px] text-on-surface-variant">Member since 2021</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-body-md text-on-surface">e.margolis@example.com</p>
+<p class="text-[12px] text-on-surface-variant">+1 (555) 902-3412</p>
+</td>
+<td class="px-6 py-4 text-body-md text-on-surface">May 14, 1984</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed rounded-full text-[11px] font-bold uppercase tracking-widest border border-tertiary-container">Gold Tier</span>
+</td>
+<td class="px-6 py-4 font-label-md text-secondary">12,450 pts</td>
+<td class="px-6 py-4 text-right">
+<span class="material-symbols-outlined text-outline opacity-0 group-hover:opacity-100 transition-opacity">more_vert</span>
+</td>
+</tr>
+<!-- Patron 2 -->
+<tr class="hover:bg-surface-container-low transition-colors cursor-pointer group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-fixed text-on-primary-fixed flex items-center justify-center font-bold">JT</div>
+<div>
+<p class="font-semibold text-on-surface">Julian Thorne</p>
+<p class="text-[12px] text-on-surface-variant">Member since 2023</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-body-md text-on-surface">jthorne@web.com</p>
+<p class="text-[12px] text-on-surface-variant">+1 (555) 123-8890</p>
+</td>
+<td class="px-6 py-4 text-body-md text-on-surface">Oct 29, 1992</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 bg-surface-container-high text-on-surface-variant rounded-full text-[11px] font-bold uppercase tracking-widest border border-outline-variant">Silver Tier</span>
+</td>
+<td class="px-6 py-4 font-label-md text-secondary">4,200 pts</td>
+<td class="px-6 py-4 text-right">
+<span class="material-symbols-outlined text-outline opacity-0 group-hover:opacity-100 transition-opacity">more_vert</span>
+</td>
+</tr>
+<!-- Patron 3 -->
+<tr class="hover:bg-surface-container-low transition-colors cursor-pointer group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center font-bold">SH</div>
+<div>
+<p class="font-semibold text-on-surface">Silas Hawthorne</p>
+<p class="text-[12px] text-on-surface-variant">Member since 2022</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-body-md text-on-surface">silas.h@apothecary.io</p>
+<p class="text-[12px] text-on-surface-variant">+1 (555) 441-0012</p>
+</td>
+<td class="px-6 py-4 text-body-md text-on-surface">Today</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed rounded-full text-[11px] font-bold uppercase tracking-widest border border-tertiary-container">Gold Tier</span>
+</td>
+<td class="px-6 py-4 font-label-md text-secondary">8,900 pts</td>
+<td class="px-6 py-4 text-right">
+<span class="material-symbols-outlined text-outline opacity-0 group-hover:opacity-100 transition-opacity">more_vert</span>
+</td>
+</tr>
+<!-- Patron 4 -->
+<tr class="hover:bg-surface-container-low transition-colors cursor-pointer group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest text-on-surface flex items-center justify-center font-bold">BR</div>
+<div>
+<p class="font-semibold text-on-surface">Beatrix Rose</p>
+<p class="text-[12px] text-on-surface-variant">Member since 2024</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-body-md text-on-surface">b.rose@outlook.com</p>
+<p class="text-[12px] text-on-surface-variant">+1 (555) 776-3221</p>
+</td>
+<td class="px-6 py-4 text-body-md text-on-surface">Jan 02, 1975</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 bg-surface-container-high text-on-surface-variant rounded-full text-[11px] font-bold uppercase tracking-widest border border-outline-variant">Standard</span>
+</td>
+<td class="px-6 py-4 font-label-md text-secondary">450 pts</td>
+<td class="px-6 py-4 text-right">
+<span class="material-symbols-outlined text-outline opacity-0 group-hover:opacity-100 transition-opacity">more_vert</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-card-padding py-4 border-t border-outline-variant bg-surface-container-low flex items-center justify-between">
+<p class="text-[12px] text-on-surface-variant italic">Showing 1-4 of 4,829 patrons</p>
+<div class="flex gap-2">
+<button class="w-8 h-8 flex items-center justify-center border border-outline-variant rounded-lg hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-[18px]">chevron_left</span></button>
+<button class="w-8 h-8 flex items-center justify-center border border-outline-variant rounded-lg bg-primary text-on-primary text-[12px]">1</button>
+<button class="w-8 h-8 flex items-center justify-center border border-outline-variant rounded-lg hover:bg-surface-container-high transition-colors text-[12px]">2</button>
+<button class="w-8 h-8 flex items-center justify-center border border-outline-variant rounded-lg hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-[18px]">chevron_right</span></button>
+</div>
+</div>
+</div>
+<!-- SMS Campaign Panel -->
+<div class="col-span-4 flex flex-col gap-6">
+<!-- Composer UI -->
+<div class="bg-surface-container-low border border-outline-variant rounded-xl card-shadow overflow-hidden">
+<div class="p-6 bg-secondary-container border-b border-on-secondary-container/20">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">sms</span>
+<h3 class="font-headline-md text-on-secondary-container">SMS Composer</h3>
+</div>
+<p class="text-[12px] text-on-secondary-container/80 italic">Instant engagement for high-tier patrons</p>
+</div>
+<div class="p-6 space-y-5">
+<!-- Audience Selector -->
+<div class="space-y-2">
+<label class="font-label-md text-[11px] text-secondary uppercase tracking-widest">Select Audience</label>
+<div class="relative">
+<select class="w-full appearance-none bg-surface-bright border border-outline-variant rounded-lg px-4 py-3 pr-10 text-body-md focus:ring-1 focus:ring-primary outline-none cursor-pointer">
+<option>Gold Tier Patrons (342)</option>
+<option>Birthday Today (18)</option>
+<option>Lapsed Members (1,204)</option>
+<option>New Patrons This Week (56)</option>
+</select>
+<span class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none text-outline">expand_more</span>
+</div>
+</div>
+<!-- Message Content -->
+<div class="space-y-2">
+<div class="flex justify-between items-end">
+<label class="font-label-md text-[11px] text-secondary uppercase tracking-widest">Message Content</label>
+<span class="text-[10px] text-on-surface-variant font-medium">102 / 160 chars</span>
+</div>
+<textarea class="w-full bg-surface-bright border border-outline-variant rounded-lg p-4 text-body-md focus:ring-1 focus:ring-primary outline-none resize-none" placeholder="Draft your message here..." rows="4">Hello {first_name}, Happy Birthday! Enjoy 20% off any rare first edition in our collection today. Use code BDAY20. - Book Pharm</textarea>
+<div class="flex gap-2">
+<button class="px-2 py-1 bg-surface-container-high rounded border border-outline-variant text-[11px] text-on-surface-variant hover:bg-surface-container-highest transition-colors">{first_name}</button>
+<button class="px-2 py-1 bg-surface-container-high rounded border border-outline-variant text-[11px] text-on-surface-variant hover:bg-surface-container-highest transition-colors">{tier_status}</button>
+<button class="px-2 py-1 bg-surface-container-high rounded border border-outline-variant text-[11px] text-on-surface-variant hover:bg-surface-container-highest transition-colors">{points}</button>
+</div>
+</div>
+<!-- Promotion Options -->
+<div class="p-4 bg-surface-bright rounded-lg border border-dashed border-outline-variant">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="w-4 h-4 rounded text-primary focus:ring-primary border-outline-variant" type="checkbox"/>
+<span class="text-body-md text-on-surface">Auto-generate redemption link</span>
+</label>
+</div>
+<!-- Actions -->
+<div class="grid grid-cols-2 gap-3 pt-2">
+<button class="py-3 border border-secondary text-secondary rounded-lg font-label-md hover:bg-surface-container-high transition-colors">
+                                Save Draft
+                            </button>
+<button class="py-3 bg-primary text-on-primary rounded-lg font-label-md hover:opacity-95 shadow-md flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">send</span>
+                                Send Now
+                            </button>
+</div>
+</div>
+</div>
+<!-- Recent Campaigns Summary -->
+<div class="bg-surface-container-low border border-outline-variant rounded-xl card-shadow p-6">
+<h4 class="font-label-md text-secondary uppercase tracking-widest text-[11px] mb-4">Recent Campaigns</h4>
+<div class="space-y-4">
+<div class="flex items-start gap-3">
+<div class="w-8 h-8 rounded bg-tertiary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-tertiary-container text-[18px]">check_circle</span>
+</div>
+<div>
+<p class="text-[13px] font-semibold text-on-surface">Winter Solstice First Editions</p>
+<p class="text-[11px] text-on-surface-variant">Sent to 850 patrons • 12% conversion</p>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<div class="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-outline text-[18px]">schedule</span>
+</div>
+<div>
+<p class="text-[13px] font-semibold text-on-surface">Monthly Points Summary</p>
+<p class="text-[11px] text-on-surface-variant">Scheduled for Dec 1, 09:00 AM</p>
+</div>
+</div>
+</div>
+<button class="w-full mt-6 text-primary font-label-md text-[12px] flex items-center justify-center gap-1 hover:underline">
+                        View All Marketing History
+                        <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Tier Progress Visualization Section (Asymmetric / Bento detail) -->
+<section class="mt-10 grid grid-cols-12 gap-6">
+<div class="col-span-12">
+<h3 class="font-headline-md text-primary mb-6">Tier Distribution Insights</h3>
+</div>
+<div class="col-span-7 bg-white border border-outline-variant rounded-xl card-shadow p-8 relative overflow-hidden">
+<div class="flex justify-between items-start mb-10">
+<div>
+<p class="font-label-md text-secondary text-[11px] uppercase tracking-widest mb-1">Patron Retention</p>
+<h4 class="font-display-lg text-headline-md text-primary">Loyalty Lifecycle</h4>
+</div>
+<div class="flex gap-2">
+<span class="px-2 py-1 bg-surface-container-low border border-outline-variant rounded text-[10px] font-bold">WEEKLY</span>
+<span class="px-2 py-1 bg-primary text-on-primary rounded text-[10px] font-bold">MONTHLY</span>
+</div>
+</div>
+<!-- Simple custom sparkline-like graphic with CSS -->
+<div class="h-48 flex items-end justify-between gap-4 px-4">
+<div class="w-full bg-surface-container-high rounded-t-lg h-[40%] transition-all hover:h-[45%] cursor-pointer hover:bg-secondary group relative">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">8.2k</div>
+</div>
+<div class="w-full bg-surface-container-high rounded-t-lg h-[55%] transition-all hover:h-[60%] cursor-pointer hover:bg-secondary group relative">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">12k</div>
+</div>
+<div class="w-full bg-surface-container-high rounded-t-lg h-[45%] transition-all hover:h-[50%] cursor-pointer hover:bg-secondary group relative">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">10k</div>
+</div>
+<div class="w-full bg-primary/20 rounded-t-lg h-[75%] transition-all hover:h-[80%] cursor-pointer hover:bg-primary group relative">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">18k</div>
+</div>
+<div class="w-full bg-surface-container-high rounded-t-lg h-[65%] transition-all hover:h-[70%] cursor-pointer hover:bg-secondary group relative">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">14k</div>
+</div>
+<div class="w-full bg-surface-container-high rounded-t-lg h-[85%] transition-all hover:h-[90%] cursor-pointer hover:bg-secondary group relative">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">22k</div>
+</div>
+</div>
+<div class="mt-6 flex justify-between px-4 font-label-md text-[10px] text-on-surface-variant uppercase tracking-widest">
+<span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
+</div>
+</div>
+<div class="col-span-5 flex flex-col gap-6">
+<div class="bg-primary text-on-primary p-8 rounded-xl card-shadow flex flex-col justify-between h-full relative overflow-hidden">
+<div class="z-10">
+<h4 class="font-display-lg text-headline-md mb-2">The Bibliophile's Circle</h4>
+<p class="text-body-md opacity-80 mb-6">Our invitation-only tier for those who hold the weight of history in their hands.</p>
+<div class="space-y-4">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-tertiary-fixed">verified</span>
+<span class="font-label-md text-[12px]">Private Vault Access</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-tertiary-fixed">history_edu</span>
+<span class="font-label-md text-[12px]">First Auction Rights</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-tertiary-fixed">wine_bar</span>
+<span class="font-label-md text-[12px]">Quarterly Gala Invite</span>
+</div>
+</div>
+</div>
+<!-- Decorative Element -->
+<span class="material-symbols-outlined absolute -bottom-10 -right-10 text-[200px] text-white/5 pointer-events-none" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
+<button class="z-10 mt-10 py-3 bg-white text-primary rounded-lg font-bold text-[12px] uppercase tracking-widest hover:bg-surface-bright transition-all active:scale-95">
+                        Manage Elite Criteria
+                    </button>
+</div>
+</div>
+</section>
+</main>
+<script>
+        // Simple micro-interaction for active row highlight
+        document.querySelectorAll('tbody tr').forEach(row => {
+            row.addEventListener('click', () => {
+                // Remove highlight from all
+                document.querySelectorAll('tbody tr').forEach(r => r.classList.remove('bg-surface-container'));
+                // Add to current
+                row.classList.add('bg-surface-container');
+            });
+        });
+    </script>
+</body></html>

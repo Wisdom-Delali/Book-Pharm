@@ -1,0 +1,208 @@
+# Book Pharm — POS & E-Commerce System
+
+Context file for Claude Code. Read this before making changes.
+
+---
+
+## 1. What this is
+
+A point-of-sale and e-commerce system for **Book Pharm**, a bookshop in Ghana. It replaces the owner's current POS, which is unreliable and locked her into a contract without solving her problems.
+
+Three components, **one shared database**:
+
+| Component | Who uses it | Purpose |
+|---|---|---|
+| **Storefront** (`apps/storefront`) | Public customers | Browse and buy books online |
+| **Owner portal** (`apps/portal`) | Business owner only | Inventory, reports, expenses, marketing |
+| **Desktop POS** (`desktop/`) | Shop attendant | Fast in-store checkout, works offline |
+
+The critical constraint: **a sale or stock change in any component must be immediately visible in the others.** The owner's previous online store failed partly because it was a disconnected system requiring manual uploads. Never introduce a second source of truth.
+
+---
+
+## 2. Stack
+
+- **Backend:** Django + Django REST Framework
+- **Database:** MySQL (cPanel shared hosting)
+- **Storefront + Portal:** Django templates + HTMX + Alpine.js. Chart.js for portal charts.
+- **Desktop POS:** Electron, consuming the REST API, with local SQLite for offline sales
+- **Payments:** Paystack (covers MTN MoMo, Telecel/Vodafone Cash, card, bank transfer in Ghana)
+- **SMS:** SMSOnlineGH
+
+**Why server-rendered, not React:** the storefront needs SEO (individual book pages must index on Google), and the deployment target is cPanel shared hosting. One Django deploy is far less fragile here than a Django API plus separate static SPA builds. The REST API still exists — Electron is its primary consumer, and it leaves the door open for a mobile app later.
+
+---
+
+## 3. Hosting reality (cPanel) — read before designing anything
+
+This runs on **cPanel shared hosting**, not a VPS. That imposes hard constraints:
+
+- **No long-running processes.** No Celery, no Redis workers, no daemons. Scheduled work (birthday SMS, campaign sends) runs via **cPanel cron jobs calling Django management commands**.
+- **No WebSockets.** If a screen needs live updates, poll with HTMX (`hx-trigger="every 30s"`).
+- **Django runs under Passenger** via cPanel's "Setup Python App". WSGI entry point, no ASGI.
+- **Static and media files** are served from `public_html`; run `collectstatic` on deploy. Book cover uploads go to a media directory on disk.
+- Keep dependencies lean — some packages needing system-level compilation won't install on shared hosting.
+
+If a proposed feature needs background workers or sockets, flag it rather than assuming infrastructure that isn't there.
+
+---
+
+## 4. Confirmed requirements
+
+These come from the client's completed questionnaire. **They are decided — don't re-litigate them in code.**
+
+- **Discounts:** both percentage and fixed-amount, configured centrally by the owner
+- **Stock entry:** ISBN/barcode scanning *and* manual entry. Books without an ISBN get a system-generated internal code
+- **Low stock:** the owner must be warned when a title is low or out of stock
+- **Payments:** MTN MoMo, Telecel/Vodafone Cash, bank transfer, card
+- **Fulfillment:** customer chooses delivery *or* pickup
+- **Order confirmation:** customers confirm receipt and can leave feedback/reviews
+- **Marketplace:** Jumia sales tracked as a distinct channel, including returns
+- **Customer data captured at checkout:** phone, full name, email, birthday
+- **Loyalty + SMS marketing:** both required
+- **Expenses:** business expenses must be separable from the owner's personal withdrawals
+- **Priority reports:** sales (daily/weekly/monthly), profit margin per book, stock levels
+- **Profit tracking:** cost price vs. selling price per book
+- **Devices:** shop + occasional book fairs → **offline support with later sync is mandatory**
+- **Access:** owner-only at launch; model must allow staff accounts later without redesign
+
+### Explicitly out of scope
+
+- **Credit sales / debtor tracking.** The client said no. Do not build it.
+- Multi-branch / multi-location.
+- Staff accounts beyond the single owner login (design for it, don't build it).
+
+### Still open — ask before implementing
+
+- **Delivery fee method:** distance-based vs. fixed zones vs. manual per order. Build the `DeliveryPricingRule` abstraction so any of the three can drop in; default to fixed zones until confirmed.
+- **Discount approval level:** owner-only vs. staff within a limit. Model has an `approval_level` field; default to owner-only.
+
+---
+
+## 5. Repo layout
+
+```
+bookpharm/
+├── CLAUDE.md
+├── ROADMAP.md
+├── .env.example
+├── backend/
+│   ├── .venv/                # Python virtual env — gitignored, never committed
+│   ├── manage.py
+│   ├── config/              # settings/, urls.py, wsgi.py
+│   ├── apps/
+│   │   ├── accounts/        # auth, roles, device tokens
+│   │   ├── catalog/         # Book, Category, stock
+│   │   ├── sales/           # Sale, SaleItem, offline sync
+│   │   ├── fulfillment/     # delivery/pickup, delivery pricing
+│   │   ├── customers/       # Customer, loyalty
+│   │   ├── payments/        # Paystack integration
+│   │   ├── messaging/       # SMSOnlineGH, campaigns
+│   │   ├── expenses/
+│   │   ├── reports/
+│   │   ├── storefront/      # public views + templates
+│   │   ├── portal/          # owner views + templates
+│   │   └── api/             # DRF routers, serializers, sync endpoints
+│   ├── templates/
+│   ├── static/
+│   └── requirements.txt
+├── desktop/                 # Electron POS
+│   ├── main.js
+│   ├── preload.js
+│   ├── renderer/
+│   ├── db/                  # SQLite schema + outbox queue
+│   └── package.json
+├── mockups/                 # Stitch HTML exports — reference only, do not import directly
+└── docs/
+    ├── SRS.md
+    └── discovery.md
+```
+
+`mockups/` holds the generated HTML designs. Treat them as **visual reference**: lift the markup and CSS into Django templates deliberately, don't wire the raw files into the app.
+
+---
+
+## 6. Data model
+
+One `Sale` table covers **all three channels** — this is deliberate, so reports are a single query rather than a union across tables.
+
+**`catalog`**
+- `Category` — name, slug
+- `Book` — `isbn` (nullable, unique-if-set), `internal_code` (generated when no ISBN), title, author, `cost_price`, `selling_price`, `stock_qty`, `low_stock_threshold`, category FK, cover image, description, `is_active`
+  - Profit per book = `selling_price - cost_price`. Never expose `cost_price` on the storefront.
+
+**`customers`**
+- `Customer` — `phone` (unique, primary identifier), `full_name`, `email`, `birthday`, `loyalty_points`, `created_at`
+- `LoyaltyTransaction` — customer FK, points delta, reason, sale FK (nullable)
+
+**`sales`**
+- `Sale` — `channel` (`IN_STORE` | `ONLINE` | `JUMIA`), customer FK (nullable), subtotal, `discount_amount`, `delivery_fee`, total, `payment_method`, `payment_status`, `status`, `created_at`, `attendant` FK (nullable), `offline_uuid` (unique, nullable), `synced_at`, `external_ref` (Jumia), `returned_at`
+- `SaleItem` — sale FK, book FK, qty, `unit_price` (snapshot at time of sale — never read live price for historical records), `line_discount`
+- `DiscountRule` — type (`PERCENT` | `FIXED`), value, scope (`GLOBAL` | `CATEGORY` | `BOOK`), target, `approval_level`, `is_active`
+
+**`fulfillment`**
+- `Fulfillment` — sale OneToOne, type (`DELIVERY` | `PICKUP`), address, `fee`, status, `confirmed_by_customer_at`
+- `DeliveryPricingRule` — abstraction over the three pricing methods (see open items)
+- `Review` — sale FK, rating, comment, `created_at`
+
+**`payments`**
+- `PaymentTransaction` — sale FK, provider, `provider_ref`, amount, status, raw payload JSON, `created_at`
+
+**`expenses`**
+- `Expense` — amount, category, `is_personal_withdrawal` (bool), date, notes
+  - Business profit reports must exclude rows where `is_personal_withdrawal=True`.
+
+**`messaging`**
+- `SmsCampaign` — name, audience filter, message body, scheduled_for, sent_at, status
+- `SmsLog` — customer FK, message, provider_ref, status, sent_at
+
+Low-stock alerts are **computed** (`stock_qty <= low_stock_threshold`), not a stored table.
+
+---
+
+## 7. Offline sync — the hardest part, get this right
+
+The attendant sells at book fairs with unreliable internet. Sales must never be lost.
+
+**Design:**
+- Electron keeps a **local SQLite mirror** of the catalog (read-only) and an **outbox** of unsynced sales.
+- Every sale gets a **client-generated UUID** (`offline_uuid`) at creation time, online or off.
+- `POST /api/sync/sales/` accepts a **batch** and is **idempotent** — the unique constraint on `offline_uuid` means a replayed batch is a no-op. Return per-UUID accepted/rejected status.
+- Catalog pull: `GET /api/catalog/?updated_since=<timestamp>` for incremental sync.
+- **The server is authoritative for stock.**
+
+**The oversell problem — do not paper over this:** two devices offline at the same fair can both sell the last copy. The server must **accept both sales** (a real sale happened; refusing it loses money and data) and **flag the discrepancy** for the owner to reconcile in the portal. Never silently reject a synced sale because stock went negative. Allow `stock_qty` to go negative and surface it as a reconciliation alert.
+
+**Auth:** device-scoped token per POS install. Store it in the OS keychain via Electron's `safeStorage`, not plain-text config.
+
+---
+
+## 8. Integrations
+
+**Paystack** — initialize transaction server-side, redirect/inline checkout, verify via webhook *and* a verify-on-return call (don't trust the redirect alone). Store the full payload in `PaymentTransaction.raw_payload` for reconciliation. The client has been burned before by payments not reflecting — reconciliation records matter more than usual here.
+
+**SMSOnlineGH** — used for birthday greetings, new arrivals, and promotions. Sends go through a management command triggered by cron, writing to `SmsLog`. Never send from a request/response cycle; queue it.
+
+---
+
+## 9. Conventions
+
+- **Python virtual environment is mandatory.** All backend (`backend/`) work — installing packages, running `manage.py`, running tests, running management commands — happens inside an activated venv (`python -m venv backend/.venv`, then activate before every session). Never `pip install` globally and never run Django commands against the system Python. `backend/.venv/` is gitignored and never committed; `backend/requirements.txt` is the source of truth for what gets installed. Document the activate step in `README`. (Desktop POS uses `npm`/`node_modules` for the same isolation purpose — no venv needed there.)
+- Money: `DecimalField(max_digits=10, decimal_places=2)`. Never floats. Currency is GHS.
+- All prices on `SaleItem` are **snapshots**, not FK lookups to live price.
+- Timezone: `Africa/Accra`. Store UTC, display local.
+- Phone numbers: normalize to `+233XXXXXXXXX` on save. Phone is the customer's identity key.
+- Django apps stay narrow — if logic spans two apps, it probably belongs in a service module, not a fat model.
+- HTMX for partial updates; avoid full-page reloads in the portal.
+- Templates extend a shared base; the storefront and portal have separate bases.
+- Environment config via `.env` (see `.env.example`). Never commit secrets.
+
+**Design language** (from the approved mockups): cream/ivory backgrounds, deep burgundy accent, wood-brown secondary, gold highlights for prices and primary actions. Warm serif for headings and book titles, clean sans for UI chrome. Rounded cards, soft shadows, generous whitespace.
+
+The POS app is the exception — it prioritizes speed and legibility over decoration: dense layout, large totals, unmistakable primary buttons, and a permanently visible online/offline sync indicator.
+
+---
+
+## 10. Priorities
+
+Build order is in `ROADMAP.md`. The reasoning behind it: **the POS is the client's most urgent pain**, so it ships first and earns trust. The storefront is valuable but she has survived without it — it comes after the shop is running reliably.

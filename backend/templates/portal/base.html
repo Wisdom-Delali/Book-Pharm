@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Book Pharm Portal{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=EB+Garamond:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/theme-portal.css' %}">
+  <link rel="stylesheet" href="{% static 'css/portal-layout.css' %}">
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <div class="portal-shell">
+    <aside class="portal-sidebar">
+      <a class="portal-sidebar__brand" href="{% url 'portal:dashboard' %}">Book Pharm</a>
+      <nav class="portal-sidebar__nav">
+        <a href="{% url 'portal:dashboard' %}" class="{% if active_nav == 'dashboard' %}is-active{% endif %}">Dashboard</a>
+        <a href="{% url 'portal:book_list' %}" class="{% if active_nav == 'catalog' %}is-active{% endif %}">Inventory</a>
+        <a href="#">Orders</a>
+        <a href="#">Customers &amp; Loyalty</a>
+        <a href="{% url 'portal:discount_list' %}" class="{% if active_nav == 'discounts' %}is-active{% endif %}">Discounts</a>
+        <a href="#">Reports</a>
+        <a href="#">Expenses</a>
+      </nav>
+    </aside>
+
+    <main class="portal-main">
+      {% include 'partials/_messages.html' %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  {% block extra_body %}{% endblock %}
+</body>
+</html>

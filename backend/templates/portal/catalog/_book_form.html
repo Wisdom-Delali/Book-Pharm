@@ -1,0 +1,25 @@
+<div class="panel__header">
+  <h3>{% if editing_book %}Edit Book{% else %}Catalog New Acquisition{% endif %}</h3>
+  <button class="panel__close" hx-get="{% url 'portal:book_list' %}" hx-target="#catalog-content" hx-swap="outerHTML">&times;</button>
+</div>
+
+<form class="panel__form"
+      hx-post="{% if editing_book %}{% url 'portal:book_update' editing_book.pk %}{% else %}{% url 'portal:book_create' %}{% endif %}"
+      hx-target="#catalog-content" hx-swap="outerHTML" hx-encoding="multipart/form-data">
+  {% csrf_token %}
+  {% for error in book_form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+
+  {% for field in book_form %}
+  <div class="form-field">
+    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {% if field.help_text %}<p class="form-help">{{ field.help_text }}</p>{% endif %}
+    {% for error in field.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+  </div>
+  {% endfor %}
+
+  <div class="panel__actions">
+    <button type="button" class="btn btn--secondary" hx-get="{% url 'portal:book_list' %}" hx-target="#catalog-content" hx-swap="outerHTML">Cancel</button>
+    <button type="submit" class="btn btn--primary">{% if editing_book %}Save Changes{% else %}Add to Inventory{% endif %}</button>
+  </div>
+</form>

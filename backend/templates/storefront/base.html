@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Book Pharm{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/theme-storefront.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-header__brand" href="{% url 'storefront:home' %}">Book Pharm</a>
+      <nav class="site-header__nav">
+        <a href="{% url 'storefront:home' %}">Browse</a>
+        <a href="#">Cart</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    {% include 'partials/_messages.html' %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">&copy; {% now "Y" %} Book Pharm, Ghana.</div>
+  </footer>
+
+  {% block extra_body %}{% endblock %}
+</body>
+</html>

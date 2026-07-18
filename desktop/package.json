@@ -1,0 +1,13 @@
+{
+  "name": "bookpharm-pos",
+  "version": "0.1.0",
+  "description": "Book Pharm desktop POS (Electron)",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^31.0.0"
+  }
+}

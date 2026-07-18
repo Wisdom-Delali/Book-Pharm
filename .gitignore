@@ -1,0 +1,34 @@
+# Python
+backend/.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.Python
+
+# Django
+backend/**/migrations/__pycache__/
+backend/staticfiles/
+backend/media/
+db.sqlite3
+*.log
+
+# Environment
+.env
+.env.local
+
+# Node / Electron
+desktop/node_modules/
+desktop/dist/
+desktop/build/
+desktop/out/
+
+# SQLite (Electron offline mirror + outbox, local dev artifacts)
+desktop/db/*.sqlite
+desktop/db/*.sqlite3
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

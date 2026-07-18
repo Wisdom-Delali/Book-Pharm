@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Checkout | Book Pharm</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Playfair+Display:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ba1a1a",
+                        "on-surface": "#1c1c18",
+                        "surface": "#fcf9f2",
+                        "surface-dim": "#dcdad3",
+                        "on-surface-variant": "#4d4635",
+                        "tertiary-fixed-dim": "#e7bdb1",
+                        "surface-container": "#f0eee7",
+                        "primary-fixed-dim": "#e9c349",
+                        "outline": "#7f7663",
+                        "on-tertiary-fixed": "#2c160e",
+                        "inverse-primary": "#e9c349",
+                        "outline-variant": "#d0c5af",
+                        "inverse-surface": "#31312c",
+                        "on-primary": "#ffffff",
+                        "on-background": "#1c1c18",
+                        "tertiary-fixed": "#ffdbd0",
+                        "secondary-fixed-dim": "#ffb3b5",
+                        "tertiary-container": "#d2aa9e",
+                        "on-primary-fixed": "#241a00",
+                        "surface-container-high": "#ebe8e1",
+                        "on-tertiary-fixed-variant": "#5d4037",
+                        "surface-bright": "#fcf9f2",
+                        "surface-tint": "#735c00",
+                        "secondary-container": "#fd6673",
+                        "on-primary-container": "#554300",
+                        "background": "#fcf9f2",
+                        "primary-fixed": "#ffe088",
+                        "on-secondary-fixed-variant": "#8e0f28",
+                        "secondary": "#af2b3e",
+                        "on-secondary-fixed": "#40000b",
+                        "on-primary-fixed-variant": "#574500",
+                        "surface-container-highest": "#e5e2db",
+                        "on-tertiary-container": "#5b3e35",
+                        "on-error": "#ffffff",
+                        "primary": "#735c00",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f6f3ec",
+                        "inverse-on-surface": "#f3f0ea",
+                        "tertiary": "#77574d",
+                        "primary-container": "#d4af37",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "surface-variant": "#e5e2db",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#ffdada",
+                        "on-secondary-container": "#680018",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "card-padding": "24px",
+                        "gutter": "24px",
+                        "section-gap": "64px",
+                        "margin-mobile": "20px",
+                        "margin-desktop": "40px",
+                        "container-max": "1440px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Playfair Display"],
+                        "body-md": ["Inter"],
+                        "price-tag": ["Inter"],
+                        "label-md": ["Inter"],
+                        "display-lg": ["Playfair Display"],
+                        "headline-md": ["Playfair Display"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "price-tag": ["16px", {"lineHeight": "1", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #fcf9f2;
+            background-image: radial-gradient(#d0c5af 1px, transparent 1px);
+            background-size: 32px 32px;
+            background-attachment: fixed;
+        }
+
+        .glass-nav {
+            background: rgba(252, 249, 242, 0.8);
+            backdrop-filter: blur(12px);
+        }
+
+        .floating-card {
+            box-shadow: 0px 10px 30px rgba(93, 64, 55, 0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .floating-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0px 15px 35px rgba(93, 64, 55, 0.12);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-surface">
+<!-- Sidebar Navigation (Identity Lock) -->
+<aside class="w-64 h-screen fixed left-0 top-0 bg-surface-container-low dark:bg-surface-container shadow-sm flex flex-col py-8 px-6 gap-8 z-50">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-secondary flex items-center justify-center rounded-full text-on-secondary">
+<span class="material-symbols-outlined">auto_stories</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-secondary">Book Pharm</h1>
+<p class="text-[10px] uppercase tracking-widest text-outline">Literary Apothecary</p>
+</div>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-4 py-3 px-4 text-on-surface-variant hover:bg-surface-variant/30 transition-colors duration-200 rounded-full" href="#">
+<span class="material-symbols-outlined">trending_up</span>
+<span class="font-label-md text-label-md">Popular Books</span>
+</a>
+<a class="flex items-center gap-4 py-3 px-4 text-on-surface-variant hover:bg-surface-variant/30 transition-colors duration-200 rounded-full" href="#">
+<span class="material-symbols-outlined">auto_stories</span>
+<span class="font-label-md text-label-md">New Arrivals</span>
+</a>
+<a class="flex items-center gap-4 py-3 px-4 text-on-surface-variant hover:bg-surface-variant/30 transition-colors duration-200 rounded-full" href="#">
+<span class="material-symbols-outlined">category</span>
+<span class="font-label-md text-label-md">Genres</span>
+</a>
+<a class="flex items-center gap-4 py-3 px-4 text-on-surface-variant hover:bg-surface-variant/30 transition-colors duration-200 rounded-full" href="#">
+<span class="material-symbols-outlined">redeem</span>
+<span class="font-label-md text-label-md">Gifts &amp; Stationery</span>
+</a>
+<a class="flex items-center gap-4 py-3 px-4 text-on-surface-variant hover:bg-surface-variant/30 transition-colors duration-200 rounded-full" href="#">
+<span class="material-symbols-outlined">person_search</span>
+<span class="font-label-md text-label-md">Author Spotlights</span>
+</a>
+</nav>
+<div class="mt-auto">
+<button class="flex items-center gap-4 py-3 px-4 text-on-surface-variant hover:bg-surface-variant/30 transition-colors duration-200 rounded-full w-full">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="pl-64 min-h-screen">
+<!-- Top Navigation Bar -->
+<header class="h-20 flex justify-between items-center w-full px-10 py-4 sticky top-0 z-40 glass-nav">
+<div class="flex items-center gap-4 bg-surface-container rounded-full px-6 py-2 border border-outline/10 w-96">
+<span class="material-symbols-outlined text-outline">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-outline/60" placeholder="Search literary cures..." type="text"/>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex gap-4">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-all relative">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-secondary rounded-full"></span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+<div class="flex items-center gap-3 border-l pl-6 border-outline/20">
+<div class="text-right">
+<p class="font-label-md text-label-md">Kwame Mensah</p>
+<p class="text-[10px] text-outline uppercase tracking-wider">Premium Member</p>
+</div>
+<img class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" data-alt="A sophisticated professional portrait of a young West African man with stylish glasses, wearing a neutral-toned linen shirt, shot in soft natural lighting against a minimalist bookshelf backdrop." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkq3_oEyWad24jMSKysM2oaVlplYXElnWRZsPMcCMYaDe8zXFU-YsegZN-0NxtBIgE5czTx_8zIy4GW5sMEhUtjbAKmqZYwPi-NfiXSxhz8mrStBdG-64UuVIdIIaT04w8OhrcuaFxcv4pFTvYitTYw00f64SbLlgiVgatPZuxjEs4DyaDZmqduhZsvX_VVdiOdFFKg4IRvMbPBQ9LYzFudNtC-uDAgkwb6UuY8bR7XZ1agjDDqXODN-o3qzUTD3ME4qzzfh5ZygjL"/>
+</div>
+</div>
+</header>
+<!-- Checkout Canvas -->
+<div class="p-10 max-w-[1200px] mx-auto">
+<div class="mb-10">
+<h2 class="font-headline-lg text-headline-lg text-on-surface flex items-center gap-4">
+                    Complete your Prescription
+                    <span class="text-secondary opacity-50 text-headline-md">/</span>
+<span class="text-headline-md text-outline font-normal">Checkout</span>
+</h2>
+</div>
+<div class="grid grid-cols-12 gap-10 items-start">
+<!-- Left Column: Checkout Details -->
+<div class="col-span-12 lg:col-span-7 space-y-8">
+<!-- Fulfillment Toggle -->
+<section class="bg-white rounded-lg p-8 floating-card">
+<h3 class="font-headline-md text-headline-md mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">local_shipping</span>
+                            Fulfillment Method
+                        </h3>
+<div class="flex p-1 bg-surface-container rounded-full w-fit">
+<button class="px-8 py-3 rounded-full font-label-md text-label-md transition-all bg-secondary text-on-secondary shadow-md" id="delivery-tab" onclick="toggleFulfillment('delivery')">
+                                Delivery
+                            </button>
+<button class="px-8 py-3 rounded-full font-label-md text-label-md transition-all text-on-surface-variant" id="pickup-tab" onclick="toggleFulfillment('pickup')">
+                                Local Pickup
+                            </button>
+</div>
+<div class="mt-8 space-y-4">
+<div class="block" id="delivery-fields">
+<label class="block font-label-md text-label-md mb-2 text-outline">Delivery Address</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">location_on</span>
+<input class="w-full pl-12 pr-4 py-4 rounded-lg bg-surface-container-low border border-outline/10 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Enter your full street address in Accra..." type="text"/>
+</div>
+</div>
+<div class="hidden" id="pickup-fields">
+<label class="block font-label-md text-label-md mb-2 text-outline">Select Apothecary Branch</label>
+<select class="w-full px-4 py-4 rounded-lg bg-surface-container-low border border-outline/10 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
+<option>East Legon - Main Branch</option>
+<option>Osu - Oxford Street Library</option>
+<option>Kumasi - Cultural Center</option>
+</select>
+</div>
+</div>
+</section>
+<!-- Payment Methods -->
+<section class="bg-white rounded-lg p-8 floating-card">
+<h3 class="font-headline-md text-headline-md mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">account_balance_wallet</span>
+                            Payment Method
+                        </h3>
+<div class="grid grid-cols-2 gap-4">
+<button class="payment-btn active flex items-center gap-4 p-4 rounded-lg border-2 border-primary bg-primary/5 transition-all text-left">
+<div class="w-10 h-10 rounded-lg bg-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-primary">smartphone</span>
+</div>
+<div>
+<p class="font-label-md text-label-md">MTN MoMo</p>
+<p class="text-[10px] text-outline">Mobile Money</p>
+</div>
+</button>
+<button class="payment-btn flex items-center gap-4 p-4 rounded-lg border-2 border-transparent bg-surface-container hover:bg-surface-container-high transition-all text-left">
+<div class="w-10 h-10 rounded-lg bg-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-primary">send_to_mobile</span>
+</div>
+<div>
+<p class="font-label-md text-label-md">Vodafone Cash</p>
+<p class="text-[10px] text-outline">Mobile Money</p>
+</div>
+</button>
+<button class="payment-btn flex items-center gap-4 p-4 rounded-lg border-2 border-transparent bg-surface-container hover:bg-surface-container-high transition-all text-left">
+<div class="w-10 h-10 rounded-lg bg-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-primary">account_balance</span>
+</div>
+<div>
+<p class="font-label-md text-label-md">Bank Transfer</p>
+<p class="text-[10px] text-outline">Local Banks</p>
+</div>
+</button>
+<button class="payment-btn flex items-center gap-4 p-4 rounded-lg border-2 border-transparent bg-surface-container hover:bg-surface-container-high transition-all text-left">
+<div class="w-10 h-10 rounded-lg bg-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-primary">credit_card</span>
+</div>
+<div>
+<p class="font-label-md text-label-md">Card Payment</p>
+<p class="text-[10px] text-outline">Visa/Mastercard</p>
+</div>
+</button>
+</div>
+<div class="mt-6 p-4 rounded-lg bg-surface-container-low border border-outline/10 flex items-center gap-4">
+<span class="material-symbols-outlined text-outline">shield</span>
+<p class="text-[12px] text-outline leading-tight">Your payment is secured with industry-standard encryption. We never store your full transaction details.</p>
+</div>
+</section>
+</div>
+<!-- Right Column: Order Summary (Sidebar Lock) -->
+<div class="col-span-12 lg:col-span-5 lg:sticky lg:top-28">
+<div class="bg-white rounded-lg p-8 floating-card">
+<h3 class="font-headline-md text-headline-md mb-6">Order Summary</h3>
+<div class="space-y-6 mb-8">
+<div class="flex gap-4">
+<img class="w-16 h-20 rounded-md object-cover shadow-sm" data-alt="A vintage book cover for 'The Alchemist' by Paulo Coelho, featuring a beautiful golden compass and desert dunes illustration on a textured cream paper background. Soft, warm lighting highlighting the tactile quality of the book." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9lY-Yy2ASMdjc9l7VD8YKgDI-LQuiWz0UL7K0xRX9uG8aeGFrCYQIpQksIXaXBfuafx2zS8QsIIs-PIwlFNjP0bBXc_BEWqLfjPA-xxMKQcPVmkBLUx7QOfJOZ18ZdWfasRz64YmBu6iEpvUMI7UiNQM7umBKwQaUOpXMswTX05PXaJOmTfGN5x63MwvWqfxpZOpm8lxeXYClH_2W8SmOAme2NIEKlAZ3W6rE7c5zoiFBFIM0wrHQYBU4l06PaqvD1FHguBMZpxlO"/>
+<div class="flex-1">
+<p class="font-headline-md text-[16px] leading-tight mb-1">The Alchemist</p>
+<p class="text-xs text-outline mb-2">Paulo Coelho</p>
+<div class="flex justify-between items-center">
+<span class="text-xs font-semibold text-primary">Qty: 1</span>
+<span class="font-price-tag text-price-tag text-secondary">GH₵ 85.00</span>
+</div>
+</div>
+</div>
+<div class="flex gap-4">
+<img class="w-16 h-20 rounded-md object-cover shadow-sm" data-alt="Cover of 'The Great Gatsby' with art-deco gold patterns on a deep navy background. The image should look like a premium hardcover edition with golden foil details, displayed in an elegant bookstore setting with warm wood tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcSAfKp2-mc5pOhMxsB6sTGtf2tStUa_aS2ZK3slt1POWicrXpOIPsW4luo02Dl4Yl-FALBrG4sNOVcgcFo_GomV7n_POoh6j4ZDnqiPYllQVrclS9zoMnAKjl7nAInQnlKlR1s5mjRHRRMAeyi7PcvEUygnn5fALpNvoWf66vx93-L_aaBz3BB_ZUzGME0jezWS41hB9YE7TiG60pJYkmabKlRH8cE9LqiE3FhiU1cdJO9ABZs3YWWZL2EJpjxvdAvyDQY8OToz1I"/>
+<div class="flex-1">
+<p class="font-headline-md text-[16px] leading-tight mb-1">The Great Gatsby</p>
+<p class="text-xs text-outline mb-2">F. Scott Fitzgerald</p>
+<div class="flex justify-between items-center">
+<span class="text-xs font-semibold text-primary">Qty: 2</span>
+<span class="font-price-tag text-price-tag text-secondary">GH₵ 120.00</span>
+</div>
+</div>
+</div>
+</div>
+<div class="border-t border-outline/10 py-6 space-y-3">
+<div class="flex justify-between items-center text-outline">
+<span class="font-body-md text-body-md">Subtotal</span>
+<span class="font-price-tag text-price-tag">GH₵ 205.00</span>
+</div>
+<div class="flex justify-between items-center text-outline">
+<span class="font-body-md text-body-md">Delivery Fee</span>
+<span class="font-price-tag text-price-tag">GH₵ 15.00</span>
+</div>
+<div class="flex justify-between items-center pt-4 mt-2 border-t border-outline/10">
+<span class="font-headline-md text-headline-md text-on-surface">Total</span>
+<div class="text-right">
+<span class="font-display-lg text-[28px] text-secondary">GH₵ 220.00</span>
+<p class="text-[10px] text-outline uppercase tracking-widest">Inc. all taxes</p>
+</div>
+</div>
+</div>
+<button class="w-full py-5 bg-secondary text-on-secondary rounded-full font-headline-md text-[20px] hover:scale-[1.02] transition-transform shadow-lg shadow-secondary/20 flex items-center justify-center gap-3 active:scale-95">
+                            Place Order
+                            <span class="material-symbols-outlined">receipt_long</span>
+</button>
+<div class="mt-6 flex items-center justify-center gap-2 text-outline">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+<span class="text-[12px] font-medium">100% Satisfaction Guarantee</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        function toggleFulfillment(type) {
+            const deliveryTab = document.getElementById('delivery-tab');
+            const pickupTab = document.getElementById('pickup-tab');
+            const deliveryFields = document.getElementById('delivery-fields');
+            const pickupFields = document.getElementById('pickup-fields');
+
+            if (type === 'delivery') {
+                deliveryTab.classList.add('bg-secondary', 'text-on-secondary', 'shadow-md');
+                deliveryTab.classList.remove('text-on-surface-variant');
+                pickupTab.classList.remove('bg-secondary', 'text-on-secondary', 'shadow-md');
+                pickupTab.classList.add('text-on-surface-variant');
+                
+                deliveryFields.classList.remove('hidden');
+                pickupFields.classList.add('hidden');
+            } else {
+                pickupTab.classList.add('bg-secondary', 'text-on-secondary', 'shadow-md');
+                pickupTab.classList.remove('text-on-surface-variant');
+                deliveryTab.classList.remove('bg-secondary', 'text-on-secondary', 'shadow-md');
+                deliveryTab.classList.add('text-on-surface-variant');
+                
+                pickupFields.classList.remove('hidden');
+                deliveryFields.classList.add('hidden');
+            }
+        }
+
+        // Payment button logic
+        const paymentBtns = document.querySelectorAll('.payment-btn');
+        paymentBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                paymentBtns.forEach(b => {
+                    b.classList.remove('border-primary', 'bg-primary/5', 'active');
+                    b.classList.add('border-transparent', 'bg-surface-container');
+                });
+                btn.classList.add('border-primary', 'bg-primary/5', 'active');
+                btn.classList.remove('border-transparent', 'bg-surface-container');
+            });
+        });
+    </script>
+</body></html>

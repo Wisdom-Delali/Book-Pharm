@@ -1,0 +1,17 @@
+{% if page_obj.paginator.num_pages > 1 %}
+<div class="pagination">
+  <p class="text-muted">Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ page_obj.paginator.count }} books)</p>
+  <div class="pagination__controls">
+    {% if page_obj.has_previous %}
+    <button class="btn btn--secondary" hx-get="{% url 'portal:book_list' %}?page={{ page_obj.previous_page_number }}&q={{ query }}&category={{ selected_category }}{% if low_stock_only %}&low_stock=1{% endif %}" hx-target="#catalog-content" hx-swap="outerHTML">Previous</button>
+    {% else %}
+    <button class="btn btn--secondary" disabled>Previous</button>
+    {% endif %}
+    {% if page_obj.has_next %}
+    <button class="btn btn--secondary" hx-get="{% url 'portal:book_list' %}?page={{ page_obj.next_page_number }}&q={{ query }}&category={{ selected_category }}{% if low_stock_only %}&low_stock=1{% endif %}" hx-target="#catalog-content" hx-swap="outerHTML">Next</button>
+    {% else %}
+    <button class="btn btn--secondary" disabled>Next</button>
+    {% endif %}
+  </div>
+</div>
+{% endif %}

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Book Pharm Admin - Dashboard</title>
+<!-- Google Fonts: EB Garamond & Manrope -->
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error-container": "#ffdad6",
+                    "surface-container-high": "#ebe8e1",
+                    "surface-container-low": "#f6f3ec",
+                    "tertiary": "#735c00",
+                    "on-surface": "#1c1c18",
+                    "inverse-primary": "#ffb3b5",
+                    "surface-container-highest": "#e5e2db",
+                    "on-secondary-container": "#795a4c",
+                    "outline-variant": "#e0bfbf",
+                    "inverse-on-surface": "#f3f0ea",
+                    "primary-fixed": "#ffdada",
+                    "surface-variant": "#e5e2db",
+                    "on-surface-variant": "#584141",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed-variant": "#8e0f28",
+                    "surface-bright": "#fcf9f2",
+                    "on-secondary-fixed-variant": "#5c4033",
+                    "on-tertiary-fixed-variant": "#574500",
+                    "on-background": "#1c1c18",
+                    "primary-fixed-dim": "#ffb3b5",
+                    "secondary": "#765749",
+                    "surface": "#fcf9f2",
+                    "tertiary-fixed": "#ffe088",
+                    "inverse-surface": "#31312c",
+                    "on-error": "#ffffff",
+                    "background": "#fcf9f2",
+                    "tertiary-container": "#cca730",
+                    "on-tertiary-container": "#4f3d00",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "primary": "#570013",
+                    "secondary-fixed-dim": "#e6bead",
+                    "primary-container": "#800020",
+                    "surface-tint": "#af2b3e",
+                    "error": "#ba1a1a",
+                    "secondary-fixed": "#ffdbcc",
+                    "on-primary-container": "#ff828a",
+                    "on-primary": "#ffffff",
+                    "surface-dim": "#dcdad3",
+                    "outline": "#8c7071",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-fixed-dim": "#e9c349",
+                    "surface-container": "#f0eee7",
+                    "on-tertiary-fixed": "#241a00",
+                    "on-primary-fixed": "#40000b",
+                    "secondary-container": "#fed4c2",
+                    "on-secondary-fixed": "#2c160b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "card-padding": "24px",
+                    "stack-sm": "8px",
+                    "margin-page": "32px",
+                    "gutter": "24px",
+                    "sidebar-width": "260px",
+                    "stack-md": "16px",
+                    "stack-lg": "32px"
+            },
+            "fontFamily": {
+                    "display-lg": ["EB Garamond"],
+                    "label-md": ["Manrope"],
+                    "body-md": ["Manrope"],
+                    "body-lg": ["Manrope"],
+                    "headline-lg": ["EB Garamond"],
+                    "headline-md": ["EB Garamond"]
+            },
+            "fontSize": {
+                    "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "label-md": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.3", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "1.4", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      body {
+        background-color: #fcf9f2;
+        color: #1c1c18;
+      }
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .card-shadow {
+        box-shadow: 0px 4px 20px rgba(92, 64, 51, 0.06);
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #e5e2db;
+        border-radius: 10px;
+      }
+    </style>
+</head>
+<body class="font-body-md selection:bg-primary-fixed">
+<!-- Sidebar Navigation -->
+<aside class="flex flex-col h-full fixed left-0 top-0 p-stack-md w-[260px] bg-surface-container-low border-r border-outline-variant z-50">
+<div class="mb-10 px-4">
+<h1 class="font-display-lg text-headline-md font-bold text-primary">Book Pharm</h1>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">Admin Portal</p>
+</div>
+<nav class="flex-1 space-y-2">
+<!-- Active Item: Overview -->
+<a class="flex items-center gap-3 px-4 py-3 bg-primary text-on-primary rounded-full shadow-sm transition-all translate-x-1" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-label-md">Overview</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest rounded-full transition-all" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="font-label-md">Inventory</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest rounded-full transition-all" href="#">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="font-label-md">Orders</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest rounded-full transition-all" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md">Customers</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest rounded-full transition-all" href="#">
+<span class="material-symbols-outlined">campaign</span>
+<span class="font-label-md">Marketing</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest rounded-full transition-all" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest rounded-full transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md">Settings</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-outline-variant space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest rounded-full transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md">Help Center</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest rounded-full transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Shell -->
+<main class="ml-[260px] min-h-screen flex flex-col">
+<!-- Top Bar -->
+<header class="flex justify-between items-center px-margin-page py-4 w-full sticky top-0 z-40 bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-4 bg-surface-container-low px-4 py-2 rounded-full border border-outline-variant w-96">
+<span class="material-symbols-outlined text-on-surface-variant">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-md w-full placeholder:text-on-surface-variant" placeholder="Search orders, stock, or reports..." type="text"/>
+</div>
+<div class="flex items-center gap-6">
+<button class="bg-primary text-on-primary px-6 py-2 rounded-full font-label-md hover:opacity-90 active:scale-95 transition-all">
+                    Add Book
+                </button>
+<div class="flex items-center gap-3">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-tertiary rounded-full"></span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a refined woman in her 40s, an apothecary owner with a warm and knowledgeable expression. She wears a cream-colored silk blouse and minimalist jewelry. The lighting is soft and flattering, typical of a high-end editorial portrait, against a blurred background of dark wood bookshelves filled with leather-bound volumes." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUzy0WdoIuhZLtkyQLStK6mPEil_dijOHSBACPdWK3bUR_yfonkR2ubYVRPBThe6uXWYFngwpFb4qPfvG3ms3YF0B2-wveGUWYYGJViEPWbUTI0o6ELDXtnMQqRT2JyQLy3qapBpiYI8Gw6S6_mD7isIyZko2dL089theMCZexJoDyVHstAG8ZdCnMlgZr1idg0eauubKlU42UM03J3IUvLiYq2OXWno_TXj39TAHSN1_TRCmM1Hg0PQrGftAoqsueyLIRdj3EQrA"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="p-margin-page space-y-gutter">
+<!-- Page Header -->
+<div class="flex justify-between items-end">
+<div>
+<h2 class="font-display-lg text-headline-lg text-primary">Overview Dashboard</h2>
+<p class="text-on-surface-variant font-body-md">Good morning, Dr. Aris. Here's what's happening at Book Pharm today.</p>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg font-label-md text-secondary hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-sm">calendar_today</span>
+                        Last 7 Days
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-tertiary text-on-tertiary-container rounded-lg font-label-md shadow-sm hover:opacity-90 transition-colors">
+<span class="material-symbols-outlined text-sm">download</span>
+                        Export Report
+                    </button>
+</div>
+</div>
+<!-- Stats Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Stat Card 1 -->
+<div class="bg-white p-card-padding rounded-xl card-shadow border border-outline-variant group hover:border-tertiary transition-colors">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-surface-container-low rounded-lg text-secondary group-hover:bg-tertiary-fixed transition-colors">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<span class="text-xs font-bold text-tertiary px-2 py-1 bg-tertiary-fixed rounded-full">GOLD TIER</span>
+</div>
+<p class="text-on-surface-variant font-label-md uppercase tracking-wider mb-1">Today's Sales</p>
+<h3 class="font-display-lg text-headline-md text-on-surface">$12,482.00</h3>
+<div class="flex items-center gap-1 text-green-700 text-xs mt-2 font-bold">
+<span class="material-symbols-outlined text-xs">trending_up</span>
+                        +14% from yesterday
+                    </div>
+</div>
+<!-- Stat Card 2 -->
+<div class="bg-white p-card-padding rounded-xl card-shadow border border-outline-variant group hover:border-tertiary transition-colors">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-surface-container-low rounded-lg text-secondary group-hover:bg-tertiary-fixed transition-colors">
+<span class="material-symbols-outlined">shopping_basket</span>
+</div>
+</div>
+<p class="text-on-surface-variant font-label-md uppercase tracking-wider mb-1">Orders This Week</p>
+<h3 class="font-display-lg text-headline-md text-on-surface">1,240</h3>
+<div class="flex items-center gap-1 text-green-700 text-xs mt-2 font-bold">
+<span class="material-symbols-outlined text-xs">trending_up</span>
+                        +5% from last week
+                    </div>
+</div>
+<!-- Stat Card 3 -->
+<div class="bg-white p-card-padding rounded-xl card-shadow border border-outline-variant group hover:border-tertiary transition-colors">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-surface-container-low rounded-lg text-secondary group-hover:bg-tertiary-fixed transition-colors">
+<span class="material-symbols-outlined">percent</span>
+</div>
+</div>
+<p class="text-on-surface-variant font-label-md uppercase tracking-wider mb-1">Profit Margin</p>
+<h3 class="font-display-lg text-headline-md text-on-surface">32.4%</h3>
+<div class="flex items-center gap-1 text-on-surface-variant text-xs mt-2 font-bold">
+<span class="material-symbols-outlined text-xs">horizontal_rule</span>
+                        Stable
+                    </div>
+</div>
+<!-- Stat Card 4 -->
+<div class="bg-white p-card-padding rounded-xl card-shadow border border-outline-variant group hover:border-tertiary transition-colors">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-surface-container-low rounded-lg text-secondary group-hover:bg-tertiary-fixed transition-colors">
+<span class="material-symbols-outlined">warning</span>
+</div>
+</div>
+<p class="text-on-surface-variant font-label-md uppercase tracking-wider mb-1">Low Stock Items</p>
+<h3 class="font-display-lg text-headline-md text-on-surface">18</h3>
+<div class="flex items-center gap-1 text-error text-xs mt-2 font-bold">
+<span class="material-symbols-outlined text-xs">arrow_upward</span>
+                        +4 items since Monday
+                    </div>
+</div>
+</div>
+<!-- Main Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- Sales Trend Chart (Large 2/3) -->
+<div class="lg:col-span-2 bg-white rounded-xl card-shadow border border-outline-variant flex flex-col">
+<div class="p-card-padding flex justify-between items-center border-b border-outline-variant">
+<h4 class="font-headline-md text-primary">Sales Trend Analysis</h4>
+<div class="flex gap-4">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-primary"></span>
+<span class="font-label-md text-on-surface-variant">Revenue</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-secondary"></span>
+<span class="font-label-md text-on-surface-variant">Expenses</span>
+</div>
+</div>
+</div>
+<div class="p-card-padding flex-1 min-h-[350px] relative">
+<!-- Abstract "Chart" using CSS gradients and flex -->
+<div class="absolute inset-0 p-10 flex items-end justify-between gap-4">
+<div class="flex-1 bg-surface-container-high rounded-t-lg transition-all hover:bg-primary-container relative group" style="height: 40%;">
+<div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface px-2 py-1 rounded text-xs">$4k</div>
+</div>
+<div class="flex-1 bg-surface-container-high rounded-t-lg transition-all hover:bg-primary-container relative group" style="height: 65%;">
+<div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface px-2 py-1 rounded text-xs">$6.5k</div>
+</div>
+<div class="flex-1 bg-primary rounded-t-lg transition-all hover:bg-primary-container relative group" style="height: 85%;">
+<div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface px-2 py-1 rounded text-xs">$8.5k</div>
+</div>
+<div class="flex-1 bg-surface-container-high rounded-t-lg transition-all hover:bg-primary-container relative group" style="height: 55%;">
+<div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface px-2 py-1 rounded text-xs">$5.5k</div>
+</div>
+<div class="flex-1 bg-surface-container-high rounded-t-lg transition-all hover:bg-primary-container relative group" style="height: 70%;">
+<div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface px-2 py-1 rounded text-xs">$7k</div>
+</div>
+<div class="flex-1 bg-surface-container-high rounded-t-lg transition-all hover:bg-primary-container relative group" style="height: 95%;">
+<div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface px-2 py-1 rounded text-xs">$9.5k</div>
+</div>
+<div class="flex-1 bg-surface-container-high rounded-t-lg transition-all hover:bg-primary-container relative group" style="height: 60%;">
+<div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface px-2 py-1 rounded text-xs">$6k</div>
+</div>
+</div>
+<div class="absolute bottom-4 left-10 right-10 flex justify-between text-xs font-label-md text-on-surface-variant uppercase">
+<span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+</div>
+</div>
+</div>
+<!-- Low Stock Alerts List (1/3) -->
+<div class="bg-white rounded-xl card-shadow border border-outline-variant flex flex-col h-[450px]">
+<div class="p-card-padding border-b border-outline-variant flex justify-between items-center">
+<h4 class="font-headline-md text-primary">Low Stock Alerts</h4>
+<a class="text-xs font-bold text-secondary uppercase hover:underline" href="#">View All</a>
+</div>
+<div class="overflow-y-auto custom-scrollbar flex-1">
+<div class="divide-y divide-outline-variant">
+<!-- Alert Item -->
+<div class="p-4 flex items-center gap-4 hover:bg-surface-container-low transition-colors group">
+<div class="w-12 h-12 rounded-lg bg-surface border border-outline-variant flex-shrink-0 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A vintage-style illustration of an ancient botanical book cover, featuring delicate hand-painted lavender and eucalyptus on aged parchment. The lighting is warm and golden, reminiscent of a cozy study. High-end editorial aesthetic with sharp focus on the texture of the paper." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBA2fd_KcSfCuEm3vIn2UZe3DVuRJEO2Or3io2iGlEnASduMPfFlbO6Gg6GQRUjcEllV2EHUgNtcOTE6JRvuAgaTc8W8f90wRvAqgkkDCwrQirWANyietxMswscoOrHaWsptJ65FddGFDOKGQZ0BCUUE4zLNbZ9GFEBG6nVHhneQtZxo-GuQj_PvOtFTYYMW_ws6LGQsvUhdNU55BWm1EHvxvy4ol5rsnyKLCKHlcRzb0WHx0v_ohS6B3aQetmoaneVV2CPSqrTXnk"/>
+</div>
+<div class="flex-1">
+<h5 class="font-label-md text-on-surface leading-tight">Materia Medica: Vol II</h5>
+<p class="text-xs text-on-surface-variant">3 units left • Restock ASAP</p>
+</div>
+<span class="px-2 py-1 bg-error-container text-on-error-container text-[10px] font-bold rounded uppercase">Critical</span>
+</div>
+<!-- Alert Item -->
+<div class="p-4 flex items-center gap-4 hover:bg-surface-container-low transition-colors">
+<div class="w-12 h-12 rounded-lg bg-surface border border-outline-variant flex-shrink-0 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A high-resolution photograph of a glass apothecary jar filled with dried medicinal herbs, set against a dark oak wood background. Soft natural light highlights the organic textures of the herbs. The aesthetic is scholarly and grounded, consistent with a premium pharmacy heritage." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCwskWvKR5zgu7uIEyd0WVYaaIQ33ztWA5LH3-hwi-SccXyjiCk1pVEMb0Hloje_j0kAXdFarTEWvHepx1R0NHeuTnXd4fcJYEcdHZfu02p0PoiBA6wUjePpMa6qtSJhocKt-IB6K73GE8Fpr__3o-JS-oxKXu24P4vrno6Uk3krnfsc4ObFM-Ty1Hz2hTiNcXe_3UJU4gtUi1IgWGm3HtdZICYAsqCkLLjZf8rtJmC_BrHQtmpg5FvpQqrY5G_7rTqjnNovtPEA8"/>
+</div>
+<div class="flex-1">
+<h5 class="font-label-md text-on-surface leading-tight">Dried Valerian Root</h5>
+<p class="text-xs text-on-surface-variant">12kg left • Threshold: 15kg</p>
+</div>
+<span class="px-2 py-1 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded uppercase">Medium</span>
+</div>
+<!-- Alert Item -->
+<div class="p-4 flex items-center gap-4 hover:bg-surface-container-low transition-colors">
+<div class="w-12 h-12 rounded-lg bg-surface border border-outline-variant flex-shrink-0 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="The cover of a modern medical journal with clean minimalist typography and a diagram of a molecular structure in deep burgundy tones. The background is a soft ivory. The image conveys a sense of scientific precision and contemporary luxury." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-nQL7jgfMWkfkuyoF3u0PPMy834sp3XhCNbTuD57ddYKYhf63q6--cPY10xd1kLS3qv9r698CGAzgjdioSJrKogLp_GuRkP5WMtFz2Qzjrbyc8-rAHToxu5vwFwUyLMrGt0pZr20bIVHx3LrogjSRuLOUvX-yYJozzbhIwtfUN-_09srVIliSstEXSdhdmN6ogYbtut33A0mgIbIT3gPqokNezrt109bzlD2Or5ffV3PGdnYG-M9pTHTE6iGzrlww8yiRgNKlbxo"/>
+</div>
+<div class="flex-1">
+<h5 class="font-label-md text-on-surface leading-tight">Pharma Quarterly 2024</h5>
+<p class="text-xs text-on-surface-variant">5 copies left</p>
+</div>
+<span class="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[10px] font-bold rounded uppercase">Low</span>
+</div>
+<!-- Alert Item -->
+<div class="p-4 flex items-center gap-4 hover:bg-surface-container-low transition-colors">
+<div class="w-12 h-12 rounded-lg bg-surface border border-outline-variant flex-shrink-0 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A macro shot of handcrafted glass measuring beakers in an old-fashioned laboratory setting. The light is diffused, creating soft reflections on the glass. The mood is peaceful and professional, highlighting artisanal precision." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsVUqTLG8arMsWiiF25K04phpTEq8vpbBkHWh4v1zY9_Te-RLVmt67pqVUOSmnekHeF3RGU7qKO4gpQhYC9EEJ9nTX2z0hTkb3GOR2eIS2CEtMZUOWMpwglF-GHj-08xjg0iJTV93b6OAZqwBOouWBBDm79vUw1cy7TrQqxuzLy4S70OZM9ieGVC_D6lYqF5UB6_bSezhmtmH2ak9HpdCuwXB5tbO5k3tcgFT-NVhnN9sXlqjTHkT6lauxGPSeeFjMOwRqiDenp0o"/>
+</div>
+<div class="flex-1">
+<h5 class="font-label-md text-on-surface leading-tight">Graduated Beaker Set</h5>
+<p class="text-xs text-on-surface-variant">2 sets left</p>
+</div>
+<span class="px-2 py-1 bg-error-container text-on-error-container text-[10px] font-bold rounded uppercase">Critical</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Orders Table (Full Width) -->
+<div class="lg:col-span-3 bg-white rounded-xl card-shadow border border-outline-variant overflow-hidden">
+<div class="p-card-padding border-b border-outline-variant flex justify-between items-center">
+<h4 class="font-headline-md text-primary">Recent Orders</h4>
+<div class="flex gap-2">
+<div class="relative">
+<select class="appearance-none bg-surface-container-low border border-outline-variant rounded-lg px-4 py-1.5 pr-8 text-xs font-label-md text-on-surface focus:ring-primary focus:border-primary">
+<option>Status: All</option>
+<option>Completed</option>
+<option>Pending</option>
+<option>Cancelled</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1.5 text-sm pointer-events-none">expand_more</span>
+</div>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low border-b border-outline-variant">
+<tr>
+<th class="px-card-padding py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Order ID</th>
+<th class="px-card-padding py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Customer</th>
+<th class="px-card-padding py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Date</th>
+<th class="px-card-padding py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Total</th>
+<th class="px-card-padding py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Status</th>
+<th class="px-card-padding py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant font-label-md">
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-card-padding py-4 text-on-surface">#BP-88219</td>
+<td class="px-card-padding py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container text-xs font-bold">EM</div>
+<span>Eleanor Mercer</span>
+</div>
+</td>
+<td class="px-card-padding py-4 text-on-surface-variant">Oct 24, 2023</td>
+<td class="px-card-padding py-4 text-primary font-bold font-display-lg">$245.00</td>
+<td class="px-card-padding py-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase">
+<span class="w-1 h-1 rounded-full bg-green-700"></span> Completed
+                                        </span>
+</td>
+<td class="px-card-padding py-4 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-card-padding py-4 text-on-surface">#BP-88220</td>
+<td class="px-card-padding py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed text-xs font-bold">JB</div>
+<span>Julian Blackwell</span>
+</div>
+</td>
+<td class="px-card-padding py-4 text-on-surface-variant">Oct 24, 2023</td>
+<td class="px-card-padding py-4 text-primary font-bold font-display-lg">$1,120.50</td>
+<td class="px-card-padding py-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 text-[10px] font-bold uppercase">
+<span class="w-1 h-1 rounded-full bg-yellow-700"></span> Pending
+                                        </span>
+</td>
+<td class="px-card-padding py-4 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-card-padding py-4 text-on-surface">#BP-88221</td>
+<td class="px-card-padding py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant text-xs font-bold">SW</div>
+<span>Sophia Wright</span>
+</div>
+</td>
+<td class="px-card-padding py-4 text-on-surface-variant">Oct 23, 2023</td>
+<td class="px-card-padding py-4 text-primary font-bold font-display-lg">$89.00</td>
+<td class="px-card-padding py-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase">
+<span class="w-1 h-1 rounded-full bg-green-700"></span> Completed
+                                        </span>
+</td>
+<td class="px-card-padding py-4 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<footer class="mt-auto p-margin-page text-center border-t border-outline-variant bg-surface-container-low">
+<p class="text-xs text-on-surface-variant font-label-md">© 2024 Book Pharm Administration Portal. Proprietary &amp; Confidential.</p>
+</footer>
+</main>
+<!-- Floating Action Interaction Script -->
+<script>
+        document.querySelectorAll('a, button').forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                // Subtle hover effect logic if needed
+            });
+        });
+        
+        // Simple Chart Animation Simulation
+        const bars = document.querySelectorAll('.group.relative.flex-1');
+        bars.forEach((bar, index) => {
+            const finalHeight = bar.style.height;
+            bar.style.height = '0%';
+            setTimeout(() => {
+                bar.style.transition = 'height 1s cubic-bezier(0.4, 0, 0.2, 1)';
+                bar.style.height = finalHeight;
+            }, 100 + (index * 50));
+        });
+    </script>
+</body></html>

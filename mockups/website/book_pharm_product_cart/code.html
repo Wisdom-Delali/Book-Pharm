@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Book Pharm - Literary Apothecary</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Playfair Display & Inter -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&amp;family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ba1a1a",
+                        "on-surface": "#1c1c18",
+                        "surface": "#fcf9f2",
+                        "surface-dim": "#dcdad3",
+                        "on-surface-variant": "#4d4635",
+                        "tertiary-fixed-dim": "#e7bdb1",
+                        "surface-container": "#f0eee7",
+                        "primary-fixed-dim": "#e9c349",
+                        "outline": "#7f7663",
+                        "on-tertiary-fixed": "#2c160e",
+                        "inverse-primary": "#e9c349",
+                        "outline-variant": "#d0c5af",
+                        "inverse-surface": "#31312c",
+                        "on-primary": "#ffffff",
+                        "on-background": "#1c1c18",
+                        "tertiary-fixed": "#ffdbd0",
+                        "secondary-fixed-dim": "#ffb3b5",
+                        "tertiary-container": "#d2aa9e",
+                        "on-primary-fixed": "#241a00",
+                        "surface-container-high": "#ebe8e1",
+                        "on-tertiary-fixed-variant": "#5d4037",
+                        "surface-bright": "#fcf9f2",
+                        "surface-tint": "#735c00",
+                        "secondary-container": "#fd6673",
+                        "on-primary-container": "#554300",
+                        "background": "#fcf9f2",
+                        "primary-fixed": "#ffe088",
+                        "on-secondary-fixed-variant": "#8e0f28",
+                        "secondary": "#af2b3e",
+                        "on-secondary-fixed": "#40000b",
+                        "on-primary-fixed-variant": "#574500",
+                        "surface-container-highest": "#e5e2db",
+                        "on-tertiary-container": "#5b3e35",
+                        "on-error": "#ffffff",
+                        "primary": "#735c00",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f6f3ec",
+                        "inverse-on-surface": "#f3f0ea",
+                        "tertiary": "#77574d",
+                        "primary-container": "#d4af37",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "surface-variant": "#e5e2db",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#ffdada",
+                        "on-secondary-container": "#680018",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "card-padding": "24px",
+                        "gutter": "24px",
+                        "section-gap": "64px",
+                        "margin-mobile": "20px",
+                        "margin-desktop": "40px",
+                        "container-max": "1440px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Playfair Display"],
+                        "body-md": ["Inter"],
+                        "price-tag": ["Inter"],
+                        "label-md": ["Inter"],
+                        "display-lg": ["Playfair Display"],
+                        "headline-md": ["Playfair Display"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "price-tag": ["16px", {"lineHeight": "1", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        .paper-texture {
+            background-color: #fcf9f2;
+            background-image: radial-gradient(#d0c5af 0.5px, transparent 0.5px);
+            background-size: 24px 24px;
+        }
+
+        .floating-card {
+            box-shadow: 0px 10px 30px rgba(93, 64, 55, 0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .floating-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0px 15px 40px rgba(93, 64, 55, 0.12);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #d0c5af;
+            border-radius: 10px;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        .animate-slide-in {
+            animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+    </style>
+</head>
+<body class="paper-texture min-h-screen text-on-surface overflow-x-hidden">
+<!-- Sidebar Navigation (JSON: SideNavBar) -->
+<aside class="bg-surface dark:bg-surface-dim w-64 h-screen fixed left-0 top-0 overflow-y-auto shadow-sm flex flex-col py-8 px-6 gap-8 z-40 hidden md:flex">
+<div class="flex flex-col gap-1">
+<span class="font-headline-md text-headline-md font-bold text-secondary dark:text-secondary-fixed-dim">Book Pharm</span>
+<span class="font-body-md text-body-md text-on-surface-variant italic">Literary Apothecary</span>
+</div>
+<nav class="flex-1 flex flex-col gap-2">
+<!-- Popular Books is Active for this product view -->
+<a class="bg-secondary dark:bg-secondary-container text-on-secondary dark:text-on-secondary-container rounded-full font-semibold flex items-center gap-3 py-3 px-4 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="trending_up">trending_up</span>
+<span class="font-body-md text-body-md">Popular Books</span>
+</a>
+<a class="text-on-surface-variant dark:text-on-surface hover:bg-surface-variant/20 flex items-center gap-3 py-3 px-4 rounded-full transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="auto_stories">auto_stories</span>
+<span class="font-body-md text-body-md">New Arrivals</span>
+</a>
+<a class="text-on-surface-variant dark:text-on-surface hover:bg-surface-variant/20 flex items-center gap-3 py-3 px-4 rounded-full transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="category">category</span>
+<span class="font-body-md text-body-md">Genres</span>
+</a>
+<a class="text-on-surface-variant dark:text-on-surface hover:bg-surface-variant/20 flex items-center gap-3 py-3 px-4 rounded-full transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="redeem">redeem</span>
+<span class="font-body-md text-body-md">Gifts &amp; Stationery</span>
+</a>
+<a class="text-on-surface-variant dark:text-on-surface hover:bg-surface-variant/20 flex items-center gap-3 py-3 px-4 rounded-full transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="person_search">person_search</span>
+<span class="font-body-md text-body-md">Author Spotlights</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-outline-variant/30">
+<a class="text-on-surface-variant dark:text-on-surface hover:bg-surface-variant/20 flex items-center gap-3 py-3 px-4 rounded-full transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-body-md text-body-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Top Navigation (JSON: TopNavBar) -->
+<header class="bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-xl h-20 fixed top-0 right-0 w-full z-30 flex justify-between items-center pl-72 pr-10 py-4 hidden md:flex">
+<div class="relative w-96 group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl py-2.5 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-secondary/50 font-body-md" placeholder="Search the apothecary..." type="text"/>
+</div>
+<div class="flex items-center gap-6">
+<button class="relative hover:text-primary transition-all p-2 rounded-full hover:bg-surface-variant/20" onclick="toggleCart()">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+<span class="absolute top-0 right-0 bg-secondary text-on-secondary text-[10px] w-4 h-4 flex items-center justify-center rounded-full">3</span>
+</button>
+<button class="hover:text-primary transition-all p-2 rounded-full hover:bg-surface-variant/20">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="flex items-center gap-3 ml-2 cursor-pointer group">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-outline-variant/20 group-hover:border-primary transition-colors">
+<img class="w-full h-full object-cover" data-alt="Close up portrait of a young woman with curly hair wearing elegant tortoise shell glasses, in a brightly lit library setting with warm, golden tones and soft bokeh background of antique book spines." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCr-v21jRgfksYKDogsnFqW7Ft0y034bVLdFLJ1AL4CJflUFGW6TUfSzVHqVdAbv6vV_OfhN0e1vhKpigd8XDwoK5-IwpMcTX6bR1KJkvntNSwsZ7xPJ4yr-INcxL-XPPz0-qMXs3v_cVhA8foo8aF0Ktac7MQCi-pTCfyCkQBBBdoaVms7WUiRT5fNN2_aQsmtqUjfOGxAhOKlAryqQYuVj0I4CyCvU9n-_f3muSuXlITDLWJO8w87U-l_TOKf8ubqTRrBLqk5HDAa"/>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">Ryana</span>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="md:pl-72 pt-24 px-6 md:px-10 pb-20 max-w-[1440px] mx-auto">
+<!-- Breadcrumb & Navigation Action -->
+<div class="flex items-center gap-4 mb-8">
+<button class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm hover:shadow-md transition-all">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<nav class="flex items-center gap-2 font-label-md text-label-md text-on-surface-variant">
+<span>Collections</span>
+<span class="material-symbols-outlined text-[14px]" data-icon="chevron_right">chevron_right</span>
+<span>Philosophy</span>
+<span class="material-symbols-outlined text-[14px]" data-icon="chevron_right">chevron_right</span>
+<span class="text-secondary font-bold">The Art of Stillness</span>
+</nav>
+</div>
+<!-- Product Detail Section -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-section-gap">
+<!-- Left: Book Cover -->
+<div class="lg:col-span-5 relative group">
+<div class="aspect-[3/4] bg-white rounded-lg p-8 floating-card flex items-center justify-center relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-tr from-surface-container/50 to-transparent pointer-events-none"></div>
+<img class="w-full h-full object-cover rounded shadow-2xl transform group-hover:scale-[1.02] transition-transform duration-500" data-alt="A premium hardcover book cover titled 'The Art of Stillness' with minimalist gold foil embossed typography on a deep forest green fabric texture. The book is leaning against a textured cream plaster wall with soft sunlight filtering through a leaf-patterned shadow." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQgoLAjcxW_cTErEbxBU3wO0YevsGdzHrNbf9Y-51Xo4x5BYK8oF2-Ahh61_IHx5Ci_UfkXkixm-PBylyzID8rXMtiq5d6L8LxEkPvystnwEJioYiASBQ1BgU6abeNjAH4SWqVjFqyiZoFVx0PxujA151fifxKzWerNXm6DDEws0AqngoYow9Rfy-Yyqs1bAOCuhkfzrABut8y6qt2sOrDtJP8Jw0Pm8q0xHAEJscdeWRh701BBIv-i2eh-fqsY0T2O0nUbUx9gfrW"/>
+<!-- Floating Price Tag -->
+<div class="absolute top-6 left-6 bg-primary-container text-on-primary-container px-4 py-2 rounded-full font-price-tag text-price-tag shadow-lg">
+                        $34.00
+                    </div>
+<button class="absolute bottom-6 right-6 w-12 h-12 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-secondary hover:bg-secondary hover:text-white transition-all">
+<span class="material-symbols-outlined" data-icon="favorite" data-weight="fill">favorite</span>
+</button>
+</div>
+</div>
+<!-- Right: Details -->
+<div class="lg:col-span-7 flex flex-col justify-center">
+<div class="max-w-xl">
+<span class="inline-block px-3 py-1 bg-secondary/10 text-secondary rounded-full font-label-md text-[12px] mb-4">EDITOR'S CHOICE</span>
+<h1 class="font-display-lg text-display-lg text-on-surface mb-2">The Art of Stillness</h1>
+<p class="font-headline-md text-headline-md text-on-surface-variant italic mb-6">by Elena R. Sterling</p>
+<div class="flex items-center gap-2 mb-8">
+<div class="flex text-primary">
+<span class="material-symbols-outlined" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined" data-icon="star_half">star_half</span>
+</div>
+<span class="font-label-md text-on-surface-variant ml-2">(128 Reviews)</span>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-10 leading-relaxed">
+                        A modern meditation on the necessity of silence in a noisy world. Sterling blends personal narrative with historical analysis of the world's most influential quiet thinkers, offering a prescription for finding your own mental apothecary in the chaos of the digital age.
+                    </p>
+<div class="flex flex-col gap-6">
+<div class="flex items-center gap-8">
+<div class="flex items-center bg-surface-container rounded-full p-1 border border-outline-variant/30">
+<button class="w-10 h-10 flex items-center justify-center hover:bg-white rounded-full transition-colors" onclick="changeQty(-1)">
+<span class="material-symbols-outlined" data-icon="remove">remove</span>
+</button>
+<span class="w-12 text-center font-bold font-price-tag" id="qty">1</span>
+<button class="w-10 h-10 flex items-center justify-center hover:bg-white rounded-full transition-colors" onclick="changeQty(1)">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</div>
+<span class="font-body-md text-on-surface-variant italic">In stock &amp; ready to ship</span>
+</div>
+<div class="flex gap-4">
+<button class="flex-1 bg-secondary text-on-secondary py-5 px-8 rounded-full font-headline-md shadow-lg hover:shadow-secondary/20 hover:scale-[1.01] transition-all flex items-center justify-center gap-3">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+                                Add to Cart
+                            </button>
+<button class="w-20 border-2 border-outline-variant/50 hover:border-secondary rounded-full flex items-center justify-center transition-all group">
+<span class="material-symbols-outlined group-hover:text-secondary transition-colors" data-icon="share">share</span>
+</button>
+</div>
+</div>
+<!-- Features/Badges -->
+<div class="grid grid-cols-3 gap-4 mt-12 pt-12 border-t border-outline-variant/20">
+<div class="flex flex-col items-center text-center gap-2">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="local_shipping">local_shipping</span>
+</div>
+<span class="font-label-md text-label-md">Global Shipping</span>
+</div>
+<div class="flex flex-col items-center text-center gap-2">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="history_edu">history_edu</span>
+</div>
+<span class="font-label-md text-label-md">Signed Edition</span>
+</div>
+<div class="flex flex-col items-center text-center gap-2">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="eco">eco</span>
+</div>
+<span class="font-label-md text-label-md">Sustainable Paper</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- "Customers Also Bought" Section -->
+<section class="mt-section-gap">
+<div class="flex justify-between items-end mb-8">
+<div>
+<h2 class="font-headline-lg text-headline-lg mb-2">Curated Companion Pieces</h2>
+<p class="font-body-md text-on-surface-variant italic">Suggested for your collection</p>
+</div>
+<div class="flex gap-2">
+<button class="w-10 h-10 border border-outline-variant rounded-full flex items-center justify-center hover:bg-secondary hover:text-white transition-all">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="w-10 h-10 border border-outline-variant rounded-full flex items-center justify-center hover:bg-secondary hover:text-white transition-all">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-gutter">
+<!-- Book Card 1 -->
+<div class="bg-white p-4 rounded-lg floating-card relative group cursor-pointer">
+<div class="aspect-[3/4] bg-surface-container rounded-md mb-4 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Book cover for 'Ethereal Echoes' featuring an abstract minimalist painting of soft blue and ochre clouds. Soft lighting, high-end paper texture, clean serif typography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkyNoq5wIEm0keUv8f1TuTvFG8Qz81C6rZ6pe_RSYjOJNEyctF0zXjgAS3hKI91M0gWttgqYmsLJ31_9UjvO0bp_b6kxUotIdA-bYepqEsMXlFthB8etcOXRW_3jDPW3Hoh0Y1buNam0FkbLfMmSQ5-ewwYhBNMANbU4H0Ph-zwPx8fNofp29BsLhXTZibV6dUa5Qh3WIj4mZN8KuKyUPLP-lo9LFjk8fDMyfr9i-uiPhcSiquOIcQF3rWaCo4dTY_W6D5MiZq9cFK"/>
+<div class="absolute top-6 right-6 bg-primary-container/90 backdrop-blur-sm text-on-primary-container px-3 py-1 rounded-full font-price-tag text-xs shadow-md">
+                            $28
+                        </div>
+</div>
+<h3 class="font-headline-md text-[18px] mb-1 line-clamp-1">Ethereal Echoes</h3>
+<p class="font-body-md text-sm text-on-surface-variant italic mb-4">Julianna Vance</p>
+<button class="w-full py-2 border border-secondary text-secondary rounded-full font-label-md hover:bg-secondary hover:text-white transition-colors">Add</button>
+</div>
+<!-- Book Card 2 -->
+<div class="bg-white p-4 rounded-lg floating-card relative group cursor-pointer">
+<div class="aspect-[3/4] bg-surface-container rounded-md mb-4 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Minimalist book cover design for 'Wanderer's Compass' with a simple gold foil line drawing of a stylized mountain and star on a charcoal gray background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLrTZDWgApkH2nbT-n0xU8MijxGRqFf6Iq304u2UHwwWCubcjSfM6ZatfGk8IEe9vxX00Km2i_ayfEp4eMpZLQynaktbYLQSdhufBbiTY4wsgYDyKgaplJdusbswlwpQc1ZQbZHJHShwYX3Al-6FoCWmDOD8C4e8cl3DKl7LYpm5UlpeweRgf6P5WbPwSRBgHRYu4ZxtXK23789Qb6JydWM7uXn_ExaR-WaF_9BiDkNoRRzMocH12IDs1o1NYxdfn6tQrTaQRYiqyq"/>
+<div class="absolute top-6 right-6 bg-primary-container/90 backdrop-blur-sm text-on-primary-container px-3 py-1 rounded-full font-price-tag text-xs shadow-md">
+                            $32
+                        </div>
+</div>
+<h3 class="font-headline-md text-[18px] mb-1 line-clamp-1">Wanderer's Compass</h3>
+<p class="font-body-md text-sm text-on-surface-variant italic mb-4">Marcus Thorne</p>
+<button class="w-full py-2 border border-secondary text-secondary rounded-full font-label-md hover:bg-secondary hover:text-white transition-colors">Add</button>
+</div>
+<!-- Book Card 3 -->
+<div class="bg-white p-4 rounded-lg floating-card relative group cursor-pointer">
+<div class="aspect-[3/4] bg-surface-container rounded-md mb-4 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Classic book jacket design for 'Silent Horizons' using a vintage botanical illustration of a single dried flower on aged parchment paper." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMA3lhfeWbP7t6-kcOilYKVPqItSYzuOSmiyd670_a6XeFFGusHI0mzEhE_U4h8Ixx_an5KUP22lAMLrYR0_KllpAxKLeothmNt6dNEcAblfVFn5AUxjzEYTcUO7VEEUwAL9BzBHjjDNN8TBX56t9qXTndae0n14XvMaM65a4U3WWe567UY4jnPf9Fv7JR0YLX-9bf8x-ucslruJPfCoGJ4di23VspTygnMHHDvuAazasKtx9QS7ABCQBVP_mMh75mOJ1UXYBq27PG"/>
+<div class="absolute top-6 right-6 bg-primary-container/90 backdrop-blur-sm text-on-primary-container px-3 py-1 rounded-full font-price-tag text-xs shadow-md">
+                            $45
+                        </div>
+</div>
+<h3 class="font-headline-md text-[18px] mb-1 line-clamp-1">Silent Horizons</h3>
+<p class="font-body-md text-sm text-on-surface-variant italic mb-4">Dr. Silas Moon</p>
+<button class="w-full py-2 border border-secondary text-secondary rounded-full font-label-md hover:bg-secondary hover:text-white transition-colors">Add</button>
+</div>
+<!-- Book Card 4 -->
+<div class="bg-white p-4 rounded-lg floating-card relative group cursor-pointer">
+<div class="aspect-[3/4] bg-surface-container rounded-md mb-4 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Book cover for 'The Midnight Garden' with dark velvety blue background and gold constellations and flower silhouettes." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSaqESN4PyxIjEveOpXfXm0J2RKjzRlltWHJQrun2SXt52xSs4my-Qf4rYAzo52kQuZSB7FEhXheZCHOmVy3GJ5NaJm1CUyZdUEZgvWCOMDCzfPzCZ1Iv1zU9HOUEm4C0T998CeBEFy9sRWm00dXzrgGdq0YT0ene5cLUi-81IVr7tfJYJiq8ThfzGNvtE0vA0DISy_Knqhxa-uz2zhun0-E38aPVgrZg_xOfS0VmSVCVAmvZ3ljiHhP56VNZxx6BeiJt-NoWB1r1f"/>
+<div class="absolute top-6 right-6 bg-primary-container/90 backdrop-blur-sm text-on-primary-container px-3 py-1 rounded-full font-price-tag text-xs shadow-md">
+                            $30
+                        </div>
+</div>
+<h3 class="font-headline-md text-[18px] mb-1 line-clamp-1">The Midnight Garden</h3>
+<p class="font-body-md text-sm text-on-surface-variant italic mb-4">Evelyn Rose</p>
+<button class="w-full py-2 border border-secondary text-secondary rounded-full font-label-md hover:bg-secondary hover:text-white transition-colors">Add</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Cart Drawer (Overlay) -->
+<div class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 transition-opacity duration-300 opacity-0 pointer-events-none" id="cart-overlay" onclick="toggleCart()">
+<div class="absolute right-0 top-0 h-full w-full max-w-md bg-surface shadow-2xl flex flex-col translate-x-full transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" id="cart-drawer" onclick="event.stopPropagation()">
+<div class="p-8 flex justify-between items-center border-b border-outline-variant/20">
+<h2 class="font-headline-md text-headline-md">Your Curated Collection</h2>
+<button class="w-10 h-10 rounded-full hover:bg-surface-container flex items-center justify-center" onclick="toggleCart()">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto p-8 flex flex-col gap-8 custom-scrollbar">
+<!-- Cart Item 1 -->
+<div class="flex gap-4 group">
+<div class="w-20 h-28 bg-surface-container rounded-md overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Small thumbnail of 'The Art of Stillness' book cover showing forest green fabric and gold foil text." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDivThUEdSrUS7sgGRmvMFFOHcmkNk2LFbY3TtEuUIgkWmmY-2XkIb31JKOLAIpEoZxXTLiG6q194_baRTmp1v4_CgeXw6gF8I8wIdrFmbZGWW8p1TQy41RFhpP2_9ypH2PsUozdvBYw3f1u73qGHIsQutnyP473KJLDq46b67IfvyT9LX5-NwshHazVnsAwjDf86_xD9wRsoTg3U0lGi_WcD1SfRLW-t8BHqlNyQtyZ2q-Pcr-swCTxAIcvfl7GqEa1a76ZqwxrFVP"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between mb-1">
+<h3 class="font-body-md font-bold text-on-surface">The Art of Stillness</h3>
+<button class="text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="delete">delete</span>
+</button>
+</div>
+<p class="font-body-md text-sm text-on-surface-variant italic mb-3">Elena R. Sterling</p>
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-3 bg-surface-container-low rounded-full px-2 py-1">
+<button class="w-6 h-6 flex items-center justify-center hover:bg-white rounded-full"><span class="material-symbols-outlined text-sm" data-icon="remove">remove</span></button>
+<span class="font-price-tag text-xs">1</span>
+<button class="w-6 h-6 flex items-center justify-center hover:bg-white rounded-full"><span class="material-symbols-outlined text-sm" data-icon="add">add</span></button>
+</div>
+<span class="font-price-tag text-secondary">$34.00</span>
+</div>
+</div>
+</div>
+<!-- Cart Item 2 -->
+<div class="flex gap-4 group">
+<div class="w-20 h-28 bg-surface-container rounded-md overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Small thumbnail of 'Silent Horizons' book cover with vintage botanical art." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzDLqCcTX2uBVL3PDfgJpQF0-sjC1d4o-mJV_pVNle2marwcw7ZYhCmcUTJZlztws4Qy-bpJ9p22G49PbMrSsd8dazbYKcDCz8SfiA6Wb-OiN23b8HItN8LdoDPrcH7E3a0i1SnC71KQOI9EV9S9tgS8QNSVfGkPzXUEGnoaiTAgYWMOSZBhD5HYpOSAMRP8NYNGvDTUtbDD5YwNzc9dLnfW6pYMMi19bnrELA_CgUHLgBnPMaYKJ_B5Q1c--qt0LNspmKWOBDaAA3"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between mb-1">
+<h3 class="font-body-md font-bold text-on-surface">Silent Horizons</h3>
+<button class="text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="delete">delete</span>
+</button>
+</div>
+<p class="font-body-md text-sm text-on-surface-variant italic mb-3">Dr. Silas Moon</p>
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-3 bg-surface-container-low rounded-full px-2 py-1">
+<button class="w-6 h-6 flex items-center justify-center hover:bg-white rounded-full"><span class="material-symbols-outlined text-sm" data-icon="remove">remove</span></button>
+<span class="font-price-tag text-xs">1</span>
+<button class="w-6 h-6 flex items-center justify-center hover:bg-white rounded-full"><span class="material-symbols-outlined text-sm" data-icon="add">add</span></button>
+</div>
+<span class="font-price-tag text-secondary">$45.00</span>
+</div>
+</div>
+</div>
+<!-- Promotional Banner in Cart -->
+<div class="bg-primary-fixed/30 rounded-lg p-6 flex flex-col gap-2">
+<span class="font-label-md text-on-primary-container">APOTHECARY GIFT</span>
+<p class="font-body-md text-sm text-on-primary-container">Add one more item to unlock free shipping on this order.</p>
+</div>
+</div>
+<div class="p-8 border-t border-outline-variant/20 bg-surface-container-lowest">
+<div class="flex justify-between mb-2">
+<span class="font-body-md text-on-surface-variant">Subtotal</span>
+<span class="font-price-tag">$79.00</span>
+</div>
+<div class="flex justify-between mb-6">
+<span class="font-body-md text-on-surface-variant">Shipping</span>
+<span class="font-body-md italic text-primary">Calculated at checkout</span>
+</div>
+<button class="w-full bg-primary-container text-on-primary-container py-4 rounded-full font-headline-md shadow-lg hover:shadow-primary-container/30 transition-all flex items-center justify-center gap-2 group">
+                    Go to Checkout
+                    <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Mobile Navigation Bar -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.05)] h-16 flex items-center justify-around z-40">
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="text-[10px] font-label-md">Home</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-secondary">
+<span class="material-symbols-outlined" data-icon="auto_stories" data-weight="fill">auto_stories</span>
+<span class="text-[10px] font-label-md">Books</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span class="text-[10px] font-label-md">Search</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant" onclick="toggleCart()">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+<span class="text-[10px] font-label-md">Cart</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-[10px] font-label-md">Profile</span>
+</button>
+</nav>
+<script>
+        function changeQty(delta) {
+            const qtyEl = document.getElementById('qty');
+            let current = parseInt(qtyEl.innerText);
+            current = Math.max(1, current + delta);
+            qtyEl.innerText = current;
+        }
+
+        function toggleCart() {
+            const overlay = document.getElementById('cart-overlay');
+            const drawer = document.getElementById('cart-drawer');
+            
+            if (overlay.classList.contains('pointer-events-none')) {
+                overlay.classList.remove('pointer-events-none', 'opacity-0');
+                overlay.classList.add('opacity-100');
+                drawer.classList.remove('translate-x-full');
+            } else {
+                overlay.classList.add('pointer-events-none', 'opacity-0');
+                overlay.classList.remove('opacity-100');
+                drawer.classList.add('translate-x-full');
+            }
+        }
+
+        // Add a subtle paper grain parallax or interactivity
+        document.addEventListener('mousemove', (e) => {
+            const amount = 5;
+            const x = (e.clientX / window.innerWidth - 0.5) * amount;
+            const y = (e.clientY / window.innerHeight - 0.5) * amount;
+            // Subtle motion for the background if desired
+            // document.body.style.backgroundPosition = `${x}px ${y}px`;
+        });
+    </script>
+</body></html>

@@ -1,0 +1,57 @@
+<div id="discount-content">
+  <header class="portal-page-header">
+    <div>
+      <h1>Discount Rules</h1>
+      <p class="text-muted">Percentage or fixed-amount discounts, applied automatically at checkout.</p>
+    </div>
+    <button class="btn btn--primary" hx-get="{% url 'portal:discount_create' %}" hx-target="#discount-content" hx-swap="outerHTML">
+      + Add Discount Rule
+    </button>
+  </header>
+
+  <div class="card catalog-table-card">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th class="text-right">Value</th>
+          <th>Scope</th>
+          <th>Applies to</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rule in rules %}
+        <tr>
+          <td><strong>{{ rule.name }}</strong></td>
+          <td>{{ rule.get_discount_type_display }}</td>
+          <td class="text-right">{% if rule.discount_type == 'PERCENT' %}{{ rule.value }}%{% else %}GHS {{ rule.value }}{% endif %}</td>
+          <td><span class="badge">{{ rule.get_scope_display }}</span></td>
+          <td class="text-muted">
+            {% if rule.scope == 'CATEGORY' %}{{ rule.category }}
+            {% elif rule.scope == 'BOOK' %}{{ rule.book }}
+            {% else %}All books{% endif %}
+          </td>
+          <td>
+            {% if rule.is_active %}<span class="badge badge--ok">Active</span>{% else %}<span class="badge">Inactive</span>{% endif %}
+          </td>
+          <td class="text-right">
+            <button class="btn btn--secondary" hx-get="{% url 'portal:discount_update' rule.pk %}" hx-target="#discount-content" hx-swap="outerHTML">Edit</button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-muted">No discount rules yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if panel_open %}
+  <div class="panel-backdrop" hx-get="{% url 'portal:discount_list' %}" hx-target="#discount-content" hx-swap="outerHTML"></div>
+  <aside class="panel">
+    {% include 'portal/discounts/_form.html' %}
+  </aside>
+  {% endif %}
+</div>

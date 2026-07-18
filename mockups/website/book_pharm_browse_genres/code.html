@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Book Pharm - Explore Literary Apothecary</title>
+<!-- Tailwind & Google Fonts -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ba1a1a",
+                        "on-surface": "#1c1c18",
+                        "surface": "#fcf9f2",
+                        "surface-dim": "#dcdad3",
+                        "on-surface-variant": "#4d4635",
+                        "tertiary-fixed-dim": "#e7bdb1",
+                        "surface-container": "#f0eee7",
+                        "primary-fixed-dim": "#e9c349",
+                        "outline": "#7f7663",
+                        "on-tertiary-fixed": "#2c160e",
+                        "inverse-primary": "#e9c349",
+                        "outline-variant": "#d0c5af",
+                        "inverse-surface": "#31312c",
+                        "on-primary": "#ffffff",
+                        "on-background": "#1c1c18",
+                        "tertiary-fixed": "#ffdbd0",
+                        "secondary-fixed-dim": "#ffb3b5",
+                        "tertiary-container": "#d2aa9e",
+                        "on-primary-fixed": "#241a00",
+                        "surface-container-high": "#ebe8e1",
+                        "on-tertiary-fixed-variant": "#5d4037",
+                        "surface-bright": "#fcf9f2",
+                        "surface-tint": "#735c00",
+                        "secondary-container": "#fd6673",
+                        "on-primary-container": "#554300",
+                        "background": "#fcf9f2",
+                        "primary-fixed": "#ffe088",
+                        "on-secondary-fixed-variant": "#8e0f28",
+                        "secondary": "#af2b3e",
+                        "on-secondary-fixed": "#40000b",
+                        "on-primary-fixed-variant": "#574500",
+                        "surface-container-highest": "#e5e2db",
+                        "on-tertiary-container": "#5b3e35",
+                        "on-error": "#ffffff",
+                        "primary": "#735c00",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f6f3ec",
+                        "inverse-on-surface": "#f3f0ea",
+                        "tertiary": "#77574d",
+                        "primary-container": "#d4af37",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "surface-variant": "#e5e2db",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#ffdada",
+                        "on-secondary-container": "#680018",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "card-padding": "24px",
+                        "gutter": "24px",
+                        "section-gap": "64px",
+                        "margin-mobile": "20px",
+                        "margin-desktop": "40px",
+                        "container-max": "1440px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Playfair Display"],
+                        "body-md": ["Inter"],
+                        "price-tag": ["Inter"],
+                        "label-md": ["Inter"],
+                        "display-lg": ["Playfair Display"],
+                        "headline-md": ["Playfair Display"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "price-tag": ["16px", {"lineHeight": "1", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #fcf9f2;
+            background-image: radial-gradient(#d0c5af 0.5px, transparent 0.5px);
+            background-size: 24px 24px;
+        }
+        .glass-nav {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .active-nav-pill {
+            background-color: #af2b3e; /* Deep Burgundy */
+            color: #ffffff;
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0px 20px 40px rgba(93, 64, 55, 0.12);
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-surface overflow-x-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 h-screen fixed left-0 top-0 overflow-y-auto bg-surface/80 glass-nav shadow-sm flex flex-col py-8 px-6 gap-8 z-50">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center text-on-secondary">
+<span class="material-symbols-outlined">auto_stories</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md font-bold text-secondary">Book Pharm</span>
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold opacity-60">Literary Apothecary</span>
+</div>
+</div>
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/20 rounded-full transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">trending_up</span>
+<span class="font-body-md">Popular Books</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-secondary text-on-secondary rounded-full font-semibold shadow-md" href="#">
+<span class="material-symbols-outlined">auto_stories</span>
+<span class="font-body-md">New Arrivals</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/20 rounded-full transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">category</span>
+<span class="font-body-md">Genres</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/20 rounded-full transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">redeem</span>
+<span class="font-body-md">Gifts &amp; Stationery</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/20 rounded-full transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">person_search</span>
+<span class="font-body-md">Author Spotlights</span>
+</a>
+</nav>
+<div class="mt-auto pt-8 border-t border-outline-variant/30">
+<div class="px-4 py-2 mb-4 bg-surface-container rounded-2xl flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A portrait photo of a sophisticated young woman with glasses, representing a curated reader avatar. She is in a softly lit personal library with mahogany shelves and vintage books in the background. High-end, warm lighting creates a welcoming, intellectual atmosphere with a cinematic shallow depth of field." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwPXWOe7aADFsakWQdamKG_iRM2dXNaI-TisSinAfP13glRlx6RKwqEW2_6bFemD_5fO1Ru8_BYwGYLqvL4Zxd_upULQOlfDHpbYrtshs4Sg1hAMgyIx7rl245YZquku-tT6q8npwra9Oer7ktLz4OuqkpTRvsYhbE2D1KQFx_fVz29rtuV_-dIIN6qVP0FP8B35ruetL2mHGlv-SH6mtriw6Lv5GYOQKDj38qS8EqafotAxDTQLrxAM5IwqpBvM-RU9cTGZSELps3"/>
+</div>
+<div class="flex flex-col">
+<span class="text-[12px] font-bold">Lydia Thorne</span>
+<span class="text-[10px] text-on-surface-variant opacity-70">Gold Member</span>
+</div>
+</div>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-error/10 hover:text-error rounded-full transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-body-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen">
+<!-- Top Navigation -->
+<header class="h-20 flex justify-between items-center w-full pl-8 pr-10 py-4 bg-surface/40 glass-nav sticky top-0 z-40">
+<div class="flex-1 max-w-xl">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant opacity-50 group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all font-body-md text-on-surface-variant" placeholder="Search literary cures, authors, or genres..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6 ml-8">
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="text-label-md font-bold text-secondary">37</span>
+<span class="text-label-md opacity-60">Reserved</span>
+</div>
+<button class="relative p-2 text-on-surface-variant hover:bg-surface-variant/30 rounded-full transition-all">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-secondary rounded-full"></span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 bg-white shadow-sm border border-outline-variant/20 rounded-full hover:shadow-md transition-all">
+<span class="material-symbols-outlined text-primary">shopping_cart</span>
+<span class="font-label-md font-bold">Cart (2)</span>
+</button>
+</div>
+</header>
+<!-- Content -->
+<div class="p-10 max-w-[1400px] mx-auto space-y-10">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<h1 class="font-display-lg text-display-lg text-on-surface mb-4">Explore</h1>
+<div class="flex flex-wrap gap-2">
+<button class="px-6 py-2 bg-secondary text-on-secondary rounded-full font-label-md shadow-lg shadow-secondary/20 transition-transform active:scale-95">All Collections</button>
+<button class="px-6 py-2 bg-white text-on-surface-variant border border-outline-variant/30 rounded-full font-label-md hover:bg-surface-container transition-all">Fiction</button>
+<button class="px-6 py-2 bg-white text-on-surface-variant border border-outline-variant/30 rounded-full font-label-md hover:bg-surface-container transition-all">Non-Fiction</button>
+<button class="px-6 py-2 bg-white text-on-surface-variant border border-outline-variant/30 rounded-full font-label-md hover:bg-surface-container transition-all">Children's</button>
+<button class="px-6 py-2 bg-white text-on-surface-variant border border-outline-variant/30 rounded-full font-label-md hover:bg-surface-container transition-all">Academic</button>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-5 py-2.5 bg-white border border-outline-variant/40 rounded-xl font-label-md hover:bg-surface-container transition-all shadow-sm">
+<span class="material-symbols-outlined text-[20px]">filter_list</span>
+                        Filters
+                    </button>
+<div class="h-10 w-[1px] bg-outline-variant/30"></div>
+<div class="flex bg-surface-container-high rounded-xl p-1">
+<button class="p-2 bg-white rounded-lg shadow-sm text-secondary">
+<span class="material-symbols-outlined">grid_view</span>
+</button>
+<button class="p-2 text-on-surface-variant opacity-50">
+<span class="material-symbols-outlined">view_agenda</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Bento Featured Grid (Hero Section) -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-6 h-[400px]">
+<div class="md:col-span-8 relative rounded-lg overflow-hidden group">
+<img class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A moody, atmospheric editorial photograph of a vintage library table at dusk. On the table sits a stack of leather-bound books, a small ceramic vase with dried wildflowers, and a pair of tortoiseshell reading glasses. The lighting is warm and golden, filtering through a nearby window. The color palette features deep browns, warm creams, and rich ochre, evoking a sense of timeless intellectual comfort." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIdWH2me67AlmP8CKLRRXIhJh6Np-51BzGuSPU6H7tqCs6ZNRO_dl3_zVxeT1MSTUTVZOcWMTF35rKgHvHqw_d0HBpj2GAULSFq8Bwpa30-1GLZP0tCE2Xz417wyqFOvL0Es_5r7MVlBnErp7J_2olSenImtEX5jZdUallxIKEPJkcg-YUDZnG5_Uu12lJZJYYdYHG1KoI69z4pFEAO88ZhI3LMQenoX7XC3lGjXTVX1tJHPml1tSCEWxTueMko4HnNA_ANivPNtEB"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-10">
+<span class="text-primary-fixed font-label-md mb-2 uppercase tracking-widest">Seasonal Cures</span>
+<h2 class="font-display-lg text-white text-[42px] leading-tight mb-4 max-w-xl">GET UP TO 50% OFF<br/>The Classics Collection</h2>
+<div>
+<button class="bg-primary-container text-on-primary-container px-8 py-3 rounded-full font-bold shadow-xl hover:bg-primary-fixed transition-all">Get Discount</button>
+</div>
+</div>
+</div>
+<div class="md:col-span-4 bg-[#f9e9be] rounded-lg p-8 flex flex-col relative overflow-hidden group">
+<div class="relative z-10 h-full flex flex-col">
+<h3 class="font-headline-lg text-on-surface-variant leading-snug">Winter's weekend<br/><span class="opacity-60 italic font-normal text-body-lg">Keep it casual</span></h3>
+<div class="mt-auto">
+<button class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-on-surface hover:bg-secondary hover:text-white transition-all duration-300">
+<span class="material-symbols-outlined">north_east</span>
+</button>
+</div>
+</div>
+<div class="absolute bottom-[-10%] right-[-10%] w-64 h-64 opacity-90 group-hover:scale-110 transition-transform duration-500">
+<img class="w-full h-full object-contain" data-alt="A serene, high-fashion portrait of a woman with closed eyes, feeling the warmth of a soft winter sun. Her skin is glowing against a backdrop of soft yellow and beige. The style is minimalist and clean, representing the feeling of a quiet weekend reading by the fire. Elegant, airy, and contemporary aesthetics with soft focus." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYEMoNGx-YT-wIPyPBSyUDiC5osX6YTrR3vnGOKHKU8uBLfEjDzt7P-XqbWsqr9ab3HSvTOLle48i6p9uFx0vvtF4roc24yVX0X-iGlVC95edAD6uLaXaRew5zk4aZ9Bx7-zYQI84D22tUC_eAvgCk4CuowbB0UJ0VdGZ9lrYsHLFysKf8WNr8XGwCNQZx-77-Yz_ouHVJ5RlM_87U3g2zeZqEvqXW1cbs2RigY-pSIxzY2IhkvGU_L7PllPJrzQPhn-OlUkC9N8Zn"/>
+</div>
+</div>
+</section>
+<!-- Main Product Grid -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+<!-- Book Card 1 -->
+<div class="flex flex-col group cursor-pointer">
+<div class="relative aspect-[3/4] bg-white rounded-lg p-4 shadow-[0px_10px_30px_rgba(93,64,55,0.08)] transition-all duration-300 card-hover flex items-center justify-center">
+<div class="absolute top-4 right-4 z-10">
+<button class="w-10 h-10 bg-white/80 backdrop-blur-md rounded-full shadow-sm flex items-center justify-center text-on-surface-variant hover:text-secondary transition-colors">
+<span class="material-symbols-outlined text-[20px]">favorite</span>
+</button>
+</div>
+<img class="w-full h-full object-contain shadow-2xl rounded-sm" data-alt="Professional studio photograph of a book cover titled 'The Midnight Apothecary'. The cover art is deep burgundy with gold foil botanical illustrations of medicinal herbs. The book stands upright at a slight angle, showing its thick quality paper edges. Lighting is high-end studio lighting with soft shadows, set against a neutral cream background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA59p61eVMg1HN3jepRBpsINP3JmzY9Vq8QnVBwOedKsDiLdPWPy0fYJYaGwtqNRFjWgljwUWW7hAUS1rSA05YE6C02F6ywqGEuH7eXCsvU9L_mY6X1f5pwqGEc9z3tPAg5aPUidFqa1kd8WIHR8c7JIDiSIUsWaXIUBwmxF7kjIST3-FQgkT5JPuP1Ms3AwwgI6ypPPDTpnDpWZkIsK3efb0_Y6il_hZfk_8XGuf_AcZuK_0HA7Uz-bYwGJf0qZvAzar0VhbKnhWy9"/>
+<div class="absolute bottom-6 right-6">
+<div class="bg-primary px-4 py-2 rounded-full text-white font-price-tag shadow-lg shadow-primary/30">$36</div>
+</div>
+</div>
+<div class="mt-4 flex flex-col gap-1">
+<div class="flex items-center gap-1 text-secondary mb-1">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]">star</span>
+<span class="text-label-md text-on-surface-variant ml-1 font-bold">4.8</span>
+</div>
+<h4 class="font-headline-md text-headline-md group-hover:text-secondary transition-colors">The Midnight Apothecary</h4>
+<p class="text-body-md text-on-surface-variant opacity-70">Eleanor P. Vance</p>
+</div>
+</div>
+<!-- Book Card 2 -->
+<div class="flex flex-col group cursor-pointer">
+<div class="relative aspect-[3/4] bg-white rounded-lg p-4 shadow-[0px_10px_30px_rgba(93,64,55,0.08)] transition-all duration-300 card-hover flex items-center justify-center">
+<div class="absolute top-4 right-4 z-10">
+<button class="w-10 h-10 bg-white/80 backdrop-blur-md rounded-full shadow-sm flex items-center justify-center text-on-surface-variant hover:text-secondary transition-colors">
+<span class="material-symbols-outlined text-[20px]">favorite</span>
+</button>
+</div>
+<img class="w-full h-full object-contain shadow-2xl rounded-sm" data-alt="High-resolution book cover design for a novel titled 'Echoes of Silence'. The design features a minimalist, abstract landscape in soft pastel blues and muted oranges. The typography is elegant and serif. The book is presented in a premium lifestyle mock-up with a soft linen texture on the cover, evoking a sense of calm and literary depth." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUlsBHHexj531r2layGcw6gJtjXHVh-54Y3vvejl1QbW9zHnxFcC-DyD_UhUkRGl4Ub3Bfek-llb6AMmqbRZP3QaitL6u_30kzh9MF0PI3WR-ylhxdixT28_md3lvwE3j95tbyc2cOtktuk3UQ32-6dfcnEcfw-WJBDOWWujByUel0FujpxBzMfBkJWXKtytxff3ejLjZ7VubRIxLl-3vwWR851Lqf35KVbpkj90UhiNd0hd-rKr8JHYoH7IVkaErqIXsEF7B6BTDi"/>
+<div class="absolute bottom-6 right-6">
+<div class="bg-primary px-4 py-2 rounded-full text-white font-price-tag shadow-lg shadow-primary/30">$42</div>
+</div>
+</div>
+<div class="mt-4 flex flex-col gap-1">
+<div class="flex items-center gap-1 text-secondary mb-1">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-label-md text-on-surface-variant ml-1 font-bold">5.0</span>
+</div>
+<h4 class="font-headline-md text-headline-md group-hover:text-secondary transition-colors">Echoes of Silence</h4>
+<p class="text-body-md text-on-surface-variant opacity-70">Julian Sterling</p>
+</div>
+</div>
+<!-- Book Card 3 -->
+<div class="flex flex-col group cursor-pointer">
+<div class="relative aspect-[3/4] bg-white rounded-lg p-4 shadow-[0px_10px_30px_rgba(93,64,55,0.08)] transition-all duration-300 card-hover flex items-center justify-center">
+<div class="absolute top-4 right-4 z-10">
+<button class="w-10 h-10 bg-white/80 backdrop-blur-md rounded-full shadow-sm flex items-center justify-center text-secondary transition-colors">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+</div>
+<img class="w-full h-full object-contain shadow-2xl rounded-sm" data-alt="An artistic book cover for a non-fiction title 'Garden of the Mind'. The imagery features a modern surrealist collage of human silhouettes and flourishing botanical gardens. Bright, punchy colors are used against a clean white background. Premium matte finish texture. The book is angled to show the spine details and paper quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgAQg7l4heqRLyNtJ8fyt61ieI5dp514VQiQcX-S0LFgUpd07TMG0Eog18PGhsz9-y4f1KV8AHlgPV23AGiJyW0fGL9DttjRj5ZKlD2MbRhkxoClp1MyA70g2rWQU5KNODLj6tO12m833t3UhRwaoKAbfc-2ROk9TqnpO4mYL-SV1ZmT280g8NpRiaV6KoyW8J5S4pJJDFuLmbn6mKiDDEbpNlPaxSfegzySKy7tK7DJg_dPmehwQAL_uMDDF0M3IVuACERE9g3QZo"/>
+<div class="absolute bottom-6 right-6">
+<div class="bg-primary px-4 py-2 rounded-full text-white font-price-tag shadow-lg shadow-primary/30">$29</div>
+</div>
+</div>
+<div class="mt-4 flex flex-col gap-1">
+<div class="flex items-center gap-1 text-secondary mb-1">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]">star</span>
+<span class="text-label-md text-on-surface-variant ml-1 font-bold">4.2</span>
+</div>
+<h4 class="font-headline-md text-headline-md group-hover:text-secondary transition-colors">Garden of the Mind</h4>
+<p class="text-body-md text-on-surface-variant opacity-70">Dr. Sarah Ardent</p>
+</div>
+</div>
+<!-- Book Card 4 -->
+<div class="flex flex-col group cursor-pointer">
+<div class="relative aspect-[3/4] bg-white rounded-lg p-4 shadow-[0px_10px_30px_rgba(93,64,55,0.08)] transition-all duration-300 card-hover flex items-center justify-center">
+<div class="absolute top-4 right-4 z-10">
+<button class="w-10 h-10 bg-white/80 backdrop-blur-md rounded-full shadow-sm flex items-center justify-center text-on-surface-variant hover:text-secondary transition-colors">
+<span class="material-symbols-outlined text-[20px]">favorite</span>
+</button>
+</div>
+<img class="w-full h-full object-contain shadow-2xl rounded-sm" data-alt="A vintage-inspired book cover for a collection of poetry titled 'Petals &amp; Dust'. The cover has a distressed paper texture with delicate pressed flower art. The palette is muted rose, sage green, and sepia. High-end product photography showcasing the tactile nature of the book's fabric cover and debossed text." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBE3qsNnKE_OLXkzLT4NzUsEFGFMJ_tVYPSqoa0ixkKMf-4ZyVHvBtzVgPQTjJxYkIdCBZ3sYmOYRM0JtpxXLrfk7AhDJQIgGrDpkVQU5t-3ItqSJp-x3uX8QYAdwkdZLY50cvSAwveBl9FtAtyl9Ysdj7xz5POWHkv1o3a3SQlBLzQFMHtYxy3jF8pwouREYZ7Vi-Tag7PlP-rpQhzFKGVbQWxFaa2fcMgmFz-I6lKJZVvGHevJC3-04Z2366Eu3SFkUQUyVxjFyDD"/>
+<div class="absolute bottom-6 right-6">
+<div class="bg-primary px-4 py-2 rounded-full text-white font-price-tag shadow-lg shadow-primary/30">$54</div>
+</div>
+</div>
+<div class="mt-4 flex flex-col gap-1">
+<div class="flex items-center gap-1 text-secondary mb-1">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-label-md text-on-surface-variant ml-1 font-bold">4.9</span>
+</div>
+<h4 class="font-headline-md text-headline-md group-hover:text-secondary transition-colors">Petals &amp; Dust</h4>
+<p class="text-body-md text-on-surface-variant opacity-70">Oliver Thorne</p>
+</div>
+</div>
+</section>
+<!-- Bottom Recommendation / Favorites Bento Segment -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-6 pb-20">
+<div class="md:col-span-4 bg-white rounded-lg p-8 shadow-sm border border-outline-variant/10 flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline-md">Your Favourites</h3>
+<div class="flex gap-2">
+<button class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-secondary hover:text-white transition-all"><span class="material-symbols-outlined text-[18px]">chevron_left</span></button>
+<button class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-secondary hover:text-white transition-all"><span class="material-symbols-outlined text-[18px]">chevron_right</span></button>
+</div>
+</div>
+<div class="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+<div class="flex-shrink-0 w-32 group">
+<div class="aspect-[2/3] rounded-md overflow-hidden shadow-md mb-2 group-hover:-translate-y-1 transition-transform">
+<img class="w-full h-full object-cover" data-alt="A small, thick journal with a dark green leather cover and an elastic closure. It is resting on a stack of older books. Warm, cozy lighting creates deep shadows and highlights the rich texture of the leather. Stylized for a premium apothecary aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAW6A4pG_f46wHY3X_uJ8LGV_7S0C9NaVNeO8CrN-TEdyjkqomlgGIwTaFk392AUxil9xCmolEfOMU-U2ytZgOSmh-E8MaEvNImQUHQZ6FXJ745fxHDVFrYcJTaYwCKBq6zUsyG8Tm1xkI_vfCwI12eedx1XyyWzpgUNW81fKRYo_93Ls83_p_9ZMkef8NG7QaJs6Y4uMiHzJoqTzU_SWm_Hx8MRDRHT4ZPlHmlL1E6hjQdYV2q7727EdSEL3AqDUtNU_e5fluJGfd9"/>
+</div>
+<span class="text-label-md font-bold block truncate">Oak &amp; Ink</span>
+<span class="text-[10px] text-on-surface-variant opacity-60 uppercase">Journal</span>
+</div>
+<div class="flex-shrink-0 w-32 group">
+<div class="aspect-[2/3] rounded-md overflow-hidden shadow-md mb-2 group-hover:-translate-y-1 transition-transform">
+<img class="w-full h-full object-cover" data-alt="A luxury candle in a smoked glass jar with a minimalist white label that says 'Old Book Smell'. The candle is lit, showing a soft warm glow through the dark glass. Surrounded by a few scattered vintage book pages on a wooden surface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPIFCNAZL953g3RYLZ5f7pi0CjgziCPEYYdUvX1tcoTBC9FixetEWiOdCVQKlXXvilnaDQBQ2AnoZ0cbTy6hrP2DE9-yRqcu-4uKMmYZb7ciDXkL_hc6lUwOd3Vz4Co_consXIL6xwZJOLEC15_fBXWMiH_3cfM8HLBMJcZKEHfcs9tojHwH1mym4TmUz4K11ybkEQIaOBKxR3QPSBi9MAlLpjfHklwFV2iOTVxZ5WKOl_22lOSrysUzXqnLc0tXgL2ZCK5hQfsv85"/>
+</div>
+<span class="text-label-md font-bold block truncate">Bibliophile Glow</span>
+<span class="text-[10px] text-on-surface-variant opacity-60 uppercase">Aroma</span>
+</div>
+</div>
+<button class="mt-auto w-full py-3 bg-surface-container-high rounded-xl font-label-md hover:bg-secondary hover:text-white transition-all">See All Favourites</button>
+</div>
+<div class="md:col-span-8 bg-surface-container-highest rounded-lg p-10 flex items-center gap-12 group overflow-hidden relative">
+<div class="flex-1 space-y-6 relative z-10">
+<div class="space-y-2">
+<h2 class="font-display-lg text-[36px] text-on-surface">Bring Bold Fashion<br/><span class="opacity-60 italic font-normal">to your bookshelf.</span></h2>
+<p class="text-body-md text-on-surface-variant max-w-sm">Curated limited edition covers designed by contemporary artists. Transform your library into a gallery.</p>
+</div>
+<button class="flex items-center gap-2 group/btn">
+<span class="font-label-md font-bold text-secondary">Explore Limited Series</span>
+<div class="w-10 h-10 rounded-full border border-secondary flex items-center justify-center group-hover/btn:bg-secondary group-hover/btn:text-white transition-all">
+<span class="material-symbols-outlined">arrow_forward</span>
+</div>
+</button>
+</div>
+<div class="flex-1 h-full relative">
+<div class="absolute inset-0 flex items-center justify-center">
+<img class="w-[300px] h-auto object-contain rounded-xl shadow-2xl transition-transform duration-500 group-hover:scale-110" data-alt="A stylish artistic portrait of a man in a high-fashion, bulky puffer hood looking intensely into the camera. The style is very modern, editorial, and slightly surreal, with dramatic top-down lighting creating high contrast. The image represents the 'bold fashion' concept applied to literary culture. High-key, cinematic aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCr-JhrReC3Ca3isjCujj9OcFCyKImt2nN7tmWE3BkX9RToxzF5d29j0nYK03mkT6gTRNhweX96nlfOcM9ke3H39AYDFyp5hi7LkDJV_SppegoF0-8i7-mJU8n3ZxN4r0KtSLBmakMVXY9XtenwOsh_C2j3TzPpjRPy2DRLlzcMsjKRB__WLhGOAOYtqK3DoDl0iM9lvKBxEg0MKnL1bl_sMmedR8E1tW93qcM6LhuvI9-EEFDD4zBXWETxloqUl_Xz6yZ9ugJeOImZ"/>
+</div>
+</div>
+<!-- Decorative Element -->
+<div class="absolute top-8 right-8 w-12 h-12 rounded-full border border-outline-variant/30 flex items-center justify-center opacity-40">
+<span class="material-symbols-outlined">north_east</span>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Floating Action Button (FAB) - Suppression Logic Applied: Only on Explore/Home -->
+<button class="fixed bottom-10 right-10 w-16 h-16 bg-secondary text-on-secondary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform active:scale-95 z-50 group">
+<span class="material-symbols-outlined text-[32px] group-hover:rotate-90 transition-transform duration-300">add</span>
+<span class="absolute right-full mr-4 bg-white px-4 py-2 rounded-lg text-secondary font-bold shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Add to Wishlist</span>
+</button>
+<script>
+        // Micro-interactions and subtle effects
+        document.querySelectorAll('.card-hover').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateX = (y - centerY) / 20;
+                const rotateY = (centerX - x) / 20;
+                
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0)`;
+            });
+        });
+    </script>
+</body></html>

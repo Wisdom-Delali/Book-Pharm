@@ -1,0 +1,36 @@
+{% extends 'portal/base.html' %}
+
+{% block title %}Dashboard | Book Pharm Portal{% endblock %}
+
+{% block content %}
+<h1>Welcome back{% if request.user.full_name %}, {{ request.user.full_name }}{% endif %}</h1>
+
+<div class="card" style="margin-bottom: var(--space-stack-md);">
+  <h3>Low Stock Alerts</h3>
+  {% if low_stock_books %}
+  <p class="text-muted">{{ low_stock_count }} title{{ low_stock_count|pluralize }} at or below threshold.</p>
+  <div class="alert-list">
+    {% for book in low_stock_books %}
+    <div class="alert-item">
+      <div class="alert-item__cover">
+        {% if book.cover_image %}<img src="{{ book.cover_image.url }}" alt="">{% endif %}
+      </div>
+      <div class="alert-item__body">
+        <strong>{{ book.title }}</strong>
+        <span class="text-muted">{{ book.stock_qty }} left &bull; threshold {{ book.low_stock_threshold }}</span>
+      </div>
+      <span class="badge badge--error">Low Stock</span>
+    </div>
+    {% endfor %}
+  </div>
+  <a class="btn btn--secondary" href="{% url 'portal:book_list' %}?low_stock=1" style="margin-top: var(--space-stack-sm);">View all in Inventory</a>
+  {% else %}
+  <p class="text-muted">Nothing low on stock right now.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h3>Reports coming in Phase 4</h3>
+  <p>This is the portal base template rendering with the ported design language.</p>
+</div>
+{% endblock %}

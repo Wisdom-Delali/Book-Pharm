@@ -1,0 +1,90 @@
+{% load static %}
+<div id="catalog-content">
+  <header class="portal-page-header">
+    <div>
+      <h1>Inventory Management</h1>
+      <p class="text-muted">Manage your book collection and stock levels.</p>
+    </div>
+    <button class="btn btn--primary" hx-get="{% url 'portal:book_create' %}" hx-target="#catalog-content" hx-swap="outerHTML">
+      + Add Book
+    </button>
+  </header>
+
+  <form class="toolbar card" hx-get="{% url 'portal:book_list' %}" hx-target="#catalog-content" hx-swap="outerHTML" hx-trigger="change, submit">
+    <input type="search" name="q" value="{{ query }}" placeholder="Search by title, author, ISBN, or internal code...">
+    <select name="category">
+      <option value="">All Categories</option>
+      {% for cat in categories %}
+      <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+      {% endfor %}
+    </select>
+    <label class="toolbar__checkbox">
+      <input type="checkbox" name="low_stock" value="1" {% if low_stock_only %}checked{% endif %}>
+      Low stock only
+    </label>
+  </form>
+
+  <div class="card catalog-table-card">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Book</th>
+          <th>ISBN / Code</th>
+          <th>Category</th>
+          <th class="text-right">Stock</th>
+          <th class="text-right">Cost</th>
+          <th class="text-right">Price</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for book in page_obj %}
+        <tr>
+          <td>
+            <div class="book-cell">
+              <div class="book-cell__cover">
+                {% if book.cover_image %}<img src="{{ book.cover_image.url }}" alt="">{% endif %}
+              </div>
+              <div>
+                <strong>{{ book.title }}</strong><br>
+                <span class="text-muted">{{ book.author }}</span>
+              </div>
+            </div>
+          </td>
+          <td class="mono">{{ book.isbn|default:book.internal_code }}</td>
+          <td><span class="badge">{{ book.category.name }}</span></td>
+          <td class="text-right{% if book.is_low_stock %} text-error{% endif %}">{{ book.stock_qty }}</td>
+          <td class="text-right">GHS {{ book.cost_price }}</td>
+          <td class="text-right">GHS {{ book.selling_price }}</td>
+          <td>
+            {% if book.is_low_stock %}
+            <span class="badge badge--error">Low Stock</span>
+            {% else %}
+            <span class="badge badge--ok">In Stock</span>
+            {% endif %}
+          </td>
+          <td class="text-right">
+            <button class="btn btn--secondary" hx-get="{% url 'portal:book_update' book.pk %}" hx-target="#catalog-content" hx-swap="outerHTML">Edit</button>
+            <button class="btn btn--secondary" hx-get="{% url 'portal:stock_adjust' book.pk %}" hx-target="#catalog-content" hx-swap="outerHTML">Adjust</button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-muted">No books yet — add your first one.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% include 'portal/catalog/_pagination.html' %}
+  </div>
+
+  {% if panel_open %}
+  <div class="panel-backdrop" hx-get="{% url 'portal:book_list' %}" hx-target="#catalog-content" hx-swap="outerHTML"></div>
+  <aside class="panel">
+    {% if adjustment_form %}
+      {% include 'portal/catalog/_stock_adjust_form.html' %}
+    {% else %}
+      {% include 'portal/catalog/_book_form.html' %}
+    {% endif %}
+  </aside>
+  {% endif %}
+</div>
