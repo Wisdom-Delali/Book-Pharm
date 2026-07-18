@@ -1,10 +1,12 @@
 # Book Pharm — Software Requirements Specification
 
-**Version:** 1.1 (repo edition)
+**Version:** 1.2 (repo edition)
 **Status:** Reference. FR-IDs here are stable — cite them in commits and PRs.
 **Companion:** [`discovery.md`](./discovery.md) for the *why*. [`../CLAUDE.md`](../CLAUDE.md) for build context and conventions.
 
 > **Changed from v1.0 (client edition):** v1.0 was written before the stack was fixed and left the web frontends open. This edition reflects the confirmed architecture — Django REST API with server-rendered storefront and portal, Electron POS consuming the API, MySQL on cPanel shared hosting. The functional requirements themselves are unchanged.
+>
+> **Changed in v1.2 (2026-07-18):** added rider delivery (Yango/Bolt/Uber) as a third fulfillment option, owner request during Phase 5 build — not part of the original questionnaire. See WEB-03, WEB-04, PRT-15.
 
 ---
 
@@ -109,6 +111,7 @@ A new, self-contained product replacing the client's current POS. All three comp
 | PRT-12 | Portal shall display online orders with fulfillment and payment status. | High |
 | PRT-13 | Portal shall surface stock reconciliation alerts arising from offline oversell. | High |
 | PRT-14 | System shall support a single owner account at launch; the model shall permit staff accounts with configurable permissions later without redesign. | Low |
+| PRT-15 | Portal shall surface rider-delivery (Yango/Bolt/Uber) orders that have not yet been booked with the rider service, until the attendant marks one booked. | High |
 
 ### 3.3 Storefront — `WEB-*`
 
@@ -116,8 +119,8 @@ A new, self-contained product replacing the client's current POS. All three comp
 |---|---|---|
 | WEB-01 | Storefront shall display real-time stock from the same central database as POS and portal. No manual upload step shall exist. | High |
 | WEB-02 | Customers shall browse, search and add books to a cart. | High |
-| WEB-03 | Customers shall choose home delivery or in-store pickup at checkout. | High |
-| WEB-04 | System shall calculate delivery fee per the owner's configured pricing method. | High |
+| WEB-03 | Customers shall choose home delivery, in-store pickup, or rider delivery (Yango/Bolt/Uber) at checkout. | High |
+| WEB-04 | System shall calculate delivery fee per the owner's configured pricing method for home delivery. Rider delivery has no calculated fee — Book Pharm charges for the books only; the customer settles the ride fare directly with the rider service. | High |
 | WEB-05 | Customers shall pay via MTN MoMo, Telecel/Vodafone Cash, bank transfer or card. | High |
 | WEB-06 | Customers shall confirm receipt of a delivered or collected order. | Medium |
 | WEB-07 | Customers shall submit a rating and comment after order completion. | Medium |
@@ -164,7 +167,7 @@ Core entities shared across all components. Full field-level detail in [`../CLAU
 | `Customer` | Phone (unique, identity key), full name, email, birthday, loyalty points |
 | `Sale` | Channel, customer, subtotal, discount, delivery fee, total, payment method/status, attendant, `offline_uuid`, `synced_at`, `external_ref`, `returned_at` |
 | `SaleItem` | Sale, book, qty, unit price (snapshot), line discount |
-| `Fulfillment` | Sale, type (delivery/pickup), address, fee, status, receipt confirmation |
+| `Fulfillment` | Sale, type (delivery/pickup/rider delivery), address, fee, status, receipt confirmation, rider booked at/by |
 | `Review` | Sale, rating, comment |
 | `DiscountRule` | Type (percent/fixed), value, scope, approval level, active |
 | `PaymentTransaction` | Sale, provider, provider ref, amount, status, raw payload |
@@ -217,6 +220,7 @@ One coherent codebase per component over a shared backend — deliberately unlik
 | 7 | Birthday and promotional SMS | Owner | PRT-09, POS-05 |
 | 8 | Adding wholesale stock with no ISBN | Attendant | POS-02, POS-08 |
 | 9 | Tracking profitability | Owner | PRT-03, PRT-05, PRT-06 |
+| 10 | Online order via rider delivery (Yango/Bolt/Uber) | Customer, Attendant | WEB-03, WEB-04, PRT-15 |
 
 ---
 
@@ -244,8 +248,8 @@ From the completed clarification questionnaire. **Decided.**
 | Adding stock | Scanning and manual entry; internal code where no ISBN. |
 | Low stock | Owner must be warned. |
 | Online payments | MTN MoMo, Telecel/Vodafone Cash, bank transfer, card. |
-| Fulfillment | Delivery and pickup. |
-| Delivery pricing | Not yet decided. |
+| Fulfillment | Delivery, pickup, and rider delivery (Yango/Bolt/Uber) — the third option added 2026-07-18, after the original questionnaire. |
+| Delivery pricing | Not yet decided for standard delivery. Rider delivery has no fee to decide — it's never calculated. |
 | Order confirmation & feedback | Required. |
 | Marketplace | Jumia, tracked as a distinct channel with returns. |
 | Customer data | Phone, full name, email, birthday. |

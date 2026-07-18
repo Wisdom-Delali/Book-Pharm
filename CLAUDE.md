@@ -55,7 +55,7 @@ These come from the client's completed questionnaire. **They are decided — don
 - **Stock entry:** ISBN/barcode scanning *and* manual entry. Books without an ISBN get a system-generated internal code
 - **Low stock:** the owner must be warned when a title is low or out of stock
 - **Payments:** MTN MoMo, Telecel/Vodafone Cash, bank transfer, card
-- **Fulfillment:** customer chooses delivery *or* pickup
+- **Fulfillment:** customer chooses delivery, in-store pickup, *or* rider delivery (Yango/Bolt/Uber) — added 2026-07-18, owner request. Rider delivery has **no calculated fee**: the customer pays Book Pharm for the books only; the attendant books the actual ride with the customer's phone number and drop-off address, and the ride fare is settled directly between the customer and the rider service. The portal must flag rider-delivery orders as needing a booking until the attendant marks one placed — same pattern as low-stock/reconciliation alerts, so one doesn't get missed during a shift.
 - **Order confirmation:** customers confirm receipt and can leave feedback/reviews
 - **Marketplace:** Jumia sales tracked as a distinct channel, including returns
 - **Customer data captured at checkout:** phone, full name, email, birthday
@@ -94,7 +94,7 @@ bookpharm/
 │   │   ├── accounts/        # auth, roles, device tokens
 │   │   ├── catalog/         # Book, Category, stock
 │   │   ├── sales/           # Sale, SaleItem, offline sync
-│   │   ├── fulfillment/     # delivery/pickup, delivery pricing
+│   │   ├── fulfillment/     # delivery/pickup/rider-delivery, delivery pricing
 │   │   ├── customers/       # Customer, loyalty
 │   │   ├── payments/        # Paystack integration
 │   │   ├── messaging/       # SMSOnlineGH, campaigns
@@ -141,8 +141,9 @@ One `Sale` table covers **all three channels** — this is deliberate, so report
 - `DiscountRule` — type (`PERCENT` | `FIXED`), value, scope (`GLOBAL` | `CATEGORY` | `BOOK`), target, `approval_level`, `is_active`
 
 **`fulfillment`**
-- `Fulfillment` — sale OneToOne, type (`DELIVERY` | `PICKUP`), address, `fee`, status, `confirmed_by_customer_at`
-- `DeliveryPricingRule` — abstraction over the three pricing methods (see open items)
+- `Fulfillment` — sale OneToOne, type (`DELIVERY` | `PICKUP` | `RIDER_DELIVERY`), address, `fee`, status, `confirmed_by_customer_at`, `rider_booked_at` (nullable), `rider_booked_by` FK (nullable)
+  - `RIDER_DELIVERY` ("Yango / Bolt / Uber Delivery" in the UI): `fee` is always `0` — Book Pharm never calculates or collects it. `rider_booked_at`/`rider_booked_by` track the attendant manually placing the actual ride; the portal surfaces unbooked ones as an alert.
+- `DeliveryPricingRule` — abstraction over the three *standard delivery* pricing methods (see open items). Does not apply to `RIDER_DELIVERY`, which bypasses fee calculation entirely.
 - `Review` — sale FK, rating, comment, `created_at`
 
 **`payments`**

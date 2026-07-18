@@ -1,0 +1,60 @@
+{% extends 'storefront/base.html' %}
+
+{% block title %}{{ book.title }}{% if book.author %} by {{ book.author }}{% endif %} | Book Pharm{% endblock %}
+
+{% block meta %}
+<meta name="description" content="{{ book.title }}{% if book.author %} by {{ book.author }}{% endif %} — GHS {{ book.selling_price }} at Book Pharm, Ghana.{% if book.description %} {{ book.description|truncatewords:25 }}{% endif %}">
+<meta property="og:title" content="{{ book.title }} | Book Pharm">
+<meta property="og:type" content="product">
+{% if book.description %}<meta property="og:description" content="{{ book.description|truncatewords:25 }}">{% endif %}
+{% if book.cover_image %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url }}">{% endif %}
+<script type="application/ld+json">{{ structured_data_json|safe }}</script>
+{% endblock %}
+
+{% block content %}
+<div class="book-detail">
+  <div class="book-detail__cover">
+    {% if book.cover_image %}<img src="{{ book.cover_image.url }}" alt="{{ book.title }} cover">{% endif %}
+  </div>
+  <div>
+    <p class="text-muted"><a href="{% url 'storefront:book_list' %}?category={{ book.category.slug }}">{{ book.category.name }}</a></p>
+    <h1>{{ book.title }}</h1>
+    <p class="text-muted" style="font-size: 1.1rem;">{{ book.author }}</p>
+    <p class="book-detail__price">GHS {{ book.selling_price }}</p>
+
+    {% if book.stock_qty > 0 %}
+    <form method="post" action="{% url 'storefront:cart_add' book.id %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{% url 'storefront:book_detail' book.slug %}">
+      <div class="book-detail__qty">
+        <label for="qty">Quantity</label>
+        <input type="number" name="qty" id="qty" value="1" min="1" max="{{ book.stock_qty }}">
+        <button type="submit" class="btn btn--primary">Add to Cart</button>
+      </div>
+    </form>
+    <p class="text-muted">{{ book.stock_qty }} in stock</p>
+    {% else %}
+    <p class="text-error" style="font-weight: 700; margin: 1.5rem 0;">Currently out of stock</p>
+    {% endif %}
+
+    {% if book.description %}
+    <div class="card" style="margin-top: 2rem;">
+      <h3>About this book</h3>
+      <p>{{ book.description|linebreaksbr }}</p>
+    </div>
+    {% endif %}
+
+    {% if reviews %}
+    <div class="card" style="margin-top: 1.5rem;">
+      <h3>Reviews</h3>
+      {% for review in reviews %}
+      <div class="order-item-row">
+        <span>{{ review.rating }}&#9733; {{ review.comment }}</span>
+        <span class="text-muted">{{ review.created_at|date:"M j, Y" }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

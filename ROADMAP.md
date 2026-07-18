@@ -109,22 +109,32 @@ The hardest phase. Don't rush it.
 
 ## Phase 5 — Storefront & online orders
 
-- [ ] Public book listing: grid, pagination, category filters, search
-- [ ] Book detail page — **server-rendered, with proper meta tags and structured data** (this is the SEO payoff; don't skip it)
-- [ ] Cart (session-based, no login required)
-- [ ] Checkout: delivery vs. pickup toggle
-- [ ] `DeliveryPricingRule` abstraction — implement fixed zones as the default, keep distance-based and manual pluggable
-- [ ] Customer capture at online checkout (phone, name, email, birthday)
-- [ ] Paystack: initialize transaction, inline/redirect checkout
-- [ ] Paystack webhook handler + verify-on-return (**both** — don't trust the redirect alone)
-- [ ] `PaymentTransaction` records with full raw payload stored
-- [ ] Order confirmation page + confirmation email/SMS
-- [ ] Customer "confirm receipt" flow
-- [ ] `Review` model + post-purchase rating/comment form
-- [ ] Portal: online orders list + detail drawer
-- [ ] Stock decrements on paid online orders, visible instantly in the POS
+- [x] Public book listing: grid, pagination, category filters, search
+- [x] Book detail page — **server-rendered, with proper meta tags and structured data** — JSON-LD `Book`/`Offer` schema, built server-side with `json.dumps` (not hand-rolled in the template) to avoid quoting bugs
+- [x] Cart (session-based, no login required)
+- [x] Checkout: three-way fulfillment toggle — delivery / pickup / rider delivery (Yango/Bolt/Uber)
+- [x] `DeliveryPricingRule` abstraction — fixed zones implemented and working (Accra Central/Greater Accra/Outside Accra tested); distance-based and manual modeled but not implemented, per the original open item. **Rider delivery bypasses this entirely** — verified `fee=0` end to end
+- [x] Customer capture at online checkout (phone, name, email, birthday) — **email is required here specifically** (not just prompted), because Paystack's initialize call requires one; noted inline in the form, not a silent deviation from CLAUDE.md's general "optional-but-prompted"
+- [x] Paystack: initialize transaction, inline/redirect checkout — amount charged is books only; rider fare is never part of this transaction
+- [x] Paystack webhook handler + verify-on-return (**both**) — both call the same `finalize_paid_sale()`, idempotent regardless of which fires first or if both do
+- [x] `PaymentTransaction` records with full raw payload stored
+- [x] Order confirmation page — rider-delivery orders show "we're booking your ride now," not an ETA. (Confirmation **email/SMS** not sent yet — SMSOnlineGH integration is Phase 6; the confirmation page itself is live)
+- [x] Customer "confirm receipt" flow
+- [x] `Review` model + post-purchase rating/comment form
+- [x] Portal: online orders list + detail drawer
+- [x] Portal: **rider-delivery booking queue** — dashboard banner + dedicated queue page + mark-booked action, verified the count updates correctly after booking
+- [x] Stock decrements on paid online orders, visible instantly in the POS — reuses the exact same `create_sale`-family stock logic as Phases 2/3, not a parallel implementation
 
-**Done when:** a real customer can buy a book online, pay by MoMo, confirm receipt, and leave a review — and the shop's stock reflects it immediately.
+**Done when:** a real customer can buy a book online, pay by MoMo, confirm receipt, and leave a review — and the shop's stock reflects it immediately. A customer choosing rider delivery instead sees no delivery fee, and their order shows up in the portal's booking queue until the attendant handles it. ✅ Verified 2026-07-18 — full checkout→payment→fulfillment→review loop tested for both DELIVERY (zone fee applied correctly) and RIDER_DELIVERY (zero fee, booking queue, dashboard banner, mark-booked). Paystack `initialize` was verified against the **real** Paystack API (reached their servers, got a real structured rejection for the placeholder key — confirms the integration code itself is correct); webhook signature verification and `finalize_paid_sale()` idempotency were verified with a correctly HMAC-signed simulated payload. **Live payment could not be tested — no real Paystack account exists yet** (docs/SRS.md §8, client action item).
+
+**Two schema additions beyond the original spec, both load-bearing:**
+1. `Book.slug` — SEO-friendly storefront URLs (WEB-08 needs more than `/books/47/`). Title-derived, id-suffixed so duplicate titles never collide; backfilled for existing rows.
+2. Two-phase sale creation for online orders (`create_pending_online_sale()` + `finalize_paid_sale()` in `apps/sales/services.py`), alongside the existing single-phase `create_sale()`. Payment is asynchronous online (redirect to Paystack, webhook arrives later) — stock can't decrement at checkout the way it does when cash changes hands at the POS register. The pending sale reuses `offline_uuid` as the Paystack reference, so the existing idempotency machinery from Phase 3 covers the webhook/verify race for free.
+
+**Bugs found and fixed during this phase's testing (all caught before being reported, not after):**
+1. The checkout form's `address` field was accidentally rendered twice (once under the delivery block, once under the rider block) — same `name`/`id` in two places in the DOM. Only one value would have actually submitted, and which one was undefined. Fixed to a single field with a JS-driven label/visibility toggle.
+2. The star-rating CSS was missing `flex-direction: row-reverse`, which the checked-sibling-highlighting trick depends on — without it, selecting "3 stars" wouldn't visually highlight stars 1–3 correctly.
+3. `Book.slug`'s first migration used `max_length=280` on a unique field — MariaDB warns this can exceed the index prefix limit depending on server config. Corrected to 255 via a proper follow-up migration rather than editing the already-applied one.
 
 ---
 

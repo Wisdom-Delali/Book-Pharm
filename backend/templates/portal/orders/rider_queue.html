@@ -1,0 +1,47 @@
+{% extends 'portal/base.html' %}
+
+{% block title %}Rider Delivery Queue | Book Pharm Portal{% endblock %}
+
+{% block content %}
+<header class="portal-page-header">
+  <div>
+    <h1>Rider Delivery Queue</h1>
+    <p class="text-muted">Yango/Bolt/Uber orders waiting to be booked. The customer has already paid for the books — book the actual ride with their phone number and address below, then mark it done.</p>
+  </div>
+  <a class="btn btn--secondary" href="{% url 'portal:order_list' %}">&larr; All Orders</a>
+</header>
+
+<div class="card catalog-table-card">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Order</th>
+        <th>Customer</th>
+        <th>Phone</th>
+        <th>Address</th>
+        <th>Placed</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for fulfillment in pending %}
+      <tr>
+        <td class="mono"><a href="{% url 'portal:order_detail' fulfillment.sale.pk %}">#{{ fulfillment.sale.id }}</a></td>
+        <td>{{ fulfillment.sale.customer.full_name|default:"—" }}</td>
+        <td class="mono">{{ fulfillment.sale.customer.phone }}</td>
+        <td>{{ fulfillment.address }}</td>
+        <td class="text-muted">{{ fulfillment.sale.created_at|date:"M j, g:i A" }}</td>
+        <td class="text-right">
+          <form method="post" action="{% url 'portal:mark_rider_booked' fulfillment.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn--primary">Mark Booked</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="text-muted">Nothing waiting — all rider deliveries are booked.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

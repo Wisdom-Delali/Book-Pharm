@@ -13,6 +13,7 @@ from django.utils import timezone
 
 from apps.catalog.forms import BookForm, StockAdjustmentForm
 from apps.catalog.models import Book, Category, StockAdjustment
+from apps.fulfillment.models import Fulfillment
 from apps.reports.utils import range_bounds_utc
 from apps.sales.models import Sale, SaleItem, StockDiscrepancy
 
@@ -122,6 +123,9 @@ def dashboard(request):
         'low_stock_books': Book.objects.low_stock().select_related('category')[:10],
         'low_stock_count': Book.objects.low_stock().count(),
         'discrepancy_count': StockDiscrepancy.objects.filter(resolved=False).count(),
+        'rider_queue_count': Fulfillment.objects.filter(
+            type=Fulfillment.Type.RIDER_DELIVERY, rider_booked_at__isnull=True
+        ).count(),
         'chart_labels': json.dumps(chart_labels),
         'chart_values': json.dumps(chart_values),
     })

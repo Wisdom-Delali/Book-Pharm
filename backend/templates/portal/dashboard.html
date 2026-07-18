@@ -36,6 +36,14 @@
 </div>
 {% endif %}
 
+{% if rider_queue_count %}
+<div class="card" style="margin-bottom: var(--space-stack-md); border-color: var(--color-error);">
+  <h3>Rider Delivery Needs Booking</h3>
+  <p class="text-muted">{{ rider_queue_count }} paid order{{ rider_queue_count|pluralize }} waiting on a Yango/Bolt/Uber to be booked with the customer.</p>
+  <a class="btn btn--primary" href="{% url 'portal:rider_queue' %}" style="margin-top: var(--space-stack-sm);">Open Rider Queue</a>
+</div>
+{% endif %}
+
 <div class="card" style="margin-bottom: var(--space-stack-md);">
   <h3>Sales — Last 7 Days</h3>
   <canvas id="dashboardChart" height="70"></canvas>

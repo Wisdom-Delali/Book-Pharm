@@ -1,0 +1,69 @@
+{% extends 'storefront/base.html' %}
+
+{% block title %}Order {% if sale.payment_status == 'PAID' %}Confirmed{% else %}Pending{% endif %} | Book Pharm{% endblock %}
+
+{% block content %}
+{% if sale.payment_status == 'PAID' %}
+<div class="confirmation-hero">
+  <div class="check">&#10003;</div>
+  <h1>Thank you for your order!</h1>
+  <p class="text-muted">Order confirmed &mdash; a confirmation has been sent to {{ sale.customer.email }}.</p>
+</div>
+
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+  <h3>Order Summary</h3>
+  <p class="mono text-muted">Order #{{ sale.id }} &middot; {{ sale.created_at|date:"M j, Y, g:i A" }}</p>
+  <div class="order-items">
+    {% for item in sale.items.all %}
+    <div class="order-item-row">
+      <span>{{ item.title }} &times;{{ item.qty }}</span>
+      <span class="mono">GHS {{ item.line_total }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="summary-line"><span>Subtotal</span><span class="mono">GHS {{ sale.subtotal }}</span></div>
+  <div class="summary-line"><span>Discount</span><span class="mono">-GHS {{ sale.discount_amount }}</span></div>
+  <div class="summary-line"><span>Delivery fee</span><span class="mono">GHS {{ sale.delivery_fee }}</span></div>
+  <div class="summary-total"><span>Total</span><span class="value">GHS {{ sale.total }}</span></div>
+
+  <div class="card" style="margin-top: 1.5rem; background: var(--color-surface);">
+    <h3>Fulfillment</h3>
+    {% if sale.fulfillment.type == 'DELIVERY' %}
+    <p>🚚 Delivery to: {{ sale.fulfillment.address }}</p>
+    {% elif sale.fulfillment.type == 'PICKUP' %}
+    <p>🏬 Pickup at the Book Pharm shop. We'll text you when it's ready.</p>
+    {% elif sale.fulfillment.type == 'RIDER_DELIVERY' %}
+    <p>🛵 Yango / Bolt / Uber to: {{ sale.fulfillment.address }}</p>
+    <p class="text-muted" style="font-size: 0.85rem;">We're booking your ride now — the fare is paid directly to the driver, separate from this order.</p>
+    {% endif %}
+  </div>
+
+  {% if not sale.fulfillment.confirmed_by_customer_at %}
+  <form method="post" action="{% url 'storefront:confirm_receipt' sale.offline_uuid %}" style="margin-top: 1.5rem;">
+    {% csrf_token %}
+    <button type="submit" class="btn btn--primary" style="width: 100%;">I've Received My Order</button>
+  </form>
+  {% else %}
+  <div class="card" style="margin-top: 1.5rem;">
+    <h3>Leave a Review</h3>
+    <form method="post" action="{% url 'storefront:submit_review' sale.offline_uuid %}">
+      {% csrf_token %}
+      <div class="star-rating">
+        {% for i in "54321" %}
+        <input type="radio" name="rating" value="{{ i }}" id="star-{{ i }}"><label for="star-{{ i }}">&#9733;</label>
+        {% endfor %}
+      </div>
+      <textarea name="comment" rows="3" placeholder="How was your experience?" style="margin-top: 0.75rem;"></textarea>
+      <button type="submit" class="btn btn--primary" style="margin-top: 0.75rem;">Submit Review</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+
+{% else %}
+<div class="confirmation-hero">
+  <h1>Payment Pending</h1>
+  <p class="text-muted">We haven't received confirmation of your payment yet. If you completed payment, this page will update shortly — try refreshing in a moment.</p>
+</div>
+{% endif %}
+{% endblock %}

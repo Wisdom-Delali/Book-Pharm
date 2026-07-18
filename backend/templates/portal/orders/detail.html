@@ -1,0 +1,74 @@
+{% extends 'portal/base.html' %}
+
+{% block title %}Order #{{ sale.id }} | Book Pharm Portal{% endblock %}
+
+{% block content %}
+<header class="portal-page-header">
+  <div>
+    <h1>Order #{{ sale.id }}</h1>
+    <p class="text-muted">Placed {{ sale.created_at|date:"M j, Y, g:i A" }}</p>
+  </div>
+  <a class="btn btn--secondary" href="{% url 'portal:order_list' %}">&larr; All Orders</a>
+</header>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-stack-md);">
+  <div class="card">
+    <h3>Items</h3>
+    <table class="table">
+      <thead><tr><th>Book</th><th class="text-right">Qty</th><th class="text-right">Unit Price</th><th class="text-right">Line Total</th></tr></thead>
+      <tbody>
+        {% for item in sale.items.all %}
+        <tr>
+          <td>{{ item.book.title }}</td>
+          <td class="text-right">{{ item.qty }}</td>
+          <td class="text-right mono">GHS {{ item.unit_price }}</td>
+          <td class="text-right mono">GHS {{ item.line_total }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="summary-line" style="display:flex; justify-content:space-between; margin-top: var(--space-stack-sm);"><span>Subtotal</span><span class="mono">GHS {{ sale.subtotal }}</span></div>
+    <div class="summary-line" style="display:flex; justify-content:space-between;"><span>Discount</span><span class="mono">-GHS {{ sale.discount_amount }}</span></div>
+    <div class="summary-line" style="display:flex; justify-content:space-between;"><span>Delivery fee</span><span class="mono">GHS {{ sale.delivery_fee }}</span></div>
+    <div class="summary-line" style="display:flex; justify-content:space-between; font-weight:700;"><span>Total</span><span class="mono">GHS {{ sale.total }}</span></div>
+  </div>
+
+  <div>
+    <div class="card" style="margin-bottom: var(--space-stack-md);">
+      <h3>Customer</h3>
+      <p><strong>{{ sale.customer.full_name|default:"—" }}</strong></p>
+      <p class="text-muted">{{ sale.customer.phone }}</p>
+      <p class="text-muted">{{ sale.customer.email }}</p>
+    </div>
+
+    <div class="card" style="margin-bottom: var(--space-stack-md);">
+      <h3>Fulfillment</h3>
+      <p><span class="badge">{{ sale.fulfillment.get_type_display }}</span></p>
+      {% if sale.fulfillment.address %}<p class="text-muted">{{ sale.fulfillment.address }}</p>{% endif %}
+      {% if sale.fulfillment.type == 'RIDER_DELIVERY' %}
+        {% if sale.fulfillment.rider_booked_at %}
+        <p class="badge badge--ok">Booked by {{ sale.fulfillment.rider_booked_by }} at {{ sale.fulfillment.rider_booked_at|date:"M j, g:i A" }}</p>
+        {% else %}
+        <form method="post" action="{% url 'portal:mark_rider_booked' sale.fulfillment.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn--primary" style="margin-top: 0.5rem;">Mark Ride Booked</button>
+        </form>
+        {% endif %}
+      {% endif %}
+      {% if sale.fulfillment.confirmed_by_customer_at %}
+      <p class="text-muted" style="margin-top: 0.5rem;">Customer confirmed receipt {{ sale.fulfillment.confirmed_by_customer_at|date:"M j, g:i A" }}</p>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h3>Payment</h3>
+      {% for txn in sale.payment_transactions.all %}
+      <p>{{ txn.provider }} &middot; <span class="badge{% if txn.status == 'SUCCESS' %} badge--ok{% endif %}">{{ txn.status }}</span></p>
+      <p class="text-muted mono" style="font-size: 0.8rem;">{{ txn.provider_ref }}</p>
+      {% empty %}
+      <p class="text-muted">No payment transaction recorded.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

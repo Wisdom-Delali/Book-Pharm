@@ -1,0 +1,116 @@
+{% extends 'storefront/base.html' %}
+
+{% block title %}Checkout | Book Pharm{% endblock %}
+
+{% block content %}
+<h1>Checkout</h1>
+
+<form method="post" class="checkout-grid" id="checkout-form">
+  {% csrf_token %}
+  <div>
+    <div class="card" style="margin-bottom: var(--space-stack-md);">
+      <h3>Contact Details</h3>
+      {% for error in form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+      <div class="form-field">
+        <label class="form-label" for="{{ form.customer_phone.id_for_label }}">{{ form.customer_phone.label }}</label>
+        {{ form.customer_phone }}
+        {% for error in form.customer_phone.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+      </div>
+      <div class="form-field" style="margin-top: 1rem;">
+        <label class="form-label" for="{{ form.customer_full_name.id_for_label }}">{{ form.customer_full_name.label }}</label>
+        {{ form.customer_full_name }}
+      </div>
+      <div class="form-field" style="margin-top: 1rem;">
+        <label class="form-label" for="{{ form.customer_email.id_for_label }}">{{ form.customer_email.label }}</label>
+        {{ form.customer_email }}
+        {% for error in form.customer_email.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+      </div>
+      <div class="form-field" style="margin-top: 1rem;">
+        <label class="form-label" for="{{ form.customer_birthday.id_for_label }}">{{ form.customer_birthday.label }}</label>
+        {{ form.customer_birthday }}
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Fulfillment</h3>
+      <div class="fulfillment-toggle">
+        <input type="radio" name="fulfillment_type" value="DELIVERY" id="ft-delivery" {% if form.fulfillment_type.value == 'DELIVERY' %}checked{% endif %}>
+        <label for="ft-delivery">🚚 Delivery</label>
+
+        <input type="radio" name="fulfillment_type" value="PICKUP" id="ft-pickup" {% if form.fulfillment_type.value == 'PICKUP' %}checked{% endif %}>
+        <label for="ft-pickup">🏬 Pickup</label>
+
+        <input type="radio" name="fulfillment_type" value="RIDER_DELIVERY" id="ft-rider" {% if form.fulfillment_type.value == 'RIDER_DELIVERY' %}checked{% endif %}>
+        <label for="ft-rider">🛵 Yango / Bolt / Uber</label>
+      </div>
+
+      <div id="delivery-zone-field" class="form-field" style="display: none;">
+        <label class="form-label" for="{{ form.delivery_zone.id_for_label }}">Delivery zone</label>
+        {{ form.delivery_zone }}
+        {% for error in form.delivery_zone.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+      </div>
+
+      <p id="rider-note" class="text-muted" style="font-size: 0.85rem; display: none;">No delivery fee — you'll pay for the books only. We'll book a Yango/Bolt/Uber to bring your order using the phone number and location below; the ride fare is paid directly to the driver.</p>
+
+      <div id="pickup-note" class="text-muted" style="display: none; padding-top: 0.5rem;">
+        Pick up your order at the Book Pharm shop. We'll text you when it's ready.
+      </div>
+
+      <div id="address-field" class="form-field" style="display: none;">
+        <label class="form-label" id="address-label" for="{{ form.address.id_for_label }}">Address</label>
+        {{ form.address }}
+        {% for error in form.address.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <aside class="card summary-card">
+    <h3>Order Summary</h3>
+    {% for item in items %}
+    <div class="summary-line">
+      <span>{{ item.book.title }} &times;{{ item.qty }}</span>
+      <span class="mono">GHS {{ item.line_total }}</span>
+    </div>
+    {% endfor %}
+    <div class="summary-total">
+      <span>Subtotal</span>
+      <span class="value" style="font-size: 1.2rem;">GHS {{ subtotal }}</span>
+    </div>
+    <p class="text-muted" style="font-size: 0.8rem; margin-top: 0.5rem;">Discounts and delivery fee (if any) are applied at payment.</p>
+    <button type="submit" class="btn btn--primary" style="width: 100%; margin-top: 1rem;">Continue to Payment</button>
+  </aside>
+</form>
+
+<script>
+  const zoneField = document.getElementById('delivery-zone-field');
+  const riderNote = document.getElementById('rider-note');
+  const pickupNote = document.getElementById('pickup-note');
+  const addressField = document.getElementById('address-field');
+  const addressLabel = document.getElementById('address-label');
+  const addressInput = addressField.querySelector('textarea, input');
+
+  const ADDRESS_LABELS = {
+    DELIVERY: 'Full delivery address',
+    RIDER_DELIVERY: 'Pickup location for the rider',
+  };
+
+  function updateFulfillmentFields() {
+    const selected = document.querySelector('input[name="fulfillment_type"]:checked');
+    const value = selected ? selected.value : 'DELIVERY';
+
+    zoneField.style.display = value === 'DELIVERY' ? 'block' : 'none';
+    riderNote.style.display = value === 'RIDER_DELIVERY' ? 'block' : 'none';
+    pickupNote.style.display = value === 'PICKUP' ? 'block' : 'none';
+
+    const needsAddress = value === 'DELIVERY' || value === 'RIDER_DELIVERY';
+    addressField.style.display = needsAddress ? 'block' : 'none';
+    if (needsAddress) addressLabel.textContent = ADDRESS_LABELS[value];
+    if (addressInput) addressInput.required = needsAddress;
+  }
+
+  document.querySelectorAll('input[name="fulfillment_type"]').forEach((el) => {
+    el.addEventListener('change', updateFulfillmentFields);
+  });
+  updateFulfillmentFields();
+</script>
+{% endblock %}

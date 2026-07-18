@@ -1,0 +1,131 @@
+/* Storefront-specific layout: header search, book grid/cards, cart,
+   checkout, order confirmation. Uses theme-storefront.css tokens only. */
+
+.site-header__inner { gap: var(--space-stack-md, 24px); }
+.site-header__search { flex: 1; max-width: 480px; }
+.site-header__search input {
+  width: 100%;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  font-family: var(--font-body);
+}
+.site-header__cart { position: relative; display: flex; align-items: center; gap: 0.4rem; }
+.site-header__cart .badge { background: var(--color-primary); color: var(--color-on-primary); }
+
+/* Book grid */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-stack-sm, 8px);
+  align-items: center;
+  margin: var(--space-stack-lg, 32px) 0;
+}
+.filter-bar select {
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-container-lowest);
+}
+.filter-bar__chip {
+  padding: 0.4rem 1rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-outline-variant);
+  color: var(--color-on-surface-variant);
+  text-decoration: none;
+  font-size: var(--text-label-md-size);
+  font-weight: 600;
+}
+.filter-bar__chip.is-active { background: var(--color-primary); color: var(--color-on-primary); border-color: var(--color-primary); }
+
+.book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-stack-lg, 32px);
+  margin-bottom: var(--space-stack-lg, 32px);
+}
+.book-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: var(--color-surface-container-lowest);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(92, 64, 51, 0.06);
+  transition: transform 0.15s ease;
+}
+.book-card:hover { transform: translateY(-4px); }
+.book-card__cover {
+  aspect-ratio: 2 / 3;
+  background: var(--color-surface-container-high);
+  overflow: hidden;
+}
+.book-card__cover img { width: 100%; height: 100%; object-fit: cover; }
+.book-card__body { padding: 1rem; }
+.book-card__title { font-family: var(--font-display); font-size: 1.05rem; color: var(--color-on-surface); margin: 0 0 0.2rem; }
+.book-card__author { color: var(--color-on-surface-variant); font-size: 0.85rem; margin: 0 0 0.6rem; }
+.book-card__price { font-weight: 700; color: var(--color-primary); font-size: 1.1rem; }
+.book-card__stock { font-size: 0.75rem; color: var(--color-secondary); }
+.book-card__stock--out { color: var(--color-error); }
+
+.pagination { display: flex; justify-content: center; gap: var(--space-stack-sm); margin: var(--space-stack-lg) 0; }
+
+/* Book detail */
+.book-detail { display: grid; grid-template-columns: 320px 1fr; gap: var(--space-stack-lg, 32px); margin: var(--space-stack-lg) 0; }
+.book-detail__cover { border-radius: var(--radius-lg); overflow: hidden; box-shadow: 0 4px 20px rgba(92, 64, 51, 0.1); aspect-ratio: 2/3; background: var(--color-surface-container-high); }
+.book-detail__cover img { width: 100%; height: 100%; object-fit: cover; }
+.book-detail__price { font-family: var(--font-display); font-size: 2rem; color: var(--color-primary); margin: 1rem 0; }
+.book-detail__qty { display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0; }
+.book-detail__qty input { width: 70px; padding: 0.6rem; border-radius: var(--radius-md); border: 1px solid var(--color-outline-variant); }
+@media (max-width: 700px) { .book-detail { grid-template-columns: 1fr; } }
+
+/* Cart / checkout */
+.cart-table { width: 100%; border-collapse: collapse; margin: var(--space-stack-lg) 0; }
+.cart-table th { text-align: left; padding: 0.75rem; border-bottom: 2px solid var(--color-outline-variant); font-size: var(--text-label-md-size); color: var(--color-secondary); }
+.cart-table td { padding: 0.75rem; border-bottom: 1px solid var(--color-outline-variant); vertical-align: middle; }
+.cart-table__book { display: flex; align-items: center; gap: 1rem; }
+.cart-table__cover { width: 50px; height: 70px; border-radius: var(--radius-sm); overflow: hidden; background: var(--color-surface-container-high); flex-shrink: 0; }
+.cart-table__cover img { width: 100%; height: 100%; object-fit: cover; }
+
+.checkout-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--space-stack-lg, 32px); align-items: start; margin: var(--space-stack-lg) 0; }
+@media (max-width: 800px) { .checkout-grid { grid-template-columns: 1fr; } }
+
+.fulfillment-toggle { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.fulfillment-toggle label {
+  flex: 1;
+  min-width: 140px;
+  text-align: center;
+  padding: 0.9rem;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--color-outline-variant);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.fulfillment-toggle input { display: none; }
+.fulfillment-toggle input:checked + label,
+.fulfillment-toggle label.is-active { border-color: var(--color-primary); background: rgba(115, 92, 0, 0.08); color: var(--color-primary); }
+
+.summary-card { position: sticky; top: 1rem; }
+.summary-line { display: flex; justify-content: space-between; padding: 0.4rem 0; color: var(--color-on-surface-variant); }
+.summary-total { display: flex; justify-content: space-between; align-items: baseline; padding-top: 1rem; margin-top: 1rem; border-top: 2px dashed var(--color-outline-variant); }
+.summary-total .value { font-family: var(--font-display); font-size: 1.75rem; color: var(--color-primary); }
+
+/* Order confirmation */
+.confirmation-hero { text-align: center; margin: var(--space-stack-lg) 0; }
+.confirmation-hero .check { font-size: 3rem; color: var(--color-primary); }
+.order-items { margin: var(--space-stack-md) 0; }
+.order-item-row { display: flex; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid var(--color-outline-variant); }
+
+/* Stars are emitted 5..1 in DOM order (see order_confirmation.html) so
+   this row-reverse + general-sibling-combinator trick works: checking star
+   N highlights it and every star before it in DOM order, which after the
+   reversal is every star to its left on screen — i.e. "3 stars" lights up
+   1, 2, and 3, not just 3. */
+.star-rating { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 0.3rem; font-size: 1.8rem; }
+.star-rating label { cursor: pointer; color: var(--color-outline-variant); }
+.star-rating input { display: none; }
+.star-rating input:checked ~ label,
+.star-rating label:hover,
+.star-rating label:hover ~ label { color: var(--color-tertiary, var(--color-primary)); }

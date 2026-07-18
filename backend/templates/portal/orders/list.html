@@ -1,0 +1,52 @@
+{% extends 'portal/base.html' %}
+
+{% block title %}Online Orders | Book Pharm Portal{% endblock %}
+
+{% block content %}
+<header class="portal-page-header">
+  <div>
+    <h1>Online Orders</h1>
+    <p class="text-muted">Orders placed through the storefront.</p>
+  </div>
+  <a class="btn btn--secondary" href="{% url 'portal:rider_queue' %}">Rider Delivery Queue</a>
+</header>
+
+<div class="card catalog-table-card">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Order</th>
+        <th>Customer</th>
+        <th>Fulfillment</th>
+        <th class="text-right">Total</th>
+        <th>Payment</th>
+        <th>Placed</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sale in page_obj %}
+      <tr>
+        <td class="mono">#{{ sale.id }}</td>
+        <td>{{ sale.customer.full_name|default:sale.customer.phone }}</td>
+        <td>
+          {% if sale.fulfillment.type == 'RIDER_DELIVERY' %}
+          <span class="badge{% if sale.fulfillment.needs_rider_booking %} badge--error{% endif %}">Yango/Bolt/Uber{% if sale.fulfillment.needs_rider_booking %} &mdash; needs booking{% endif %}</span>
+          {% else %}
+          <span class="badge">{{ sale.fulfillment.get_type_display }}</span>
+          {% endif %}
+        </td>
+        <td class="text-right mono">GHS {{ sale.total }}</td>
+        <td>
+          {% if sale.payment_status == 'PAID' %}<span class="badge badge--ok">Paid</span>{% else %}<span class="badge badge--error">{{ sale.get_payment_status_display }}</span>{% endif %}
+        </td>
+        <td class="text-muted">{{ sale.created_at|date:"M j, g:i A" }}</td>
+        <td class="text-right"><a class="btn btn--secondary" href="{% url 'portal:order_detail' sale.pk %}">View</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" class="text-muted">No online orders yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

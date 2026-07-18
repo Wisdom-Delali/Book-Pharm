@@ -30,6 +30,10 @@ class BookQuerySet(models.QuerySet):
 class Book(models.Model):
     isbn = models.CharField(max_length=13, unique=True, null=True, blank=True)
     internal_code = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    # SEO-friendly storefront URLs (SRS WEB-08) — title-derived, id-suffixed
+    # so two books with the same title never collide. Populated after the
+    # first save, once a pk exists to suffix with.
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
     title = models.CharField(max_length=255)
     author = models.CharField(max_length=255, blank=True)
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='books')
@@ -70,17 +74,20 @@ class Book(models.Model):
         needs_generated_code = not self.isbn and not self.internal_code
         if not needs_generated_code:
             super().save(*args, **kwargs)
-            return
-        attempts = 5
-        for attempt in range(1, attempts + 1):
-            self.internal_code = generate_internal_code()
-            try:
-                with transaction.atomic():
-                    super().save(*args, **kwargs)
-                return
-            except IntegrityError:
-                if attempt == attempts:
-                    raise
+        else:
+            attempts = 5
+            for attempt in range(1, attempts + 1):
+                self.internal_code = generate_internal_code()
+                try:
+                    with transaction.atomic():
+                        super().save(*args, **kwargs)
+                    break
+                except IntegrityError:
+                    if attempt == attempts:
+                        raise
+        if not self.slug:
+            self.slug = slugify(f'{self.title}-{self.pk}')[:255]
+            super().save(update_fields=['slug'])
 
 
 class StockAdjustment(models.Model):

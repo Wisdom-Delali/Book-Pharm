@@ -1,0 +1,55 @@
+{% extends 'storefront/base.html' %}
+
+{% block title %}Your Cart | Book Pharm{% endblock %}
+
+{% block content %}
+<h1>Your Cart</h1>
+
+{% if items %}
+<table class="cart-table">
+  <thead>
+    <tr><th>Book</th><th>Price</th><th>Qty</th><th class="text-right">Line Total</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for item in items %}
+    <tr>
+      <td>
+        <div class="cart-table__book">
+          <div class="cart-table__cover">{% if item.book.cover_image %}<img src="{{ item.book.cover_image.url }}" alt="">{% endif %}</div>
+          <div>
+            <a href="{% url 'storefront:book_detail' item.book.slug %}"><strong>{{ item.book.title }}</strong></a><br>
+            <span class="text-muted">{{ item.book.author }}</span>
+          </div>
+        </div>
+      </td>
+      <td class="mono">GHS {{ item.book.selling_price }}</td>
+      <td>
+        <form method="post" action="{% url 'storefront:cart_update' item.book.id %}" style="display: flex; gap: 0.5rem;">
+          {% csrf_token %}
+          <input type="number" name="qty" value="{{ item.qty }}" min="1" max="{{ item.book.stock_qty }}" style="width: 60px;">
+          <button type="submit" class="btn btn--secondary">Update</button>
+        </form>
+      </td>
+      <td class="text-right mono">GHS {{ item.line_total }}</td>
+      <td>
+        <form method="post" action="{% url 'storefront:cart_remove' item.book.id %}">
+          {% csrf_token %}
+          <button type="submit" class="cart-item__remove">Remove</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="card summary-card" style="max-width: 360px; margin-left: auto;">
+  <div class="summary-total">
+    <span>Subtotal</span>
+    <span class="value">GHS {{ subtotal }}</span>
+  </div>
+  <a href="{% url 'storefront:checkout' %}" class="btn btn--primary" style="width: 100%; text-align: center; margin-top: 1rem;">Proceed to Checkout</a>
+</div>
+{% else %}
+<p class="text-muted">Your cart is empty. <a href="{% url 'storefront:book_list' %}">Browse books</a> to get started.</p>
+{% endif %}
+{% endblock %}

@@ -4,19 +4,28 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Book Pharm{% endblock %}</title>
+  <title>{% block title %}Book Pharm | Literary Apothecary{% endblock %}</title>
+  {% block meta %}
+  <meta name="description" content="Book Pharm — browse and buy books online in Ghana. Delivery, pickup, or rider delivery via Yango/Bolt/Uber.">
+  {% endblock %}
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <link rel="stylesheet" href="{% static 'css/theme-storefront.css' %}">
+  <link rel="stylesheet" href="{% static 'css/storefront-layout.css' %}">
   {% block extra_head %}{% endblock %}
 </head>
 <body>
   <header class="site-header">
     <div class="site-header__inner">
       <a class="site-header__brand" href="{% url 'storefront:home' %}">Book Pharm</a>
+      <form class="site-header__search" method="get" action="{% url 'storefront:book_list' %}">
+        <input type="search" name="q" placeholder="Search books or authors..." value="{{ query|default:'' }}">
+      </form>
       <nav class="site-header__nav">
-        <a href="{% url 'storefront:home' %}">Browse</a>
-        <a href="#">Cart</a>
+        <a href="{% url 'storefront:book_list' %}">Browse</a>
+        <a href="{% url 'storefront:cart' %}" class="site-header__cart">
+          Cart{% if cart_count %} <span class="badge">{{ cart_count }}</span>{% endif %}
+        </a>
       </nav>
     </div>
   </header>

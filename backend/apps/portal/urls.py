@@ -2,7 +2,7 @@ from django.urls import path
 
 from apps.reports import views as report_views
 
-from . import auth_views, discount_views, expense_views, reconciliation_views, views
+from . import auth_views, discount_views, expense_views, orders_views, reconciliation_views, views
 
 app_name = 'portal'
 
@@ -26,4 +26,8 @@ urlpatterns = [
     path('reports/profit/', report_views.profit_report, name='reports_profit'),
     path('reports/stock/', report_views.stock_report, name='reports_stock'),
     path('reports/expenses/', report_views.expense_report, name='reports_expenses'),
+    path('orders/', orders_views.order_list, name='order_list'),
+    path('orders/<int:pk>/', orders_views.order_detail, name='order_detail'),
+    path('orders/rider-queue/', orders_views.rider_queue, name='rider_queue'),
+    path('orders/fulfillment/<int:pk>/mark-rider-booked/', orders_views.mark_rider_booked, name='mark_rider_booked'),
 ]

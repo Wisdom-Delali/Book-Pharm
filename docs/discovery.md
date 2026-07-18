@@ -1,7 +1,7 @@
 # Book Pharm — Discovery Summary
 
 **Status:** Reference. Source of truth for *why* the system works the way it does.
-**Sources:** client discovery call (14 July 2026) + completed clarification questionnaire.
+**Sources:** client discovery call (14 July 2026) + completed clarification questionnaire. Amended 2026-07-18 with one owner request made during the Phase 5 build (rider delivery) — flagged explicitly below since it didn't come from the original call or questionnaire.
 **Companion:** [`SRS.md`](./SRS.md) for the formal requirements. [`../CLAUDE.md`](../CLAUDE.md) for build context.
 
 This is the client-facing narrative in repo form. When a requirement in the SRS looks arbitrary, the reason is usually here.
@@ -58,7 +58,7 @@ The discovery call surfaced a cluster of related problems. They're listed here r
 | No way to reward regulars | Owner-configurable loyalty/rewards. |
 | Informal, inconsistent discounts | Central discount rules (percentage or fixed) set by the owner. |
 | Jumia untrackable, high returns | Jumia recorded as its own channel with a clean return/reversal path. |
-| No delivery pricing logic | Configurable delivery pricing — method still to be confirmed. |
+| No delivery pricing logic | Configurable delivery pricing — method still to be confirmed. Sidestepped entirely for rider delivery (Yango/Bolt/Uber), which has no fee to configure. |
 | Payment reconciliation failures | Full gateway payloads stored on every transaction. Reconciliation records are a first-class feature here, not an afterthought. |
 | Book fairs with no internet | POS records sales offline and syncs on reconnect. |
 | No web presence | New domain, storefront built around her existing logo and brand colours. |
@@ -73,7 +73,7 @@ Decided. Don't reopen these in code review.
 - **Stock entry:** scanning *and* manual entry; internal code when no ISBN
 - **Low stock:** must warn the owner
 - **Online payments:** MTN MoMo, Telecel/Vodafone Cash, bank transfer, card
-- **Fulfillment:** delivery *and* pickup
+- **Fulfillment:** delivery *and* pickup (plus rider delivery — see below, added after the questionnaire)
 - **Order confirmation:** customer confirms receipt; feedback/reviews enabled
 - **Marketplace:** Jumia tracked separately, returns handled
 - **Customer data:** phone, full name, email, birthday
@@ -97,6 +97,10 @@ Decided. Don't reopen these in code review.
 - **Delivery fee method** — distance-based, fixed zones, or manual. Blocks storefront checkout.
 - **Discount approval level** — owner-only, or staff within a limit. Defaulting to owner-only.
 
+### Added during build (not from the original questionnaire)
+
+- **Rider delivery (Yango/Bolt/Uber) — added 2026-07-18.** A third fulfillment option alongside delivery and pickup, requested directly by the owner mid-build rather than surfaced in discovery. The system calculates **no fee** for it — the customer pays Book Pharm for the books only, then the attendant books the actual ride separately using the customer's phone number and drop-off address, and the ride fare is settled directly between the customer and the rider service. Named generically ("Yango/Bolt/Uber Delivery") rather than tied to one provider, since the attendant can use whichever app makes sense at the time. Because this bypasses Book Pharm entirely once the books are paid for, it needs its own safety net: the portal flags any rider-delivery order that hasn't been marked booked yet, the same way it already flags low stock and stock discrepancies — otherwise a busy shift is exactly how one gets forgotten.
+
 ---
 
 ## 5. Workflows
@@ -110,10 +114,10 @@ Decided. Don't reopen these in code review.
 
 ### Online order
 1. Customer browses the storefront — live stock, no manual upload.
-2. Adds to cart, chooses delivery or pickup, pays online.
+2. Adds to cart, chooses delivery, pickup, or rider delivery (Yango/Bolt/Uber), pays online for the books.
 3. Order lands in the portal immediately; stock decrements.
-4. Delivery fee calculated per the owner's configured rule.
-5. Customer confirms receipt and may leave feedback.
+4. Delivery fee calculated per the owner's configured rule — skipped entirely for rider delivery, which only needs a drop-off address.
+5. For rider delivery: the attendant books the actual ride with the customer's phone and address, then marks it booked in the portal. For standard delivery/pickup: customer confirms receipt and may leave feedback.
 
 ### Owner oversight
 1. Logs into the portal from any device.
@@ -136,6 +140,7 @@ Decided. Don't reopen these in code review.
 | 7 | Birthday and promotional SMS | Owner | Replaces the WhatsApp broadcasts. |
 | 8 | Adding wholesale stock with no ISBN | Attendant | The supplier reality — manual entry is not an edge case. |
 | 9 | Tracking profitability | Owner | Revenue minus cost of goods minus *business* expenses only. |
+| 10 | Online order via rider delivery | Customer, Attendant | No fee to calculate; the risk is a booked-but-forgotten ride, so the portal has to flag it until handled. |
 
 ---
 
