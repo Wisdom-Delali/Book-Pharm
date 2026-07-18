@@ -1,0 +1,55 @@
+{% extends 'portal/base.html' %}
+
+{% block title %}Stock Levels | Book Pharm Portal{% endblock %}
+
+{% block content %}
+<header class="portal-page-header">
+  <div><h1>Reports</h1><p class="text-muted">Sales, profit margin, stock, and expenses.</p></div>
+</header>
+
+{% include 'portal/reports/_tabs.html' %}
+
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-stack-md); margin-bottom: var(--space-stack-md);">
+  <div class="card"><p class="text-muted">Total Books</p><h2>{{ total_books }}</h2></div>
+  <div class="card"><p class="text-muted">Low Stock</p><h2 class="text-error">{{ low_stock_count }}</h2></div>
+  <div class="card"><p class="text-muted">Out of Stock</p><h2 class="text-error">{{ out_of_stock_count }}</h2></div>
+  <div class="card"><p class="text-muted">Stock Value (cost)</p><h2>GHS {{ totals.cost_value|default:0 }}</h2></div>
+</div>
+
+<div class="card catalog-table-card">
+  <div style="padding: var(--space-stack-md); display: flex; justify-content: flex-end;">
+    <a href="?format=csv" class="btn btn--secondary">Export CSV</a>
+  </div>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Book</th>
+        <th>Category</th>
+        <th class="text-right">Stock</th>
+        <th class="text-right">Cost Value</th>
+        <th class="text-right">Retail Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for book in books %}
+      <tr>
+        <td>{{ book.title }}</td>
+        <td><span class="badge">{{ book.category.name }}</span></td>
+        <td class="text-right{% if book.is_low_stock %} text-error{% endif %}">{{ book.stock_qty }}</td>
+        <td class="text-right mono">GHS {{ book.cost_value }}</td>
+        <td class="text-right mono">GHS {{ book.retail_value }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="text-muted">No books yet.</td></tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="3"><strong>Total</strong></td>
+        <td class="text-right mono"><strong>GHS {{ totals.cost_value|default:0 }}</strong></td>
+        <td class="text-right mono"><strong>GHS {{ totals.retail_value|default:0 }}</strong></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+{% endblock %}

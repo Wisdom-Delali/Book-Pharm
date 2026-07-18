@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log In | Book Pharm Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=EB+Garamond:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/theme-portal.css' %}">
+</head>
+<body>
+  <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center;">
+    <div class="card" style="width: 100%; max-width: 380px;">
+      <h1 style="font-size: var(--text-headline-lg-size); margin-bottom: 0.25rem;">Book Pharm</h1>
+      <p class="text-muted" style="margin-bottom: var(--space-stack-md);">Owner Portal</p>
+
+      {% include 'partials/_messages.html' %}
+
+      <form method="post" style="display: flex; flex-direction: column; gap: var(--space-stack-md);">
+        {% csrf_token %}
+        {% for error in form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        <input type="hidden" name="next" value="{{ next }}">
+
+        <div class="form-field">
+          <label class="form-label" for="{{ form.email.id_for_label }}">Email</label>
+          {{ form.email }}
+          {% for error in form.email.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+        <div class="form-field">
+          <label class="form-label" for="{{ form.password.id_for_label }}">Password</label>
+          {{ form.password }}
+          {% for error in form.password.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+
+        <button type="submit" class="btn btn--primary" style="width: 100%;">Log In</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

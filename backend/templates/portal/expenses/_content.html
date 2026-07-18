@@ -1,0 +1,56 @@
+<div id="expense-content">
+  <header class="portal-page-header">
+    <div>
+      <h1>Expenses</h1>
+      <p class="text-muted">Business costs and personal withdrawals, kept separate for honest profit reporting.</p>
+    </div>
+    <button class="btn btn--primary" hx-get="{% url 'portal:expense_create' %}" hx-target="#expense-content" hx-swap="outerHTML">
+      + Add Expense
+    </button>
+  </header>
+
+  <div class="card catalog-table-card">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Category</th>
+          <th class="text-right">Amount</th>
+          <th>Type</th>
+          <th>Notes</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for expense in page_obj %}
+        <tr>
+          <td>{{ expense.date }}</td>
+          <td><span class="badge">{{ expense.get_category_display }}</span></td>
+          <td class="text-right mono">GHS {{ expense.amount }}</td>
+          <td>
+            {% if expense.is_personal_withdrawal %}
+            <span class="badge badge--error">Personal</span>
+            {% else %}
+            <span class="badge badge--ok">Business</span>
+            {% endif %}
+          </td>
+          <td class="text-muted">{{ expense.notes|default:"—" }}</td>
+          <td class="text-right">
+            <button class="btn btn--secondary" hx-get="{% url 'portal:expense_update' expense.pk %}" hx-target="#expense-content" hx-swap="outerHTML">Edit</button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-muted">No expenses recorded yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% include 'portal/expenses/_pagination.html' %}
+  </div>
+
+  {% if panel_open %}
+  <div class="panel-backdrop" hx-get="{% url 'portal:expense_list' %}" hx-target="#expense-content" hx-swap="outerHTML"></div>
+  <aside class="panel">
+    {% include 'portal/expenses/_form.html' %}
+  </aside>
+  {% endif %}
+</div>

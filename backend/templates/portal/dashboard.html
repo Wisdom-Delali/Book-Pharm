@@ -2,8 +2,31 @@
 
 {% block title %}Dashboard | Book Pharm Portal{% endblock %}
 
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+{% endblock %}
+
 {% block content %}
 <h1>Welcome back{% if request.user.full_name %}, {{ request.user.full_name }}{% endif %}</h1>
+
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-stack-md); margin: var(--space-stack-md) 0;">
+  <div class="card">
+    <p class="text-muted">Today's Sales</p>
+    <h2>GHS {{ today_sales }}</h2>
+  </div>
+  <div class="card">
+    <p class="text-muted">This Week's Orders</p>
+    <h2>{{ week_orders }}</h2>
+  </div>
+  <div class="card">
+    <p class="text-muted">Profit Margin (MTD)</p>
+    <h2>{{ profit_margin_pct|floatformat:1 }}%</h2>
+  </div>
+  <div class="card">
+    <p class="text-muted">Low Stock</p>
+    <h2 class="{% if low_stock_count %}text-error{% endif %}">{{ low_stock_count }}</h2>
+  </div>
+</div>
 
 {% if discrepancy_count %}
 <div class="card" style="margin-bottom: var(--space-stack-md); border-color: var(--color-error);">
@@ -12,6 +35,11 @@
   <a class="btn btn--primary" href="{% url 'portal:reconciliation_list' %}" style="margin-top: var(--space-stack-sm);">Review Discrepancies</a>
 </div>
 {% endif %}
+
+<div class="card" style="margin-bottom: var(--space-stack-md);">
+  <h3>Sales — Last 7 Days</h3>
+  <canvas id="dashboardChart" height="70"></canvas>
+</div>
 
 <div class="card" style="margin-bottom: var(--space-stack-md);">
   <h3>Low Stock Alerts</h3>
@@ -37,8 +65,25 @@
   {% endif %}
 </div>
 
-<div class="card">
-  <h3>Reports coming in Phase 4</h3>
-  <p>This is the portal base template rendering with the ported design language.</p>
-</div>
+<script>
+  new Chart(document.getElementById('dashboardChart'), {
+    type: 'line',
+    data: {
+      labels: {{ chart_labels|safe }},
+      datasets: [{
+        label: 'Sales (GHS)',
+        data: {{ chart_values|safe }},
+        borderColor: '#570013',
+        backgroundColor: 'rgba(87, 0, 19, 0.1)',
+        fill: true,
+        tension: 0.3,
+      }],
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true } },
+    },
+  });
+</script>
 {% endblock %}

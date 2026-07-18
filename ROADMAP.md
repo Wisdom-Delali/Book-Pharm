@@ -88,18 +88,22 @@ The hardest phase. Don't rush it.
 
 ## Phase 4 — Owner portal & reporting
 
-- [ ] Owner auth, session handling, role scaffolding (single owner now, extensible later)
-- [ ] Dashboard: today's sales, week's orders, profit margin, low-stock count
-- [ ] Sales report: daily/weekly/monthly, with date range picker
-- [ ] Profit margin per book report (`selling_price - cost_price` × qty sold)
-- [ ] Stock levels report
-- [ ] `Expense` model + entry form
-- [ ] **Business vs. personal withdrawal toggle** — profit reports must exclude personal draws
-- [ ] Expense report with the business/personal split visible
-- [ ] Chart.js integration for trends
-- [ ] CSV export on each report
+- [x] Owner auth, session handling, role scaffolding (single owner now, extensible later) — real email+password login at `/portal/login/`, retiring the Phase 0 admin-login bridge; `LOGIN_URL` now points at it
+- [x] Dashboard: today's sales, week's orders, profit margin, low-stock count — profit margin scoped to month-to-date, 7-day trend chart added alongside
+- [x] Sales report: daily/weekly/monthly, with date range picker
+- [x] Profit margin per book report (`selling_price - cost_price` × qty sold) — actually `(unit_price - unit_cost_price) × qty - line_discount`; see the `SaleItem.unit_cost_price` note below
+- [x] Stock levels report — plus cost/retail inventory value totals, low-stock and out-of-stock counts
+- [x] `Expense` model + entry form — HTMX slide-over, same pattern as catalog/discounts
+- [x] **Business vs. personal withdrawal toggle** — `is_personal_withdrawal`; verified the expense report actually excludes it (GHS 800 business rent counted, GHS 300 personal draw isolated and excluded), not just that the field exists
+- [x] Expense report with the business/personal split visible — separate totals + by-category breakdown, business-only
+- [x] Chart.js integration for trends — dashboard 7-day trend, sales report period chart
+- [x] CSV export on each report — all four (`?format=csv`)
 
-**Done when:** the owner can answer "did I make money this month, and is that number honest about my personal withdrawals?" without calling you.
+**Done when:** the owner can answer "did I make money this month, and is that number honest about my personal withdrawals?" without calling you. ✅ Verified 2026-07-18 — dashboard, all four reports, and CSV export all confirmed against real data through the actual HTTP endpoints (not just unit-level).
+
+**One schema addition beyond CLAUDE.md's original spec:** added `SaleItem.unit_cost_price`, a snapshot of `Book.cost_price` at sale time, populated by `create_sale()` alongside the existing `unit_price` snapshot. CLAUDE.md §9 already establishes the principle ("all prices on SaleItem are snapshots, not FK lookups to live price") — the original field list just didn't extend it to cost. Without this, editing a book's cost price today would silently rewrite last month's profit reports. Existing pre-Phase-4 `SaleItem` rows were backfilled from each book's current `cost_price` (the best available approximation for data that predates the field).
+
+**A significant bug found and fixed by this phase's testing:** MySQL/MariaDB's timezone tables aren't loaded on this dev machine — confirmed via `mysql.time_zone_name` being empty — which makes every `__date`/`TruncDate`/`TruncWeek`/`TruncMonth` lookup on a `DateTimeField` silently return `NULL` (Django delegates the conversion to `CONVERT_TZ`, which needs that data to do anything). This would have made every report and every dashboard stat show zero, permanently, with no error — exactly the kind of failure that's invisible until someone asks "why does this always say zero?" Fixed by filtering with explicit UTC datetime bounds computed in Python (`apps/reports/utils.py::range_bounds_utc`) and forcing `tzinfo=utc` on every `Trunc*` call, instead of relying on database-side timezone conversion at all. This isn't a workaround specific to this machine — cPanel shared hosting frequently doesn't have timezone tables loaded either, so the fix is the actually-correct approach for this project, not a local patch. (Africa/Accra being UTC+0 with no DST means the UTC-boundary math is exactly right, not an approximation.)
 
 ---
 

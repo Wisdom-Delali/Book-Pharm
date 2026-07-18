@@ -1,0 +1,51 @@
+{% extends 'portal/base.html' %}
+
+{% block title %}Profit Margin | Book Pharm Portal{% endblock %}
+
+{% block content %}
+<header class="portal-page-header">
+  <div><h1>Reports</h1><p class="text-muted">Sales, profit margin, stock, and expenses.</p></div>
+</header>
+
+{% include 'portal/reports/_tabs.html' %}
+{% include 'portal/reports/_date_range_form.html' %}
+
+<div class="card catalog-table-card">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Book</th>
+        <th class="text-right">Qty Sold</th>
+        <th class="text-right">Revenue</th>
+        <th class="text-right">Cost</th>
+        <th class="text-right">Profit</th>
+        <th class="text-right">Margin</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{ row.book__title }}</td>
+        <td class="text-right">{{ row.qty_sold }}</td>
+        <td class="text-right mono">GHS {{ row.revenue }}</td>
+        <td class="text-right mono">GHS {{ row.cost }}</td>
+        <td class="text-right mono"><strong>GHS {{ row.profit }}</strong></td>
+        <td class="text-right mono">{{ row.margin_pct|floatformat:1 }}%</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="text-muted">No sales in this range.</td></tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td><strong>Total</strong></td>
+        <td class="text-right"><strong>{{ totals.qty_sold|default:0 }}</strong></td>
+        <td class="text-right mono"><strong>GHS {{ totals.revenue|default:0 }}</strong></td>
+        <td class="text-right mono"><strong>GHS {{ totals.cost|default:0 }}</strong></td>
+        <td class="text-right mono"><strong>GHS {{ totals.profit|default:0 }}</strong></td>
+        <td></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+{% endblock %}

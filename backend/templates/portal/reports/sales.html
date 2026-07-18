@@ -1,0 +1,76 @@
+{% extends 'portal/base.html' %}
+
+{% block title %}Sales Report | Book Pharm Portal{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<header class="portal-page-header">
+  <div><h1>Reports</h1><p class="text-muted">Sales, profit margin, stock, and expenses.</p></div>
+</header>
+
+{% include 'portal/reports/_tabs.html' %}
+{% include 'portal/reports/_date_range_form.html' %}
+
+<div class="card" style="margin-bottom: var(--space-stack-md);">
+  <canvas id="salesChart" height="80"></canvas>
+</div>
+
+<div class="card catalog-table-card">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Period</th>
+        <th class="text-right">Sales</th>
+        <th class="text-right">Subtotal</th>
+        <th class="text-right">Discount</th>
+        <th class="text-right">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{ row.period }}</td>
+        <td class="text-right">{{ row.sale_count }}</td>
+        <td class="text-right mono">GHS {{ row.subtotal }}</td>
+        <td class="text-right mono">GHS {{ row.discount }}</td>
+        <td class="text-right mono"><strong>GHS {{ row.total }}</strong></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="text-muted">No completed sales in this range.</td></tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td><strong>Total</strong></td>
+        <td class="text-right"><strong>{{ totals.sale_count|default:0 }}</strong></td>
+        <td class="text-right mono"><strong>GHS {{ totals.subtotal|default:0 }}</strong></td>
+        <td class="text-right mono"><strong>GHS {{ totals.discount|default:0 }}</strong></td>
+        <td class="text-right mono"><strong>GHS {{ totals.total|default:0 }}</strong></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<script>
+  new Chart(document.getElementById('salesChart'), {
+    type: 'bar',
+    data: {
+      labels: {{ chart_labels|safe }},
+      datasets: [{
+        label: 'Sales Total (GHS)',
+        data: {{ chart_values|safe }},
+        backgroundColor: '#570013',
+        borderRadius: 4,
+      }],
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true } },
+    },
+  });
+</script>
+{% endblock %}

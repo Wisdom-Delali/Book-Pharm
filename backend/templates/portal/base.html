@@ -23,9 +23,13 @@
         <a href="#">Customers &amp; Loyalty</a>
         <a href="{% url 'portal:discount_list' %}" class="{% if active_nav == 'discounts' %}is-active{% endif %}">Discounts</a>
         <a href="{% url 'portal:reconciliation_list' %}" class="{% if active_nav == 'reconciliation' %}is-active{% endif %}">Reconciliation</a>
-        <a href="#">Reports</a>
-        <a href="#">Expenses</a>
+        <a href="{% url 'portal:reports_sales' %}" class="{% if active_nav == 'reports' %}is-active{% endif %}">Reports</a>
+        <a href="{% url 'portal:expense_list' %}" class="{% if active_nav == 'expenses' %}is-active{% endif %}">Expenses</a>
       </nav>
+      <div style="margin-top: auto; padding-top: var(--space-stack-md); border-top: 1px solid var(--color-outline-variant);">
+        <p class="text-muted" style="font-size: 0.75rem; padding: 0 1rem; margin-bottom: 0.5rem;">{{ request.user.email }}</p>
+        <a href="{% url 'portal:logout' %}">Log Out</a>
+      </div>
     </aside>
 
     <main class="portal-main">

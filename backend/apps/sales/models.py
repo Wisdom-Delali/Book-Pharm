@@ -124,6 +124,10 @@ class SaleItem(models.Model):
     qty = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     line_discount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
+    # Snapshot, same reasoning as unit_price (CLAUDE.md §9: never a live FK
+    # lookup for historical records) — without this, editing a book's
+    # cost_price today would silently rewrite last month's profit reports.
+    unit_cost_price = models.DecimalField(max_digits=10, decimal_places=2, null=True)
 
     def __str__(self):
         return f'{self.qty} x {self.book} (Sale #{self.sale_id})'
@@ -131,6 +135,12 @@ class SaleItem(models.Model):
     @property
     def line_total(self):
         return self.unit_price * self.qty - self.line_discount
+
+    @property
+    def line_profit(self):
+        if self.unit_cost_price is None:
+            return None
+        return (self.unit_price - self.unit_cost_price) * self.qty - self.line_discount
 
 
 class StockDiscrepancy(models.Model):

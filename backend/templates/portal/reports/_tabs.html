@@ -1,0 +1,6 @@
+<div class="toolbar">
+  <a class="btn {% if report_tab == 'sales' %}btn--primary{% else %}btn--secondary{% endif %}" href="{% url 'portal:reports_sales' %}">Sales</a>
+  <a class="btn {% if report_tab == 'profit' %}btn--primary{% else %}btn--secondary{% endif %}" href="{% url 'portal:reports_profit' %}">Profit Margin</a>
+  <a class="btn {% if report_tab == 'stock' %}btn--primary{% else %}btn--secondary{% endif %}" href="{% url 'portal:reports_stock' %}">Stock Levels</a>
+  <a class="btn {% if report_tab == 'expenses' %}btn--primary{% else %}btn--secondary{% endif %}" href="{% url 'portal:reports_expenses' %}">Expenses</a>
+</div>

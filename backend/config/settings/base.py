@@ -76,9 +76,8 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 AUTH_USER_MODEL = 'accounts.User'
 
-# Temporary: routes @login_required portal views through Django admin's login
-# until Phase 4 builds the portal's own login page (PRT-01).
-LOGIN_URL = '/admin/login/'
+LOGIN_URL = 'portal:login'
+LOGIN_REDIRECT_URL = 'portal:dashboard'
 
 DATABASES = {
     'default': {

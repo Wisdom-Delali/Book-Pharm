@@ -1,10 +1,14 @@
 from django.urls import path
 
-from . import discount_views, reconciliation_views, views
+from apps.reports import views as report_views
+
+from . import auth_views, discount_views, expense_views, reconciliation_views, views
 
 app_name = 'portal'
 
 urlpatterns = [
+    path('login/', auth_views.login_view, name='login'),
+    path('logout/', auth_views.logout_view, name='logout'),
     path('', views.dashboard, name='dashboard'),
     path('catalog/', views.book_list, name='book_list'),
     path('catalog/books/new/', views.book_create, name='book_create'),
@@ -15,4 +19,11 @@ urlpatterns = [
     path('discounts/<int:pk>/edit/', discount_views.discount_update, name='discount_update'),
     path('reconciliation/', reconciliation_views.reconciliation_list, name='reconciliation_list'),
     path('reconciliation/<int:pk>/resolve/', reconciliation_views.reconciliation_resolve, name='reconciliation_resolve'),
+    path('expenses/', expense_views.expense_list, name='expense_list'),
+    path('expenses/new/', expense_views.expense_create, name='expense_create'),
+    path('expenses/<int:pk>/edit/', expense_views.expense_update, name='expense_update'),
+    path('reports/sales/', report_views.sales_report, name='reports_sales'),
+    path('reports/profit/', report_views.profit_report, name='reports_profit'),
+    path('reports/stock/', report_views.stock_report, name='reports_stock'),
+    path('reports/expenses/', report_views.expense_report, name='reports_expenses'),
 ]

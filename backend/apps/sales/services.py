@@ -103,7 +103,7 @@ def create_sale(
         line_discount = rule.discount_for(unit_price, qty) if rule else Decimal('0')
         subtotal += line_subtotal
         discount_amount += line_discount
-        resolved_items.append((book, qty, unit_price, line_discount))
+        resolved_items.append((book, qty, unit_price, line_discount, book.cost_price))
 
     total = subtotal - discount_amount
 
@@ -122,9 +122,10 @@ def create_sale(
         synced_at=timezone.now(),
     )
 
-    for book, qty, unit_price, line_discount in resolved_items:
+    for book, qty, unit_price, line_discount, unit_cost_price in resolved_items:
         sale_item = SaleItem.objects.create(
-            sale=sale, book=book, qty=qty, unit_price=unit_price, line_discount=line_discount
+            sale=sale, book=book, qty=qty, unit_price=unit_price, line_discount=line_discount,
+            unit_cost_price=unit_cost_price,
         )
         book.stock_qty -= qty
         book.save(update_fields=['stock_qty', 'updated_at'])

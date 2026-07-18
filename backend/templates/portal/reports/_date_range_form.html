@@ -1,0 +1,22 @@
+<form method="get" class="toolbar card">
+  <div class="form-field" style="flex: 0 0 auto;">
+    <label class="form-label">From</label>
+    <input type="date" name="start" value="{{ start|date:'Y-m-d' }}">
+  </div>
+  <div class="form-field" style="flex: 0 0 auto;">
+    <label class="form-label">To</label>
+    <input type="date" name="end" value="{{ end|date:'Y-m-d' }}">
+  </div>
+  {% if granularity %}
+  <div class="form-field" style="flex: 0 0 auto;">
+    <label class="form-label">Group by</label>
+    <select name="granularity" style="width: auto;">
+      <option value="day" {% if granularity == 'day' %}selected{% endif %}>Day</option>
+      <option value="week" {% if granularity == 'week' %}selected{% endif %}>Week</option>
+      <option value="month" {% if granularity == 'month' %}selected{% endif %}>Month</option>
+    </select>
+  </div>
+  {% endif %}
+  <button type="submit" class="btn btn--primary">Apply</button>
+  <a class="btn btn--secondary" href="?start={{ start|date:'Y-m-d' }}&end={{ end|date:'Y-m-d' }}{% if granularity %}&granularity={{ granularity }}{% endif %}&format=csv">Export CSV</a>
+</form>
