@@ -68,6 +68,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'apps.storefront.context_processors.cart_context',
+                'apps.storefront.context_processors.nav_context',
             ],
         },
     },
@@ -134,3 +135,9 @@ PAYSTACK_SECRET_KEY = config('PAYSTACK_SECRET_KEY', default='')
 PAYSTACK_PUBLIC_KEY = config('PAYSTACK_PUBLIC_KEY', default='')
 SMSONLINEGH_API_KEY = config('SMSONLINEGH_API_KEY', default='')
 SMSONLINEGH_SENDER_ID = config('SMSONLINEGH_SENDER_ID', default='')
+
+# Wording, not a secret — a plain setting (not .env) so changing it is a
+# one-line code edit, not a hosting config change. {name_suffix} is filled
+# in by send_birthday_sms with ", <first name>" or "" if the customer never
+# gave one.
+BIRTHDAY_SMS_MESSAGE = 'Happy Birthday{name_suffix} from Book Pharm! Wishing you a wonderful day filled with great stories.'

@@ -1,0 +1,38 @@
+{% comment %}
+Reusable book card: home (featured/new arrivals), book_list grid, and
+book_detail's related-books section all include this. Params:
+  book  — required, a Book instance
+  badge — optional label shown on the cover (e.g. "Bestseller", "New In")
+The quick-add button (WISDOM.md #3) lives outside the <a> and targets an
+external <form> via the HTML5 form="" attribute — a <button> nested inside
+an <a> is invalid HTML and makes click behavior browser-dependent.
+{% endcomment %}
+<div class="book-card">
+  <a class="book-card__link" href="{% url 'storefront:book_detail' book.slug %}">
+    <div class="book-card__cover">
+      {% if book.cover_image %}<img src="{{ book.cover_image.url }}" alt="{{ book.title }} cover" loading="lazy">{% endif %}
+      {% if badge %}<span class="book-card__badge">{{ badge }}</span>{% endif %}
+    </div>
+    <div class="book-card__body">
+      <p class="book-card__title">{{ book.title }}</p>
+      <p class="book-card__author">{{ book.author }}</p>
+    </div>
+  </a>
+  <div class="book-card__row">
+    <span class="book-card__price">GHS {{ book.selling_price }}</span>
+    {% if book.stock_qty > 0 %}
+    <button type="submit" form="quick-add-{{ book.id }}" class="book-card__quick-add" aria-label="Add {{ book.title }} to cart" title="Add to cart">
+      <span class="material-symbols-outlined">add_shopping_cart</span>
+    </button>
+    {% else %}
+    <span class="book-card__stock book-card__stock--out">Out of stock</span>
+    {% endif %}
+  </div>
+</div>
+{% if book.stock_qty > 0 %}
+<form id="quick-add-{{ book.id }}" method="post" action="{% url 'storefront:cart_add' book.id %}" hidden>
+  {% csrf_token %}
+  <input type="hidden" name="qty" value="1">
+  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+</form>
+{% endif %}

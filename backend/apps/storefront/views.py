@@ -2,7 +2,8 @@ import json
 
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Avg, Count, Q, Sum
+from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -12,7 +13,7 @@ from apps.fulfillment.models import DeliveryPricingRule, Fulfillment, Review
 from apps.payments.models import PaymentTransaction
 from apps.payments.paystack import PaystackError, initialize_transaction, verify_transaction
 from apps.payments.views_helpers import PAYSTACK_CHANNEL_TO_METHOD
-from apps.sales.models import Sale
+from apps.sales.models import DiscountRule, Sale
 from apps.sales.services import InsufficientStockError, create_pending_online_sale, finalize_paid_sale
 
 from .cart import Cart
@@ -29,7 +30,8 @@ def book_list(request):
     category_slug = request.GET.get('category', '').strip()
     if category_slug:
         books = books.filter(category__slug=category_slug)
-    books = books.order_by('title')
+    sort = request.GET.get('sort', '').strip()
+    books = books.order_by('-created_at') if sort == 'new' else books.order_by('title')
 
     paginator = Paginator(books, PAGE_SIZE)
     page_obj = paginator.get_page(request.GET.get('page'))
@@ -39,16 +41,65 @@ def book_list(request):
         'categories': Category.objects.all(),
         'query': query,
         'selected_category': category_slug,
+        'sort': sort,
     })
 
 
 def home(request):
-    return book_list(request)
+    # Bestsellers by units sold (PAID sales only) — falls back to the newest
+    # active titles when the shop has no sales history yet, since the
+    # secondary sort key is -created_at either way.
+    featured_qs = (
+        Book.objects.filter(is_active=True, stock_qty__gt=0)
+        .annotate(total_sold=Coalesce(
+            Sum('sale_items__qty', filter=Q(sale_items__sale__payment_status=Sale.PaymentStatus.PAID)), 0,
+        ))
+        .select_related('category')
+        .order_by('-total_sold', '-created_at')[:2]
+    )
+    featured_books = [
+        {'book': b, 'badge': 'Bestseller' if b.total_sold > 0 else 'New In'} for b in featured_qs
+    ]
+    featured_ids = [entry['book'].id for entry in featured_books]
+
+    new_arrivals = list(
+        Book.objects.filter(is_active=True)
+        .exclude(id__in=featured_ids)
+        .select_related('category')
+        .order_by('-created_at')[:8]
+    )
+
+    categories = Category.objects.annotate(
+        book_count=Count('books', filter=Q(books__is_active=True))
+    ).filter(book_count__gt=0)
+
+    # Only a storewide discount is worth headlining on the homepage — a
+    # category/book-scoped rule wouldn't honestly support a storewide claim.
+    active_discount = DiscountRule.objects.filter(
+        is_active=True, scope=DiscountRule.Scope.GLOBAL,
+    ).order_by('-created_at').first()
+
+    return render(request, 'storefront/home.html', {
+        'featured_books': featured_books,
+        'new_arrivals': new_arrivals,
+        'categories': categories,
+        'active_discount': active_discount,
+    })
 
 
 def book_detail(request, slug):
     book = get_object_or_404(Book, slug=slug, is_active=True)
-    reviews = Review.objects.filter(sale__items__book=book).select_related('sale').distinct()[:10]
+    # Reviews hang off Sale, not Book (CLAUDE.md §6) — a book's reviews are
+    # every review left on a sale that included it. Aggregate before
+    # slicing: a sliced queryset can't be reused for both the rating summary
+    # and the recent-reviews list.
+    reviews_qs = Review.objects.filter(sale__items__book=book).select_related('sale').distinct()
+    rating = reviews_qs.aggregate(avg=Avg('rating'), count=Count('id'))
+    reviews = reviews_qs[:10]
+    related_books = (
+        Book.objects.filter(category=book.category, is_active=True)
+        .exclude(pk=book.pk).select_related('category')[:4]
+    )
 
     # WEB-08: server-rendered meta tags + structured data for search
     # indexing. Built here (not in the template) so json.dumps handles
@@ -71,11 +122,20 @@ def book_detail(request, slug):
     }
     if book.author:
         structured_data['author'] = {'@type': 'Person', 'name': book.author}
+    if rating['count']:
+        structured_data['aggregateRating'] = {
+            '@type': 'AggregateRating',
+            'ratingValue': str(round(rating['avg'], 1)),
+            'reviewCount': rating['count'],
+        }
     structured_data = {k: v for k, v in structured_data.items() if v is not None}
     structured_data_json = json.dumps(structured_data).replace('</', '<\\/')
 
     return render(request, 'storefront/book_detail.html', {
         'book': book, 'reviews': reviews, 'structured_data_json': structured_data_json,
+        'avg_rating': rating['avg'], 'review_count': rating['count'],
+        'full_stars': round(rating['avg']) if rating['avg'] else 0,
+        'related_books': related_books,
     })
 
 

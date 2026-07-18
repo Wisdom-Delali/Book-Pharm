@@ -3,10 +3,71 @@
 {% block title %}Book Pharm | Literary Apothecary{% endblock %}
 
 {% block content %}
-<h1>Book Pharm</h1>
-<p>Your literary apothecary — browse, order, and collect.</p>
-<div class="card">
-  <h3>Catalog coming in Phase 1</h3>
-  <p>This is the storefront base template rendering with the ported design language.</p>
+<section class="hero-banner">
+  <div class="hero-banner__content">
+    <p class="hero-banner__eyebrow">Ghana's Literary Apothecary</p>
+    {% if active_discount %}
+      <h1>{% if active_discount.discount_type == 'PERCENT' %}{{ active_discount.value|floatformat:0 }}% off{% else %}GHS {{ active_discount.value }} off{% endif %} storewide</h1>
+      <p class="text-muted">{{ active_discount.name }} &mdash; applied automatically at checkout while it lasts.</p>
+      <a class="btn hero-banner__cta" href="{% url 'storefront:book_list' %}">Shop the Sale</a>
+    {% else %}
+      <h1>Browse, order, and collect</h1>
+      <p class="text-muted">New and classic titles, ready for delivery, pickup, or a rider straight to your door.</p>
+      <a class="btn hero-banner__cta" href="{% url 'storefront:book_list' %}">Start Browsing</a>
+    {% endif %}
+  </div>
+</section>
+
+{% if featured_books %}
+<div class="section-heading">
+  <h2>Featured</h2>
+  <a href="{% url 'storefront:book_list' %}?sort=new">See all</a>
 </div>
+<div class="book-grid">
+  {% for entry in featured_books %}
+  {% include 'storefront/_book_card.html' with book=entry.book badge=entry.badge %}
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="promo-strip">
+  <div class="promo-card">
+    <span class="material-symbols-outlined">local_shipping</span>
+    <h3>Delivery, Pickup, or Rider</h3>
+    <p>Choose delivery, collect in-store, or have a Yango/Bolt/Uber bring it to you.</p>
+  </div>
+  <div class="promo-card">
+    <span class="material-symbols-outlined">payments</span>
+    <h3>Pay Your Way</h3>
+    <p>MTN MoMo, Telecel Cash, card, or bank transfer &mdash; all through Paystack.</p>
+  </div>
+  <div class="promo-card">
+    <span class="material-symbols-outlined">verified</span>
+    <h3>Order Confirmation</h3>
+    <p>Confirm receipt once your order arrives, then leave a review for other readers.</p>
+  </div>
+</div>
+
+{% if new_arrivals %}
+<div class="section-heading">
+  <h2>New Arrivals</h2>
+  <a href="{% url 'storefront:book_list' %}?sort=new">See all</a>
+</div>
+<div class="book-rail hide-scrollbar">
+  {% for book in new_arrivals %}
+  {% include 'storefront/_book_card.html' with book=book badge='New In' %}
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if categories %}
+<div class="section-heading">
+  <h2>Shop by Category</h2>
+</div>
+<div class="filter-bar">
+  {% for cat in categories %}
+  <a class="filter-bar__chip" href="{% url 'storefront:book_list' %}?category={{ cat.slug }}">{{ cat.name }} <span class="text-muted">({{ cat.book_count }})</span></a>
+  {% endfor %}
+</div>
+{% endif %}
 {% endblock %}

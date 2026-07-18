@@ -1,0 +1,64 @@
+<div id="messaging-content">
+  <header class="portal-page-header">
+    <div>
+      <h1>SMS Campaigns</h1>
+      <p class="text-muted">Promotions and announcements, sent to opted-in customers. Birthday greetings send automatically and don't appear here.</p>
+    </div>
+    <button class="btn btn--primary" hx-get="{% url 'portal:campaign_create' %}" hx-target="#messaging-content" hx-swap="outerHTML">
+      + New Campaign
+    </button>
+  </header>
+
+  <div class="card catalog-table-card">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Audience</th>
+          <th>Message</th>
+          <th>Status</th>
+          <th>Scheduled / Sent</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for campaign in campaigns %}
+        <tr>
+          <td><strong>{{ campaign.name }}</strong></td>
+          <td><span class="badge">{{ campaign.get_audience_display }}</span></td>
+          <td class="text-muted" style="max-width: 320px;">{{ campaign.message|truncatechars:80 }}</td>
+          <td>
+            {% if campaign.status == 'SENT' %}<span class="badge badge--ok">Sent</span>
+            {% elif campaign.status == 'SCHEDULED' %}<span class="badge">Scheduled</span>
+            {% elif campaign.status == 'FAILED' %}<span class="badge badge--error">Failed</span>
+            {% else %}<span class="badge">Draft</span>{% endif %}
+          </td>
+          <td class="text-muted">
+            {% if campaign.sent_at %}{{ campaign.sent_at|date:"M j, Y g:i A" }}
+            {% elif campaign.scheduled_for %}{{ campaign.scheduled_for|date:"M j, Y g:i A" }}
+            {% else %}&mdash;{% endif %}
+          </td>
+          <td class="text-right">
+            {% if campaign.status == 'DRAFT' %}
+            <button class="btn btn--secondary" hx-get="{% url 'portal:campaign_update' campaign.pk %}" hx-target="#messaging-content" hx-swap="outerHTML">Edit</button>
+            <form method="post" action="{% url 'portal:campaign_send_now' campaign.pk %}" style="display: inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn--primary">Send Now</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-muted">No campaigns yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if panel_open %}
+  <div class="panel-backdrop" hx-get="{% url 'portal:campaign_list' %}" hx-target="#messaging-content" hx-swap="outerHTML"></div>
+  <aside class="panel">
+    {% include 'portal/messaging/_form.html' %}
+  </aside>
+  {% endif %}
+</div>

@@ -1,0 +1,32 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unsubscribe | Book Pharm</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/theme-storefront.css' %}">
+</head>
+<body>
+  <main class="container" style="max-width: 480px; padding-top: 4rem; padding-bottom: 4rem;">
+    <div class="card" style="text-align: center;">
+      {% if invalid %}
+      <h1>Link not valid</h1>
+      <p class="text-muted">This unsubscribe link is broken or has expired. If you'd like to stop receiving texts from Book Pharm, let the shop know your phone number and we'll do it for you.</p>
+      {% elif customer.sms_opt_out %}
+      <h1>You're unsubscribed</h1>
+      <p class="text-muted">{{ customer }}, you won't receive any more SMS messages from Book Pharm. If that was a mistake, get in touch with the shop to opt back in.</p>
+      {% else %}
+      <h1>Stop SMS messages?</h1>
+      <p class="text-muted">This will unsubscribe {{ customer }} ({{ customer.phone }}) from all Book Pharm SMS messages, including birthday greetings and promotions.</p>
+      <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn--primary" style="width: 100%; margin-top: 1rem;">Yes, unsubscribe me</button>
+      </form>
+      {% endif %}
+    </div>
+  </main>
+</body>
+</html>

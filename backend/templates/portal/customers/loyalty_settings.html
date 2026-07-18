@@ -1,0 +1,29 @@
+{% extends 'portal/base.html' %}
+
+{% block title %}Loyalty Program | Book Pharm Portal{% endblock %}
+
+{% block content %}
+<header class="portal-page-header">
+  <div>
+    <p class="text-muted"><a href="{% url 'portal:customer_list' %}">&larr; Customers</a></p>
+    <h1>Loyalty Program Settings</h1>
+    <p class="text-muted">Points are earned automatically on every paid sale and can be redeemed for a discount at POS checkout.</p>
+  </div>
+</header>
+
+<div class="card" style="max-width: 480px;">
+  <form method="post">
+    {% csrf_token %}
+    {% for error in form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+    {% for field in form %}
+    <div class="form-field" style="margin-bottom: 1rem;">
+      <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}<p class="form-help">{{ field.help_text }}</p>{% endif %}
+      {% for error in field.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn--primary" style="width: 100%;">Save Settings</button>
+  </form>
+</div>
+{% endblock %}

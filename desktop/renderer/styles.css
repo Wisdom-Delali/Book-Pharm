@@ -236,6 +236,25 @@ input, select { font-family: var(--font-body); }
 }
 .customer-fields label { font-size: 0.7rem; text-transform: uppercase; color: var(--color-secondary); font-weight: 600; }
 
+.loyalty-section {
+  background: var(--color-surface-container-high, rgba(0, 0, 0, 0.03));
+  border-radius: var(--radius-md);
+  padding: 0.6rem 0.7rem;
+  margin-bottom: 1rem;
+}
+.loyalty-balance { font-size: 0.8rem; font-weight: 600; color: var(--color-secondary); margin-bottom: 0.4rem; }
+.loyalty-redeem-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.loyalty-redeem-row label { font-size: 0.8rem; }
+.loyalty-redeem-row input {
+  width: 90px;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: 0.9rem;
+  text-align: right;
+}
+
 .summary-line { display: flex; justify-content: space-between; padding: 0.35rem 0; color: var(--color-secondary); font-size: 0.9rem; }
 .summary-line span:last-child { font-family: var(--font-mono); }
 .summary-total {

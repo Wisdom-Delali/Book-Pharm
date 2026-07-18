@@ -16,7 +16,7 @@
   <div class="order-items">
     {% for item in sale.items.all %}
     <div class="order-item-row">
-      <span>{{ item.title }} &times;{{ item.qty }}</span>
+      <span>{{ item.book.title }} &times;{{ item.qty }}</span>
       <span class="mono">GHS {{ item.line_total }}</span>
     </div>
     {% endfor %}

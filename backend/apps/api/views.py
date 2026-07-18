@@ -8,9 +8,13 @@ from rest_framework.views import APIView
 
 from apps.catalog.codes import normalize_isbn
 from apps.catalog.models import Book
+from apps.customers.models import Customer, LoyaltyProgram
+from apps.customers.phone import normalize_phone
 from apps.sales.services import InsufficientStockError, create_sale
 
-from .serializers import BookSyncSerializer, SaleBatchSyncSerializer, SaleCreateSerializer, SaleDetailSerializer
+from .serializers import (
+    BookSyncSerializer, CustomerSerializer, SaleBatchSyncSerializer, SaleCreateSerializer, SaleDetailSerializer,
+)
 
 
 class BookSyncListView(generics.ListAPIView):
@@ -65,6 +69,30 @@ class BookLookupView(APIView):
         return Response(BookSyncSerializer(book, context={'request': request}).data)
 
 
+class CustomerLookupView(APIView):
+    """GET /api/customers/lookup/?phone=<any format> — the POS calls this
+    once the attendant finishes typing a phone number, to show the
+    customer's current loyalty balance before they decide whether to
+    redeem. 404 (not a validation error) for an unknown or malformed number
+    — either way there's just nothing to show yet; the customer gets
+    created for real at checkout, same as always."""
+
+    def get(self, request):
+        raw = request.query_params.get('phone', '').strip()
+        try:
+            phone = normalize_phone(raw)
+        except DjangoValidationError:
+            return Response({'error': 'Not a valid phone number.'}, status=status.HTTP_404_NOT_FOUND)
+        customer = Customer.objects.filter(phone=phone).first()
+        if not customer:
+            return Response({'error': 'No matching customer.'}, status=status.HTTP_404_NOT_FOUND)
+        data = CustomerSerializer(customer).data
+        program = LoyaltyProgram.current()
+        data['point_value_ghs'] = str(program.point_value_ghs) if program else '0'
+        data['min_redeem_points'] = program.min_redeem_points if program else 0
+        return Response(data)
+
+
 class MeView(APIView):
     """GET /api/me/ — who does this device token belong to. Used by the POS
     top bar; also doubles as a cheap "is this token still valid" ping."""
@@ -96,6 +124,7 @@ class SaleCreateView(APIView):
                 customer_email=data.get('customer_email', ''),
                 customer_birthday=data.get('customer_birthday'),
                 attendant=request.user,
+                redeem_points=data.get('redeem_points', 0),
             )
         except InsufficientStockError as exc:
             return Response(
@@ -135,6 +164,7 @@ class SaleBatchSyncView(APIView):
                     customer_birthday=sale_data.get('customer_birthday'),
                     attendant=request.user,
                     allow_oversell=True,
+                    redeem_points=sale_data.get('redeem_points', 0),
                 )
                 results.append({
                     'offline_uuid': str(offline_uuid),

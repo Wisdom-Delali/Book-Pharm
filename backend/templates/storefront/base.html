@@ -9,35 +9,83 @@
   <meta name="description" content="Book Pharm — browse and buy books online in Ghana. Delivery, pickup, or rider delivery via Yango/Bolt/Uber.">
   {% endblock %}
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <link rel="stylesheet" href="{% static 'css/theme-storefront.css' %}">
   <link rel="stylesheet" href="{% static 'css/storefront-layout.css' %}">
   {% block extra_head %}{% endblock %}
 </head>
 <body>
-  <header class="site-header">
-    <div class="site-header__inner">
-      <a class="site-header__brand" href="{% url 'storefront:home' %}">Book Pharm</a>
-      <form class="site-header__search" method="get" action="{% url 'storefront:book_list' %}">
-        <input type="search" name="q" placeholder="Search books or authors..." value="{{ query|default:'' }}">
-      </form>
-      <nav class="site-header__nav">
-        <a href="{% url 'storefront:book_list' %}">Browse</a>
-        <a href="{% url 'storefront:cart' %}" class="site-header__cart">
-          Cart{% if cart_count %} <span class="badge">{{ cart_count }}</span>{% endif %}
+  <div class="storefront-shell">
+    <aside class="storefront-sidebar">
+      <a class="storefront-sidebar__brand" href="{% url 'storefront:home' %}">Book Pharm</a>
+      <p class="storefront-sidebar__tagline">Literary Apothecary</p>
+
+      <nav class="storefront-sidebar__nav">
+        <a href="{% url 'storefront:home' %}" class="{% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">
+          <span class="material-symbols-outlined">storefront</span> Home
+        </a>
+        <a href="{% url 'storefront:book_list' %}" class="{% if request.resolver_match.url_name == 'book_list' and not selected_category %}is-active{% endif %}">
+          <span class="material-symbols-outlined">auto_stories</span> All Books
+        </a>
+        <a href="{% url 'storefront:book_list' %}?sort=new" class="{% if request.GET.sort == 'new' %}is-active{% endif %}">
+          <span class="material-symbols-outlined">new_releases</span> New Arrivals
         </a>
       </nav>
+
+      {% if nav_categories %}
+      <p class="storefront-sidebar__section-label">Categories</p>
+      <nav class="storefront-sidebar__nav">
+        {% for cat in nav_categories %}
+        <a href="{% url 'storefront:book_list' %}?category={{ cat.slug }}" class="{% if selected_category == cat.slug %}is-active{% endif %}">
+          <span class="material-symbols-outlined">category</span> {{ cat.name }}
+        </a>
+        {% endfor %}
+      </nav>
+      {% endif %}
+
+      <div class="storefront-sidebar__foot">
+        Cash, MoMo, Card &amp; Bank accepted.<br>Delivery, pickup, or rider delivery.
+      </div>
+    </aside>
+
+    <div class="storefront-columns">
+      <header class="storefront-topbar">
+        <a class="storefront-topbar__brand" href="{% url 'storefront:home' %}">Book Pharm</a>
+        <form class="storefront-topbar__search" method="get" action="{% url 'storefront:book_list' %}">
+          <span class="material-symbols-outlined">search</span>
+          <input type="search" name="q" placeholder="Search books or authors..." value="{{ query|default:'' }}">
+        </form>
+        <div class="storefront-topbar__spacer"></div>
+        <a href="{% url 'storefront:cart' %}" class="storefront-topbar__cart">
+          <span class="material-symbols-outlined">shopping_cart</span> Cart
+          {% if cart_count %}<span class="cart-badge">{{ cart_count }}</span>{% endif %}
+        </a>
+      </header>
+
+      <main class="storefront-main">
+        {% include 'partials/_messages.html' %}
+        {% block content %}{% endblock %}
+      </main>
+
+      <footer class="site-footer">
+        <div>&copy; {% now "Y" %} Book Pharm, Ghana.</div>
+      </footer>
     </div>
-  </header>
+  </div>
 
-  <main class="container">
-    {% include 'partials/_messages.html' %}
-    {% block content %}{% endblock %}
-  </main>
-
-  <footer class="site-footer">
-    <div class="container">&copy; {% now "Y" %} Book Pharm, Ghana.</div>
-  </footer>
+  <nav class="storefront-bottomnav">
+    <a href="{% url 'storefront:home' %}" class="{% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">
+      <span class="material-symbols-outlined">storefront</span> Home
+    </a>
+    <a href="{% url 'storefront:book_list' %}" class="{% if request.resolver_match.url_name == 'book_list' %}is-active{% endif %}">
+      <span class="material-symbols-outlined">auto_stories</span> Books
+    </a>
+    <a href="{% url 'storefront:cart' %}" class="{% if request.resolver_match.url_name == 'cart' %}is-active{% endif %}" style="position: relative;">
+      <span class="material-symbols-outlined">shopping_cart</span> Cart
+      {% if cart_count %}<span class="cart-badge">{{ cart_count }}</span>{% endif %}
+    </a>
+  </nav>
 
   {% block extra_body %}{% endblock %}
 </body>

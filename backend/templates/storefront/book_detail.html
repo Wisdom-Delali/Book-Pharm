@@ -12,23 +12,41 @@
 {% endblock %}
 
 {% block content %}
+<p class="breadcrumb">
+  <a href="{% url 'storefront:home' %}">Home</a> &rsaquo;
+  <a href="{% url 'storefront:book_list' %}?category={{ book.category.slug }}">{{ book.category.name }}</a> &rsaquo;
+  {{ book.title }}
+</p>
+
 <div class="book-detail">
   <div class="book-detail__cover">
     {% if book.cover_image %}<img src="{{ book.cover_image.url }}" alt="{{ book.title }} cover">{% endif %}
+    <span class="book-detail__price-tag">GHS {{ book.selling_price }}</span>
   </div>
   <div>
-    <p class="text-muted"><a href="{% url 'storefront:book_list' %}?category={{ book.category.slug }}">{{ book.category.name }}</a></p>
+    <span class="book-detail__eyebrow">{{ book.category.name }}</span>
     <h1>{{ book.title }}</h1>
-    <p class="text-muted" style="font-size: 1.1rem;">{{ book.author }}</p>
-    <p class="book-detail__price">GHS {{ book.selling_price }}</p>
+    <p class="text-muted" style="font-size: 1.1rem; font-style: italic;">{{ book.author }}</p>
+
+    <div class="rating-row">
+      <span class="star-display">{% for i in "12345" %}{% if forloop.counter <= full_stars %}&#9733;{% else %}&#9734;{% endif %}{% endfor %}</span>
+      {% if review_count %}
+      <span class="text-muted">{{ avg_rating|floatformat:1 }} &middot; {{ review_count }} review{{ review_count|pluralize }}</span>
+      {% else %}
+      <span class="text-muted">No reviews yet</span>
+      {% endif %}
+    </div>
 
     {% if book.stock_qty > 0 %}
     <form method="post" action="{% url 'storefront:cart_add' book.id %}">
       {% csrf_token %}
       <input type="hidden" name="next" value="{% url 'storefront:book_detail' book.slug %}">
       <div class="book-detail__qty">
-        <label for="qty">Quantity</label>
-        <input type="number" name="qty" id="qty" value="1" min="1" max="{{ book.stock_qty }}">
+        <div class="qty-stepper">
+          <button type="button" data-step="-1" aria-label="Decrease quantity">&minus;</button>
+          <input type="number" name="qty" id="qty" value="1" min="1" max="{{ book.stock_qty }}" inputmode="numeric">
+          <button type="button" data-step="1" aria-label="Increase quantity">+</button>
+        </div>
         <button type="submit" class="btn btn--primary">Add to Cart</button>
       </div>
     </form>
@@ -37,8 +55,14 @@
     <p class="text-error" style="font-weight: 700; margin: 1.5rem 0;">Currently out of stock</p>
     {% endif %}
 
+    <div class="feature-badges">
+      <span class="feature-badge"><span class="material-symbols-outlined">local_shipping</span> Delivery, pickup or rider</span>
+      <span class="feature-badge"><span class="material-symbols-outlined">payments</span> MoMo, card &amp; bank accepted</span>
+      {% if book.isbn %}<span class="feature-badge"><span class="material-symbols-outlined">qr_code_2</span> ISBN {{ book.isbn }}</span>{% endif %}
+    </div>
+
     {% if book.description %}
-    <div class="card" style="margin-top: 2rem;">
+    <div class="card" style="margin-top: 1rem;">
       <h3>About this book</h3>
       <p>{{ book.description|linebreaksbr }}</p>
     </div>
@@ -57,4 +81,28 @@
     {% endif %}
   </div>
 </div>
+
+{% if related_books %}
+<div class="section-heading">
+  <h2>You Might Also Like</h2>
+</div>
+<div class="book-grid">
+  {% for rb in related_books %}
+  {% include 'storefront/_book_card.html' with book=rb %}
+  {% endfor %}
+</div>
+{% endif %}
+
+<script>
+  document.querySelectorAll('.qty-stepper button[data-step]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const input = btn.parentElement.querySelector('input[name="qty"]');
+      const step = parseInt(btn.dataset.step, 10);
+      const min = parseInt(input.min || '1', 10);
+      const max = parseInt(input.max || '99', 10);
+      const next = (parseInt(input.value, 10) || min) + step;
+      input.value = Math.min(max, Math.max(min, next));
+    });
+  });
+</script>
 {% endblock %}

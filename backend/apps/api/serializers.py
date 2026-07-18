@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.catalog.models import Book
+from apps.customers.models import Customer
 from apps.sales.models import Sale, SaleItem
 
 
@@ -19,6 +20,12 @@ class BookSyncSerializer(serializers.ModelSerializer):
         ]
 
 
+class CustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = ['id', 'phone', 'full_name', 'loyalty_points']
+
+
 class SaleItemInputSerializer(serializers.Serializer):
     book_id = serializers.IntegerField()
     qty = serializers.IntegerField(min_value=1)
@@ -33,6 +40,7 @@ class SaleCreateSerializer(serializers.Serializer):
     customer_full_name = serializers.CharField(required=False, allow_blank=True)
     customer_email = serializers.EmailField(required=False, allow_blank=True)
     customer_birthday = serializers.DateField(required=False, allow_null=True)
+    redeem_points = serializers.IntegerField(required=False, min_value=0, default=0)
 
     def validate_items(self, items):
         if not items:

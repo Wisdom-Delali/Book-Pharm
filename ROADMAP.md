@@ -140,19 +140,23 @@ The hardest phase. Don't rush it.
 
 ## Phase 6 — Customers, loyalty & SMS
 
-- [ ] Customer list in the portal with purchase history
-- [ ] Phone normalization + dedup (`+233XXXXXXXXX`) — merge existing duplicates
-- [ ] `LoyaltyTransaction` model + points accrual on sale
-- [ ] Loyalty rules config in the portal (owner-defined thresholds/rewards)
-- [ ] Reward redemption at POS checkout
-- [ ] SMSOnlineGH client wrapper + `SmsLog`
-- [ ] `SmsCampaign` model + composer UI with audience selector
-- [ ] Management command: send scheduled campaigns
-- [ ] Management command: daily birthday greetings
-- [ ] cPanel cron entries for both commands
-- [ ] Opt-out handling and an unsubscribe flag on `Customer`
+- [x] Customer list in the portal with purchase history — search by name/phone/email, lifetime order count + spend (PAID sales only), per-customer detail page with full order history and loyalty ledger
+- [x] Phone normalization + dedup (`+233XXXXXXXXX`) — merge existing duplicates — `manage.py dedupe_customers [--dry-run]`; `Customer.phone` is already DB-unique so true duplicates can only arise from data that bypassed `save()` (e.g. a future bulk import from the old POS), but the tool is real and reusable, not a one-off script
+- [x] `LoyaltyTransaction` model + points accrual on sale — earns on `subtotal - discount_amount` (post-discount book value, not delivery fee), wired into both `create_sale()` (POS/offline, already-PAID) and `finalize_paid_sale()` (online, once payment confirms)
+- [x] Loyalty rules config in the portal (owner-defined thresholds/rewards) — new `LoyaltyProgram` model (points/GHS earn rate, GHS/point redeem rate, minimum redeemable), portal settings form at `portal:loyalty_settings`, seeded with a sensible default via data migration so the feature isn't a no-op out of the box
+- [x] Reward redemption at POS checkout — phone-blur balance lookup (`GET /api/customers/lookup/`) shows points + GHS value, a redeem-points field folds into the sale's existing `discount_amount`; the redemption amount is only previewed client-side, same "server is the only source of truth" principle the existing discount math already followed
+- [x] SMSOnlineGH client wrapper + `SmsLog` — `apps/messaging/sms_client.py`, one function (`send_sms`), one recipient per call so per-customer send results are never ambiguous. **Unverified against a live account** — SMSOnlineGH docs weren't available to check the wire format against, and `SMSONLINEGH_API_KEY` is still an empty placeholder (client hasn't set up the account — same situation Paystack was in before Phase 5). Re-check the endpoint/payload shape once real credentials exist.
+- [x] `SmsCampaign` model + composer UI with audience selector — audience is `ALL` or `BIRTHDAY_TODAY` (a full segment-builder DSL wasn't asked for); HTMX slide-over composer matches the discounts/catalog pattern, shows a live recipient count, "Send Now" queues immediately (`status=SCHEDULED, scheduled_for=now`) for the next cron tick — the portal itself never calls SMSOnlineGH (CLAUDE.md §8)
+- [x] Management command: send scheduled campaigns — `send_sms_campaigns`, picks up `SCHEDULED` campaigns that are due
+- [x] Management command: daily birthday greetings — `send_birthday_sms`, wording lives in `settings.BIRTHDAY_SMS_MESSAGE` (not `.env` — it's copy, not a secret); dedup-guarded so a double cron fire or manual re-run can't double-text someone
+- [x] cPanel cron entries for both commands — documented in new `docs/deployment.md`, including the "always call `.venv`'s python directly, no activate step for cron" note and why neither command errors out before real SMSOnlineGH credentials exist (warns and no-ops instead)
+- [x] Opt-out handling and an unsubscribe flag on `Customer` — `sms_opt_out` field, portal toggle on the customer detail page, plus a public signed-token self-service unsubscribe page (`/unsubscribe/<token>/`, not auto-injected into every SMS body since message wording is the owner's and a full URL costs an extra segment — see `docs/deployment.md`)
 
-**Done when:** the owner can send a promo blast and birthday SMS go out automatically, replacing the WhatsApp broadcasts she's been paying for.
+**Done when:** the owner can send a promo blast and birthday SMS go out automatically, replacing the WhatsApp broadcasts she's been paying for. ✅ Verified 2026-07-18 — accrual, redemption math (including the exact GHS discount from a point conversion), the portal customer/loyalty/campaign flows, the unsubscribe flow (valid + invalid token), and the dedupe command were all exercised against the real database via Django's test client and shell, not just unit-level. **The POS redemption UI itself could not be visually verified this pass** — no browser/window-automation tool was available in this session, so it was checked statically instead (JS syntax, and every DOM id the new JS references cross-checked one-for-one against `index.html`); worth a real click-through before relying on it at the register.
+
+**A correctness bug caught during this phase's own design, before it shipped:** the first version of redemption validation enforced `min_redeem_points` even on the offline-sync path (`allow_oversell=True`). Since that check depends on a fixed rule rather than a moving balance, a sale synced with a too-small redemption would have failed identically on every retry — permanently stuck in the local outbox after the attendant had already told the customer it went through, silently, forever. Fixed by having the offline path clamp/skip the redemption instead of ever rejecting the sale (`apps/customers/services.py::resolve_redemption`), consistent with CLAUDE.md §7's stock-oversell principle: a sale that already happened must never be rejected, even for a reason that's real.
+
+**A pre-existing bug found and fixed along the way (Phase 5, not Phase 6):** `order_confirmation.html` read `item.title` on a `SaleItem`, which has no such attribute — book titles on every order confirmation page have rendered blank since Phase 5 (Django templates swallow the `AttributeError` instead of raising). Fixed to `item.book.title`, matching `cart.html`/`checkout.html`/the portal's order detail, which all already did this correctly.
 
 ---
 

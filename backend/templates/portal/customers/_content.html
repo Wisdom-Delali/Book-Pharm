@@ -1,0 +1,47 @@
+<div id="customer-content">
+  <header class="portal-page-header">
+    <div>
+      <h1>Customers</h1>
+      <p class="text-muted">Everyone who's bought from Book Pharm, in-store or online.</p>
+    </div>
+    <a class="btn btn--secondary" href="{% url 'portal:loyalty_settings' %}">Loyalty Program Settings</a>
+  </header>
+
+  <form class="toolbar card" hx-get="{% url 'portal:customer_list' %}" hx-target="#customer-content" hx-swap="outerHTML" hx-trigger="change, submit">
+    <input type="search" name="q" value="{{ query }}" placeholder="Search by name, phone, or email...">
+  </form>
+
+  <div class="card catalog-table-card">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Customer</th>
+          <th>Phone</th>
+          <th class="text-right">Orders</th>
+          <th class="text-right">Total Spent</th>
+          <th class="text-right">Loyalty Points</th>
+          <th>SMS</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for customer in page_obj %}
+        <tr>
+          <td><strong>{{ customer.full_name|default:"(no name given)" }}</strong></td>
+          <td class="mono">{{ customer.phone }}</td>
+          <td class="text-right">{{ customer.order_count }}</td>
+          <td class="text-right mono">GHS {{ customer.total_spent|default:"0.00" }}</td>
+          <td class="text-right mono">{{ customer.loyalty_points }}</td>
+          <td>{% if customer.sms_opt_out %}<span class="badge">Opted out</span>{% else %}<span class="badge badge--ok">Subscribed</span>{% endif %}</td>
+          <td class="text-right">
+            <a class="btn btn--secondary" href="{% url 'portal:customer_detail' customer.pk %}">View</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-muted">No customers yet{% if query %} matching &ldquo;{{ query }}&rdquo;{% endif %}.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% include 'portal/customers/_pagination.html' %}
+  </div>
+</div>

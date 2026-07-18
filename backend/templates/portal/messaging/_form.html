@@ -1,0 +1,29 @@
+<div class="panel__header">
+  <h3>{% if editing_campaign %}Edit Campaign{% else %}New Campaign{% endif %}</h3>
+  <button class="panel__close" hx-get="{% url 'portal:campaign_list' %}" hx-target="#messaging-content" hx-swap="outerHTML">&times;</button>
+</div>
+
+<form class="panel__form"
+      hx-post="{% if editing_campaign %}{% url 'portal:campaign_update' editing_campaign.pk %}{% else %}{% url 'portal:campaign_create' %}{% endif %}"
+      hx-target="#messaging-content" hx-swap="outerHTML">
+  {% csrf_token %}
+  {% for error in form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+
+  {% for field in form %}
+  <div class="form-field">
+    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {% if field.help_text %}<p class="form-help">{{ field.help_text }}</p>{% endif %}
+    {% for error in field.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+  </div>
+  {% endfor %}
+
+  {% if editing_campaign %}
+  <p class="text-muted">{{ editing_campaign.recipient_queryset.count }} customer{{ editing_campaign.recipient_queryset.count|pluralize }} currently match this audience.</p>
+  {% endif %}
+
+  <div class="panel__actions">
+    <button type="button" class="btn btn--secondary" hx-get="{% url 'portal:campaign_list' %}" hx-target="#messaging-content" hx-swap="outerHTML">Cancel</button>
+    <button type="submit" class="btn btn--primary">{% if editing_campaign %}Save Changes{% else %}Create Draft{% endif %}</button>
+  </div>
+</form>

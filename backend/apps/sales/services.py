@@ -21,6 +21,7 @@ from django.utils import timezone
 from apps.catalog.models import Book
 from apps.customers.models import Customer
 from apps.customers.phone import normalize_phone
+from apps.customers.services import apply_redemption, award_points_for_sale, resolve_redemption
 
 from .models import DiscountRule, Sale, SaleItem, StockDiscrepancy
 
@@ -110,7 +111,7 @@ def _decrement_stock_for_item(book, qty, sale_item):
 def create_sale(
     *, channel, items, payment_method, offline_uuid=None,
     customer_phone=None, customer_full_name='', customer_email='', customer_birthday=None,
-    attendant=None, allow_oversell=False, delivery_fee=Decimal('0'),
+    attendant=None, allow_oversell=False, delivery_fee=Decimal('0'), redeem_points=0,
 ):
     """For payment-already-happened channels: POS (cash in hand) and offline
     sync (the sale already happened at the register, just arriving late).
@@ -124,7 +125,9 @@ def create_sale(
     path) rejects a sale outright if stock is short — the device is online,
     so it can just check. Phase 3's offline batch sync calls this with
     allow_oversell=True: a sale that already happened at the register must
-    never be silently discarded for going stock-negative.
+    never be silently discarded for going stock-negative. The same flag
+    relaxes loyalty-point redemption the same way — see
+    apps/customers/services.py::resolve_redemption().
     """
     if offline_uuid:
         existing = Sale.objects.filter(offline_uuid=offline_uuid).first()
@@ -136,6 +139,15 @@ def create_sale(
         customer = _get_or_update_customer(customer_phone, customer_full_name, customer_email, customer_birthday)
 
     subtotal, discount_amount, resolved_items = _resolve_items(items, allow_oversell)
+
+    # Resolved before the Sale row exists — same shape as the stock check
+    # above. On the connected path a bad request fails clean; on the
+    # offline-sync path it clamps instead (see resolve_redemption), so
+    # actual_redeem_points may be less than what was requested, or 0.
+    actual_redeem_points, redemption_discount = resolve_redemption(customer, redeem_points, allow_oversell=allow_oversell)
+    if redemption_discount:
+        discount_amount += redemption_discount
+
     total = subtotal - discount_amount + delivery_fee
 
     sale = Sale.objects.create(
@@ -159,6 +171,10 @@ def create_sale(
             unit_cost_price=unit_cost_price,
         )
         _decrement_stock_for_item(book, qty, sale_item)
+
+    if actual_redeem_points:
+        apply_redemption(customer, actual_redeem_points, sale)
+    award_points_for_sale(sale)
 
     return sale, True
 
@@ -240,4 +256,5 @@ def finalize_paid_sale(sale, payment_method):
     sale.payment_method = payment_method
     sale.synced_at = timezone.now()
     sale.save(update_fields=['payment_status', 'status', 'payment_method', 'synced_at'])
+    award_points_for_sale(sale)
     return sale

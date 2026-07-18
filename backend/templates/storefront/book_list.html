@@ -3,7 +3,7 @@
 {% block title %}{% if query %}Search: {{ query }}{% else %}Browse Books{% endif %} | Book Pharm{% endblock %}
 
 {% block content %}
-<h1>{% if query %}Results for &ldquo;{{ query }}&rdquo;{% else %}Browse Our Collection{% endif %}</h1>
+<h1>{% if query %}Results for &ldquo;{{ query }}&rdquo;{% elif sort == 'new' %}New Arrivals{% else %}Browse Our Collection{% endif %}</h1>
 
 <div class="filter-bar">
   <a class="filter-bar__chip{% if not selected_category %} is-active{% endif %}" href="{% url 'storefront:book_list' %}{% if query %}?q={{ query }}{% endif %}">All Categories</a>
@@ -14,21 +14,7 @@
 
 <div class="book-grid">
   {% for book in page_obj %}
-  <a class="book-card" href="{% url 'storefront:book_detail' book.slug %}">
-    <div class="book-card__cover">
-      {% if book.cover_image %}<img src="{{ book.cover_image.url }}" alt="{{ book.title }} cover">{% endif %}
-    </div>
-    <div class="book-card__body">
-      <p class="book-card__title">{{ book.title }}</p>
-      <p class="book-card__author">{{ book.author }}</p>
-      <p class="book-card__price">GHS {{ book.selling_price }}</p>
-      {% if book.stock_qty > 0 %}
-      <p class="book-card__stock">In stock</p>
-      {% else %}
-      <p class="book-card__stock book-card__stock--out">Out of stock</p>
-      {% endif %}
-    </div>
-  </a>
+  {% include 'storefront/_book_card.html' with book=book %}
   {% empty %}
   <p class="text-muted">No books found{% if query %} for &ldquo;{{ query }}&rdquo;{% endif %}.</p>
   {% endfor %}
@@ -37,11 +23,11 @@
 {% if page_obj.paginator.num_pages > 1 %}
 <div class="pagination">
   {% if page_obj.has_previous %}
-  <a class="btn btn--secondary" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">Previous</a>
+  <a class="btn btn--secondary" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">Previous</a>
   {% endif %}
   <span class="text-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
   {% if page_obj.has_next %}
-  <a class="btn btn--secondary" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">Next</a>
+  <a class="btn btn--secondary" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">Next</a>
   {% endif %}
 </div>
 {% endif %}

@@ -85,4 +85,6 @@
   --space-stack-sm: 8px;
   --space-stack-md: 16px;
   --space-stack-lg: 64px;
+  --space-sidebar-width: 260px;
+  --space-topbar-height: 76px;
 }

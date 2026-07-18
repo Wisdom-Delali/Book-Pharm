@@ -8,6 +8,8 @@
 let apiBaseUrl = null;
 let apiToken = null;
 let cart = []; // [{ book_id, title, author, unit_price, qty, cover_image, stock_qty }]
+let loyaltyBalance = null; // null = no customer looked up yet (or offline/not found)
+let loyaltyPointValueGhs = 0;
 
 const $ = (id) => document.getElementById(id);
 
@@ -374,6 +376,55 @@ function hideError() {
   $('error-banner').classList.add('hidden');
 }
 
+// ---------- Loyalty — balance lookup + redemption at checkout ----------
+// Read-only preview: the actual redemption is validated and applied
+// server-side in create_sale() (never a second source of truth for
+// discount math, same principle as the discounts already shown only after
+// checkout). Requires being online to look up; offline, the section just
+// stays hidden and no redemption is offered for that sale.
+
+function resetLoyaltyUI() {
+  loyaltyBalance = null;
+  loyaltyPointValueGhs = 0;
+  $('loyalty-section').classList.add('hidden');
+  $('redeem-points').value = '0';
+}
+
+async function lookupLoyaltyBalance() {
+  const phone = $('customer-phone').value.trim();
+  if (!phone || !navigator.onLine) {
+    resetLoyaltyUI();
+    return;
+  }
+  try {
+    const res = await apiFetch(`/api/customers/lookup/?phone=${encodeURIComponent(phone)}`);
+    if (!res.ok) {
+      resetLoyaltyUI();
+      return;
+    }
+    const data = await res.json();
+    loyaltyBalance = data.loyalty_points;
+    loyaltyPointValueGhs = parseFloat(data.point_value_ghs) || 0;
+    $('redeem-points').max = String(Math.max(loyaltyBalance, 0));
+    $('redeem-points').value = '0';
+    $('loyalty-balance-text').textContent =
+      `${loyaltyBalance} point${loyaltyBalance === 1 ? '' : 's'} available` +
+      (loyaltyBalance > 0 ? ` (worth ${money(loyaltyBalance * loyaltyPointValueGhs)})` : '');
+    $('loyalty-section').classList.remove('hidden');
+  } catch (err) {
+    resetLoyaltyUI(); // offline in practice despite navigator.onLine, or a genuine network error — same fallback either way
+  }
+}
+
+$('customer-phone').addEventListener('blur', lookupLoyaltyBalance);
+$('redeem-points').addEventListener('input', () => {
+  const input = $('redeem-points');
+  const max = loyaltyBalance || 0;
+  let value = parseInt(input.value, 10) || 0;
+  value = Math.max(0, Math.min(value, max));
+  input.value = String(value);
+});
+
 // ---------- Checkout — outbox first, always, then try for an authoritative receipt ----------
 
 function setPaymentButtonsDisabled(disabled) {
@@ -395,6 +446,7 @@ async function checkout(paymentMethod) {
   setPaymentButtonsDisabled(true);
 
   const offlineUuid = crypto.randomUUID();
+  const redeemPoints = parseInt($('redeem-points').value, 10) || 0;
   const payload = {
     channel: 'IN_STORE',
     items: cart.map((i) => ({ book_id: i.book_id, qty: i.qty })),
@@ -404,6 +456,7 @@ async function checkout(paymentMethod) {
     customer_full_name: $('customer-name').value.trim(),
     customer_email: $('customer-email').value.trim(),
     customer_birthday: $('customer-birthday').value || null,
+    redeem_points: redeemPoints,
   };
 
   // Durability first — this write must happen before any network attempt,
@@ -456,6 +509,7 @@ function resetForNextTransaction() {
   $('customer-name').value = '';
   $('customer-email').value = '';
   $('customer-birthday').value = '';
+  resetLoyaltyUI();
 }
 
 function buildLocalReceipt(payload, cartAtCheckout, offlineUuid) {

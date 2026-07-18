@@ -2,7 +2,7 @@ from django.urls import path
 
 from apps.reports import views as report_views
 
-from . import auth_views, discount_views, expense_views, orders_views, reconciliation_views, views
+from . import auth_views, customer_views, discount_views, expense_views, messaging_views, orders_views, reconciliation_views, views
 
 app_name = 'portal'
 
@@ -14,6 +14,14 @@ urlpatterns = [
     path('catalog/books/new/', views.book_create, name='book_create'),
     path('catalog/books/<int:pk>/edit/', views.book_update, name='book_update'),
     path('catalog/books/<int:pk>/adjust-stock/', views.stock_adjust, name='stock_adjust'),
+    path('customers/', customer_views.customer_list, name='customer_list'),
+    path('customers/loyalty-settings/', customer_views.loyalty_settings, name='loyalty_settings'),
+    path('customers/<int:pk>/', customer_views.customer_detail, name='customer_detail'),
+    path('customers/<int:pk>/toggle-opt-out/', customer_views.customer_toggle_opt_out, name='customer_toggle_opt_out'),
+    path('messaging/', messaging_views.campaign_list, name='campaign_list'),
+    path('messaging/new/', messaging_views.campaign_create, name='campaign_create'),
+    path('messaging/<int:pk>/edit/', messaging_views.campaign_update, name='campaign_update'),
+    path('messaging/<int:pk>/send-now/', messaging_views.campaign_send_now, name='campaign_send_now'),
     path('discounts/', discount_views.discount_list, name='discount_list'),
     path('discounts/new/', discount_views.discount_create, name='discount_create'),
     path('discounts/<int:pk>/edit/', discount_views.discount_update, name='discount_update'),

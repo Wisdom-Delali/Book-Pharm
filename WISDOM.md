@@ -1,0 +1,13 @@
+1. [done] Home screen to match picture — rebuilt (2026-07-18): sidebar+topbar shell, hero, featured/new-arrivals rails, shop-by-category.
+2. [done] Product screen to match picture — rebuilt (2026-07-18): price-tag badge on cover, real star rating, quantity stepper, related books.
+3. [done] Quick "Add to cart" button for products — cart-icon button on every book card (home, browse, related), no need to open the product page first.
+4. Quick "+" and "-" button in cart to increase or decrease qty (the product-page qty selector now has this — see #2 — but the cart page itself still uses a plain number input + Update button)
+5. For location, try getting device current location or allow entering location address (will use Google Maps API) — key available when this is picked up, see checkout flow
+6. [done] Book descriptions, excerpts — already rendered on the rebuilt product page when a book has one
+7. [done] Change primary btn color to a shade of red. the current is too dull — storefront buttons now use the burgundy/red token, matching the mockup's actual Add to Cart color; gold stays reserved for price tags
+8. Format navbar (make room for logo, make responsive on mobile, make search expand from a button onClick on mobile) — sidebar/topbar now responsive (collapses to a bottom nav under 900px), but search is always-visible rather than expand-on-click
+9. Make categories be an infinite horizontal scroll instead of stacking them (the sidebar/filter-bar category lists still wrap/stack; the New Arrivals rail on the home page is a horizontal scroll, but that's a different element)
+10. Modify notications and confirmation messages on e-commerce for UI/UX. Make it nice toasts (still plain Django messages, styled as a list — not toasts)
+11. Date fields throughout the app are not styled properly
+
+Note: the mockups' wishlist heart button and the sidebar's avatar/"Logout"/"Last orders" were intentionally dropped rather than ported — Book Pharm has no customer login (CLAUDE.md), and a heart button with no backing feature would just be dead UI. The mockups' fake feature badges (Global Shipping/Signed Edition/Sustainable Paper) were replaced with real ones (delivery options, payment methods, ISBN).
