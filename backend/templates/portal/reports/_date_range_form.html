@@ -17,6 +17,17 @@
     </select>
   </div>
   {% endif %}
+  {% if channel_choices %}
+  <div class="form-field" style="flex: 0 0 auto;">
+    <label class="form-label">Channel</label>
+    <select name="channel" style="width: auto;">
+      <option value="">All Channels</option>
+      {% for value, label in channel_choices %}
+      <option value="{{ value }}" {% if selected_channel == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endif %}
   <button type="submit" class="btn btn--primary">Apply</button>
-  <a class="btn btn--secondary" href="?start={{ start|date:'Y-m-d' }}&end={{ end|date:'Y-m-d' }}{% if granularity %}&granularity={{ granularity }}{% endif %}&format=csv">Export CSV</a>
+  <a class="btn btn--secondary" href="?start={{ start|date:'Y-m-d' }}&end={{ end|date:'Y-m-d' }}{% if granularity %}&granularity={{ granularity }}{% endif %}{% if selected_channel %}&channel={{ selected_channel }}{% endif %}&format=csv">Export CSV</a>
 </form>

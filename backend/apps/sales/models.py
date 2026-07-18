@@ -75,6 +75,9 @@ class Sale(models.Model):
         MOMO = 'MOMO', 'Mobile Money'
         CARD = 'CARD', 'Card'
         BANK_TRANSFER = 'BANK_TRANSFER', 'Bank Transfer'
+        # Jumia holds and remits payment on its own schedule — distinct from
+        # a customer paying Book Pharm directly by BANK_TRANSFER.
+        MARKETPLACE = 'MARKETPLACE', 'Marketplace (Jumia)'
 
     class PaymentStatus(models.TextChoices):
         PENDING = 'PENDING', 'Pending'

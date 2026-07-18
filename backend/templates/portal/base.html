@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="{% static 'css/theme-portal.css' %}">
   <link rel="stylesheet" href="{% static 'css/portal-layout.css' %}">
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
   {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -20,6 +21,7 @@
         <a href="{% url 'portal:dashboard' %}" class="{% if active_nav == 'dashboard' %}is-active{% endif %}">Dashboard</a>
         <a href="{% url 'portal:book_list' %}" class="{% if active_nav == 'catalog' %}is-active{% endif %}">Inventory</a>
         <a href="{% url 'portal:order_list' %}" class="{% if active_nav == 'orders' %}is-active{% endif %}">Orders</a>
+        <a href="{% url 'portal:marketplace_list' %}" class="{% if active_nav == 'marketplace' %}is-active{% endif %}">Marketplace (Jumia)</a>
         <a href="{% url 'portal:customer_list' %}" class="{% if active_nav == 'customers' %}is-active{% endif %}">Customers &amp; Loyalty</a>
         <a href="{% url 'portal:campaign_list' %}" class="{% if active_nav == 'messaging' %}is-active{% endif %}">SMS Campaigns</a>
         <a href="{% url 'portal:discount_list' %}" class="{% if active_nav == 'discounts' %}is-active{% endif %}">Discounts</a>

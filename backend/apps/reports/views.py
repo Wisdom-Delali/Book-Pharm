@@ -32,7 +32,20 @@ def _base_context(start, end, granularity, tab):
 def sales_report(request):
     start, end, granularity = parse_date_range(request)
     start_dt, end_dt = range_bounds_utc(start, end)
-    qs = Sale.objects.filter(status=Sale.Status.COMPLETED, created_at__gte=start_dt, created_at__lt=end_dt)
+    channel = request.GET.get('channel', '').strip()
+
+    # Unfiltered by channel — this is the "segmented by channel" breakdown
+    # (ROADMAP Phase 7), always shown regardless of which channel (if any)
+    # the period table below is scoped to.
+    base_qs = Sale.objects.filter(status=Sale.Status.COMPLETED, created_at__gte=start_dt, created_at__lt=end_dt)
+    channel_labels = dict(Sale.Channel.choices)
+    by_channel = list(
+        base_qs.values('channel').annotate(total=Sum('total'), sale_count=Count('id')).order_by('channel')
+    )
+    for row in by_channel:
+        row['channel_label'] = channel_labels.get(row['channel'], row['channel'])
+
+    qs = base_qs.filter(channel=channel) if channel else base_qs
     trunc = TRUNC_FUNCS[granularity]
     rows = list(
         qs.annotate(period=trunc('created_at', tzinfo=dt_timezone.utc))
@@ -53,6 +66,9 @@ def sales_report(request):
     context.update({
         'rows': rows,
         'totals': totals,
+        'by_channel': by_channel,
+        'selected_channel': channel,
+        'channel_choices': Sale.Channel.choices,
         'chart_labels': json.dumps([str(r['period']) for r in rows]),
         'chart_values': json.dumps([float(r['total'] or 0) for r in rows]),
     })

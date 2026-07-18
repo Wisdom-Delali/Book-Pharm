@@ -1,0 +1,52 @@
+<div id="marketplace-content">
+  <header class="portal-page-header">
+    <div>
+      <h1>Marketplace (Jumia)</h1>
+      <p class="text-muted">Jumia sells and ships on its own — record the order here so stock and reports stay accurate.</p>
+    </div>
+    <button class="btn btn--primary" hx-get="{% url 'portal:marketplace_create' %}" hx-target="#marketplace-content" hx-swap="outerHTML">
+      + Record Jumia Order
+    </button>
+  </header>
+
+  <div class="card catalog-table-card">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Order</th>
+          <th>Jumia Ref</th>
+          <th>Items</th>
+          <th class="text-right">Total</th>
+          <th>Status</th>
+          <th>Recorded</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sale in page_obj %}
+        <tr>
+          <td class="mono">#{{ sale.id }}</td>
+          <td class="mono">{{ sale.external_ref|default:"—" }}</td>
+          <td class="text-muted">{{ sale.items.all|length }} item{{ sale.items.all|length|pluralize }}</td>
+          <td class="text-right mono">GHS {{ sale.total }}</td>
+          <td>
+            {% if sale.status == 'RETURNED' %}<span class="badge badge--error">Returned</span>
+            {% else %}<span class="badge badge--ok">Completed</span>{% endif %}
+          </td>
+          <td class="text-muted">{{ sale.created_at|date:"M j, Y" }}</td>
+          <td class="text-right"><a class="btn btn--secondary" href="{% url 'portal:marketplace_detail' sale.pk %}">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-muted">No Jumia orders recorded yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if panel_open %}
+  <div class="panel-backdrop" hx-get="{% url 'portal:marketplace_list' %}" hx-target="#marketplace-content" hx-swap="outerHTML"></div>
+  <aside class="panel">
+    {% include 'portal/marketplace/_form.html' %}
+  </aside>
+  {% endif %}
+</div>

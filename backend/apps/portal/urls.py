@@ -2,7 +2,10 @@ from django.urls import path
 
 from apps.reports import views as report_views
 
-from . import auth_views, customer_views, discount_views, expense_views, messaging_views, orders_views, reconciliation_views, views
+from . import (
+    auth_views, customer_views, discount_views, expense_views, marketplace_views, messaging_views, orders_views,
+    reconciliation_views, views,
+)
 
 app_name = 'portal'
 
@@ -38,4 +41,8 @@ urlpatterns = [
     path('orders/<int:pk>/', orders_views.order_detail, name='order_detail'),
     path('orders/rider-queue/', orders_views.rider_queue, name='rider_queue'),
     path('orders/fulfillment/<int:pk>/mark-rider-booked/', orders_views.mark_rider_booked, name='mark_rider_booked'),
+    path('marketplace/', marketplace_views.marketplace_list, name='marketplace_list'),
+    path('marketplace/new/', marketplace_views.marketplace_create, name='marketplace_create'),
+    path('marketplace/<int:pk>/', marketplace_views.marketplace_detail, name='marketplace_detail'),
+    path('marketplace/<int:pk>/return/', marketplace_views.marketplace_return, name='marketplace_return'),
 ]

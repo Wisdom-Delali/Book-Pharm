@@ -162,13 +162,15 @@ The hardest phase. Don't rush it.
 
 ## Phase 7 — Marketplace (Jumia)
 
-- [ ] `Sale.channel = JUMIA` path + manual order entry in the portal
-- [ ] `external_ref` capture for Jumia order references
-- [ ] Return/reversal flow: restore stock, set `returned_at`, exclude from revenue
-- [ ] Reports segmented by channel (in-store / online / Jumia)
-- [ ] Portal: marketplace orders tab
+- [x] `Sale.channel = JUMIA` path + manual order entry in the portal — `create_sale()` reused as-is (channel/payment_method/external_ref were already parameters or a one-line addition), so Jumia sales get the exact same discount/loyalty/stock logic as every other channel for free, not a parallel implementation. Multi-book entry via an Alpine-driven repeatable row form (`portal/marketplace/_form.html`) — the portal's first real use of Alpine.js, which CLAUDE.md named as part of the stack from day one but nothing had needed yet.
+- [x] `external_ref` capture for Jumia order references — the field already existed on `Sale` since Phase 2 (CLAUDE.md's original data model anticipated this); Phase 7 is what actually populates and surfaces it.
+- [x] Return/reversal flow: restore stock, set `returned_at`, exclude from revenue — `apps/sales/services.py::return_sale()`, idempotent (returning an already-returned sale is a no-op, not a double stock credit). "Exclude from revenue" needed zero reports-side code: `sales_report`/`profit_report` already filtered on `status=Sale.Status.COMPLETED`, so flipping status to `RETURNED` removes it from every revenue number automatically.
+- [x] Reports segmented by channel (in-store / online / Jumia) — the sales report now shows a per-channel totals strip (always all channels) plus an optional `?channel=` filter that scopes the existing period/trend table to just one, so the owner can see both "how much from each channel" and "Jumia's trend over time" without two different reports.
+- [x] Portal: marketplace orders tab — list (all Jumia sales, "Record Order" panel), detail (line items, status, return action)
 
-**Done when:** Jumia sales and their frequent returns are tracked without polluting in-house sales figures.
+**Done when:** Jumia sales and their frequent returns are tracked without polluting in-house sales figures. ✅ Verified 2026-07-18 — manual multi-item entry, stock decrement, the oversell path (a Jumia sale for more than Book Pharm's on-hand stock still succeeds and correctly raises a `StockDiscrepancy`, reusing Phase 3's existing reconciliation mechanism rather than inventing a parallel one), the return flow (stock restoration, idempotency on a repeat return, and confirmed exclusion from the revenue queryset), and the channel-filtered report were all exercised against the real database via Django's test client and shell.
+
+**A design choice worth noting:** manual Jumia entry uses `allow_oversell=True` unconditionally, not just as a fallback. Book Pharm's stock count and the owner's Jumia listing aren't necessarily kept in perfect lockstep, so "Jumia already sold something we show 0 of" is a real, expected scenario — not just a race condition. Rejecting the recording of a sale that Jumia confirms already happened would contradict CLAUDE.md §7's core stance on oversells; a mismatch here gets the same reconciliation flag an offline-sync oversell would.
 
 ---
 

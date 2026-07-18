@@ -155,6 +155,12 @@
 .panel__actions { display: flex; gap: var(--space-stack-sm); padding-top: var(--space-stack-md); border-top: 1px solid var(--color-outline-variant); }
 .panel__actions .btn { flex: 1; text-align: center; }
 
+.jumia-item-row { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; }
+.jumia-item-row select { flex: 1; }
+.jumia-item-row input[type="number"] { width: 70px; flex-shrink: 0; }
+.jumia-item-row__remove { flex-shrink: 0; background: none; border: none; font-size: 1.25rem; color: var(--color-on-surface-variant); cursor: pointer; padding: 0 0.25rem; }
+.jumia-item-row__remove:hover { color: var(--color-error); }
+
 .form-field { display: flex; flex-direction: column; gap: 0.3rem; }
 .form-label { font-size: var(--text-label-md-size); font-weight: 600; color: var(--color-secondary); }
 .form-help { font-size: 0.75rem; color: var(--color-on-surface-variant); margin: 0; }

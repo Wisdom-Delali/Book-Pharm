@@ -14,6 +14,18 @@
 {% include 'portal/reports/_tabs.html' %}
 {% include 'portal/reports/_date_range_form.html' %}
 
+<div class="promo-strip" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--space-stack-sm); margin-bottom: var(--space-stack-md);">
+  {% for row in by_channel %}
+  <div class="card" style="padding: var(--space-stack-sm) var(--space-stack-md);">
+    <p class="text-muted" style="margin: 0; font-size: 0.8rem;">{{ row.channel_label }}</p>
+    <p class="mono" style="margin: 0.2rem 0 0; font-size: 1.3rem; font-weight: 700;">GHS {{ row.total }}</p>
+    <p class="text-muted" style="margin: 0; font-size: 0.8rem;">{{ row.sale_count }} sale{{ row.sale_count|pluralize }}</p>
+  </div>
+  {% empty %}
+  <p class="text-muted">No completed sales in this range.</p>
+  {% endfor %}
+</div>
+
 <div class="card" style="margin-bottom: var(--space-stack-md);">
   <canvas id="salesChart" height="80"></canvas>
 </div>

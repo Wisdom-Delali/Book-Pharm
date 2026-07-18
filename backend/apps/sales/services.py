@@ -111,7 +111,7 @@ def _decrement_stock_for_item(book, qty, sale_item):
 def create_sale(
     *, channel, items, payment_method, offline_uuid=None,
     customer_phone=None, customer_full_name='', customer_email='', customer_birthday=None,
-    attendant=None, allow_oversell=False, delivery_fee=Decimal('0'), redeem_points=0,
+    attendant=None, allow_oversell=False, delivery_fee=Decimal('0'), redeem_points=0, external_ref='',
 ):
     """For payment-already-happened channels: POS (cash in hand) and offline
     sync (the sale already happened at the register, just arriving late).
@@ -163,6 +163,7 @@ def create_sale(
         attendant=attendant,
         offline_uuid=offline_uuid,
         synced_at=timezone.now(),
+        external_ref=external_ref,
     )
 
     for book, qty, unit_price, line_discount, unit_cost_price in resolved_items:
@@ -257,4 +258,34 @@ def finalize_paid_sale(sale, payment_method):
     sale.synced_at = timezone.now()
     sale.save(update_fields=['payment_status', 'status', 'payment_method', 'synced_at'])
     award_points_for_sale(sale)
+    return sale
+
+
+@transaction.atomic
+def return_sale(sale):
+    """Phase 7 (Jumia returns, CLAUDE.md §4): restores each line's stock and
+    flips the sale to RETURNED. That status flip is what actually excludes
+    it from revenue — apps/reports/views.py's sales/profit reports already
+    filter on status=Sale.Status.COMPLETED, so a returned sale falls out of
+    every revenue number for free, no separate reports-side exclusion
+    needed. Channel-agnostic (nothing about the mechanics is Jumia-specific)
+    even though the only caller today is the marketplace returns UI.
+    Idempotent: returning an already-returned sale is a no-op rather than
+    double-crediting stock back.
+    """
+    sale = Sale.objects.select_for_update().get(pk=sale.pk)
+    if sale.status == Sale.Status.RETURNED:
+        return sale
+
+    sale_items = list(sale.items.select_related('book'))
+    book_ids = [si.book_id for si in sale_items]
+    books = {b.id: b for b in Book.objects.select_for_update().filter(id__in=book_ids)}
+    for sale_item in sale_items:
+        book = books[sale_item.book_id]
+        book.stock_qty += sale_item.qty
+        book.save(update_fields=['stock_qty', 'updated_at'])
+
+    sale.status = Sale.Status.RETURNED
+    sale.returned_at = timezone.now()
+    sale.save(update_fields=['status', 'returned_at'])
     return sale
