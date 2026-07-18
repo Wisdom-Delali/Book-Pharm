@@ -13,6 +13,9 @@
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <link rel="stylesheet" href="{% static 'css/theme-storefront.css' %}">
   <link rel="stylesheet" href="{% static 'css/storefront-layout.css' %}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js"></script>
+  <script defer src="{% static 'js/storefront.js' %}"></script>
   {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -59,12 +62,12 @@
         <div class="storefront-topbar__spacer"></div>
         <a href="{% url 'storefront:cart' %}" class="storefront-topbar__cart">
           <span class="material-symbols-outlined">shopping_cart</span> Cart
-          {% if cart_count %}<span class="cart-badge">{{ cart_count }}</span>{% endif %}
+          <span class="cart-badge" {% if not cart_count %}style="display: none;"{% endif %}>{{ cart_count|default:0 }}</span>
         </a>
       </header>
 
       <main class="storefront-main">
-        {% include 'partials/_messages.html' %}
+        {% include 'storefront/_toast_bridge.html' %}
         {% block content %}{% endblock %}
       </main>
 
@@ -83,7 +86,7 @@
     </a>
     <a href="{% url 'storefront:cart' %}" class="{% if request.resolver_match.url_name == 'cart' %}is-active{% endif %}" style="position: relative;">
       <span class="material-symbols-outlined">shopping_cart</span> Cart
-      {% if cart_count %}<span class="cart-badge">{{ cart_count }}</span>{% endif %}
+      <span class="cart-badge" {% if not cart_count %}style="display: none;"{% endif %}>{{ cart_count|default:0 }}</span>
     </a>
   </nav>
 

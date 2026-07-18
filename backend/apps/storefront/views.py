@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Avg, Count, Q, Sum
 from django.db.models.functions import Coalesce
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -16,6 +17,7 @@ from apps.payments.views_helpers import PAYSTACK_CHANNEL_TO_METHOD
 from apps.sales.models import DiscountRule, Sale
 from apps.sales.services import InsufficientStockError, create_pending_online_sale, finalize_paid_sale
 
+from .ajax import is_ajax
 from .cart import Cart
 from .forms import CheckoutForm
 
@@ -148,8 +150,17 @@ def cart_add(request, book_id):
     if request.method == 'POST':
         book = get_object_or_404(Book, pk=book_id, is_active=True)
         qty = int(request.POST.get('qty', 1))
-        Cart(request).add(book.id, max(qty, 1))
-        messages.success(request, f'Added "{book.title}" to your cart.')
+        cart = Cart(request)
+        cart.add(book.id, max(qty, 1))
+        message = f'Added "{book.title}" to your cart.'
+        if is_ajax(request):
+            # storefront.js intercepts this form's submit — no redirect, no
+            # server-rendered flash message (that would just sit in the
+            # session and pop up unexpectedly on whatever page the customer
+            # navigates to next). The toast is shown directly from this
+            # response instead.
+            return JsonResponse({'ok': True, 'message': message, 'cart_count': len(cart)})
+        messages.success(request, message)
     return redirect(request.POST.get('next') or 'storefront:cart')
 
 

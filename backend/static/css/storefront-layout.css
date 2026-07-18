@@ -263,6 +263,27 @@
 }
 .book-card__quick-add:hover { background: var(--color-secondary-container); color: var(--color-on-secondary-container); }
 .book-card__quick-add .material-symbols-outlined { font-size: 1.2rem; }
+.book-card__quick-add.is-added { background: #4a7c59; }
+
+/* Toasts (WISDOM.md #10) — Toastify handles positioning/stacking/dismiss;
+   these rules override its default gradient via the className we pass it,
+   so toasts read as part of this theme rather than a generic UI-library
+   look. No CSS "success" green exists in theme-storefront.css (the palette
+   is cream/burgundy/gold/wood-brown throughout) — muted sage is a
+   deliberate one-off addition here, not pulled from a token, because
+   success/error color semantics are a stronger usability convention than
+   strict palette purity for a transient notification. */
+.toastify.toast {
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1.25rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+.toastify.toast--success { background: #4a7c59; color: #ffffff; }
+.toastify.toast--error { background: var(--color-error); color: var(--color-on-error); }
+.toastify.toast--warning { background: var(--color-tertiary); color: var(--color-on-tertiary); }
 
 .pagination { display: flex; justify-content: center; gap: var(--space-stack-sm); margin: var(--space-stack-lg) 0; }
 

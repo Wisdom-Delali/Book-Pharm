@@ -38,7 +38,7 @@
     </div>
 
     {% if book.stock_qty > 0 %}
-    <form method="post" action="{% url 'storefront:cart_add' book.id %}">
+    <form method="post" action="{% url 'storefront:cart_add' book.id %}" class="js-add-to-cart-form">
       {% csrf_token %}
       <input type="hidden" name="next" value="{% url 'storefront:book_detail' book.slug %}">
       <div class="book-detail__qty">
@@ -92,17 +92,4 @@
   {% endfor %}
 </div>
 {% endif %}
-
-<script>
-  document.querySelectorAll('.qty-stepper button[data-step]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const input = btn.parentElement.querySelector('input[name="qty"]');
-      const step = parseInt(btn.dataset.step, 10);
-      const min = parseInt(input.min || '1', 10);
-      const max = parseInt(input.max || '99', 10);
-      const next = (parseInt(input.value, 10) || min) + step;
-      input.value = Math.min(max, Math.max(min, next));
-    });
-  });
-</script>
 {% endblock %}

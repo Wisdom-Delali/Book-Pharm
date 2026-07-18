@@ -1,0 +1,21 @@
+{% comment %}
+Storefront-only replacement for partials/_messages.html (WISDOM.md #10 —
+scoped to "e-commerce", the portal keeps its plain message list). Every
+existing messages.success()/messages.error() call across the storefront
+views becomes a toast for free with no view changes — this just fires one
+on page load per message already queued by the server. The AJAX add-to-cart
+path (storefront.js) never reaches this: it shows a toast directly from its
+JSON response, since there's no page load to hang this script off of.
+{% endcomment %}
+{% if messages %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const serverMessages = [
+      {% for message in messages %}
+      { text: "{{ message|escapejs }}", tags: "{{ message.tags|escapejs }}" },
+      {% endfor %}
+    ];
+    serverMessages.forEach((m) => window.showToast(m.text, m.tags));
+  });
+</script>
+{% endif %}
