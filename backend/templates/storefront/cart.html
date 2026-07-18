@@ -6,41 +6,32 @@
 <h1>Your Cart</h1>
 
 {% if items %}
-<table class="cart-table">
-  <thead>
-    <tr><th>Book</th><th>Price</th><th>Qty</th><th class="text-right">Line Total</th><th></th></tr>
-  </thead>
-  <tbody>
-    {% for item in items %}
-    <tr>
-      <td>
-        <div class="cart-table__book">
-          <div class="cart-table__cover">{% if item.book.cover_image %}<img src="{{ item.book.cover_image.url }}" alt="">{% endif %}</div>
-          <div>
-            <a href="{% url 'storefront:book_detail' item.book.slug %}"><strong>{{ item.book.title }}</strong></a><br>
-            <span class="text-muted">{{ item.book.author }}</span>
-          </div>
-        </div>
-      </td>
-      <td class="mono">GHS {{ item.book.selling_price }}</td>
-      <td>
-        <form method="post" action="{% url 'storefront:cart_update' item.book.id %}" style="display: flex; gap: 0.5rem;">
-          {% csrf_token %}
-          <input type="number" name="qty" value="{{ item.qty }}" min="1" max="{{ item.book.stock_qty }}" style="width: 60px;">
-          <button type="submit" class="btn btn--secondary">Update</button>
-        </form>
-      </td>
-      <td class="text-right mono">GHS {{ item.line_total }}</td>
-      <td>
-        <form method="post" action="{% url 'storefront:cart_remove' item.book.id %}">
-          {% csrf_token %}
-          <button type="submit" class="cart-item__remove">Remove</button>
-        </form>
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="cart-list">
+  {% for item in items %}
+  <div class="cart-row">
+    <a href="{% url 'storefront:book_detail' item.book.slug %}" class="cart-row__cover">
+      {% if item.book.cover_image %}<img src="{{ item.book.cover_image.url }}" alt="">{% endif %}
+    </a>
+    <div class="cart-row__info">
+      <a href="{% url 'storefront:book_detail' item.book.slug %}" class="cart-row__title">{{ item.book.title }}</a>
+      <span class="cart-row__author text-muted">{{ item.book.author }}</span>
+      <span class="cart-row__unit-price mono text-muted">GHS {{ item.book.selling_price }} each</span>
+    </div>
+    <form method="post" action="{% url 'storefront:cart_update' item.book.id %}" class="cart-row__qty">
+      {% csrf_token %}
+      <input type="number" name="qty" value="{{ item.qty }}" min="1" max="{{ item.book.stock_qty }}" aria-label="Quantity">
+      <button type="submit" class="btn btn--secondary">Update</button>
+    </form>
+    <div class="cart-row__total mono">GHS {{ item.line_total }}</div>
+    <form method="post" action="{% url 'storefront:cart_remove' item.book.id %}" class="cart-row__remove">
+      {% csrf_token %}
+      <button type="submit" aria-label="Remove {{ item.book.title }} from cart" title="Remove">
+        <span class="material-symbols-outlined">delete</span>
+      </button>
+    </form>
+  </div>
+  {% endfor %}
+</div>
 
 <div class="card summary-card" style="max-width: 360px; margin-left: auto;">
   <div class="summary-total">

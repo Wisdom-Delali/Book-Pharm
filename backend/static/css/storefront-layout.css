@@ -313,13 +313,64 @@
 
 @media (max-width: 700px) { .book-detail { grid-template-columns: 1fr; } }
 
-/* Cart / checkout */
-.cart-table { width: 100%; border-collapse: collapse; margin: var(--space-stack-lg) 0; }
-.cart-table th { text-align: left; padding: 0.75rem; border-bottom: 2px solid var(--color-outline-variant); font-size: var(--text-label-md-size); color: var(--color-secondary); }
-.cart-table td { padding: 0.75rem; border-bottom: 1px solid var(--color-outline-variant); vertical-align: middle; }
-.cart-table__book { display: flex; align-items: center; gap: 1rem; }
-.cart-table__cover { width: 50px; height: 70px; border-radius: var(--radius-sm); overflow: hidden; background: var(--color-surface-container-high); flex-shrink: 0; }
-.cart-table__cover img { width: 100%; height: 100%; object-fit: cover; }
+/* Cart — a grid per row, not a <table>: table columns don't reflow, and a
+   cart is a list of line items, not tabular data. grid-template-areas lets
+   the same elements rearrange into a 2-line layout at the mobile
+   breakpoint instead of overflowing or being crushed illegible. */
+.cart-list { display: flex; flex-direction: column; gap: var(--space-stack-sm); margin: var(--space-stack-lg) 0; }
+.cart-row {
+  display: grid;
+  grid-template-columns: 60px 1fr auto auto auto;
+  grid-template-areas: "cover info qty total remove";
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--color-surface-container-lowest);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 20px rgba(92, 64, 51, 0.06);
+}
+.cart-row__cover {
+  grid-area: cover;
+  display: block;
+  width: 60px;
+  height: 84px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--color-surface-container-high);
+}
+.cart-row__cover img { width: 100%; height: 100%; object-fit: cover; }
+.cart-row__info { grid-area: info; min-width: 0; display: flex; flex-direction: column; gap: 0.15rem; }
+.cart-row__title { font-weight: 700; color: var(--color-on-surface); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cart-row__title:hover { color: var(--color-secondary); }
+.cart-row__author { font-size: 0.85rem; }
+.cart-row__unit-price { font-size: 0.8rem; }
+.cart-row__qty { grid-area: qty; display: flex; align-items: center; gap: 0.5rem; }
+.cart-row__qty input { width: 60px; }
+.cart-row__total { grid-area: total; font-weight: 700; text-align: right; }
+.cart-row__remove { grid-area: remove; }
+.cart-row__remove button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-on-surface-variant);
+  padding: 0.5rem;
+  border-radius: var(--radius-full);
+  display: flex;
+}
+.cart-row__remove button:hover { color: var(--color-error); background: var(--color-error-container); }
+
+@media (max-width: 640px) {
+  .cart-row {
+    grid-template-columns: 52px 1fr auto;
+    grid-template-areas:
+      "cover info   remove"
+      "qty   qty    total";
+    row-gap: 0.75rem;
+  }
+  .cart-row__cover { width: 52px; height: 72px; }
+  .cart-row__title { white-space: normal; }
+  .cart-row__total { align-self: end; }
+}
 
 .checkout-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--space-stack-lg, 32px); align-items: start; margin: var(--space-stack-lg) 0; }
 @media (max-width: 800px) { .checkout-grid { grid-template-columns: 1fr; } }

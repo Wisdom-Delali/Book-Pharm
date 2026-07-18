@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 
 from apps.catalog.models import Book, Category
+from apps.catalog.placeholder_covers import generate_placeholder_cover
 
 CATEGORIES = ['Herbalism', 'Classical Lit', 'Alchemy', 'Medicine']
 
@@ -42,3 +43,14 @@ class Command(BaseCommand):
             book = Book.objects.create(category=categories[category_name], **data)
             code = book.isbn or book.internal_code
             self.stdout.write(self.style.SUCCESS(f'Created book: {book.title} ({code})'))
+
+        # Every book without a cover gets a generated placeholder — not just
+        # the ones listed above, so rows created ad hoc outside this script
+        # (e.g. during manual testing) get one too. Safe to re-run: books
+        # that already have a real cover are left untouched.
+        for book in Book.objects.all():
+            if book.cover_image:
+                continue
+            content = generate_placeholder_cover(book.title, book.author)
+            book.cover_image.save(f'{book.slug or book.pk}.png', content, save=True)
+            self.stdout.write(f'Generated placeholder cover: {book.title}')
