@@ -10,7 +10,7 @@ from apps.catalog.codes import normalize_isbn
 from apps.catalog.models import Book
 from apps.sales.services import InsufficientStockError, create_sale
 
-from .serializers import BookSyncSerializer, SaleCreateSerializer, SaleDetailSerializer
+from .serializers import BookSyncSerializer, SaleBatchSyncSerializer, SaleCreateSerializer, SaleDetailSerializer
 
 
 class BookSyncListView(generics.ListAPIView):
@@ -59,7 +59,10 @@ class BookLookupView(APIView):
             book = Book.objects.filter(internal_code=code, is_active=True).first()
         if not book:
             return Response({'error': 'No matching book.'}, status=status.HTTP_404_NOT_FOUND)
-        return Response(BookSyncSerializer(book).data)
+        # context={'request': request} matters: without it, DRF's ImageField
+        # serializes cover_image as a relative /media/... path, which breaks
+        # once loaded from the Electron renderer's file:// origin.
+        return Response(BookSyncSerializer(book, context={'request': request}).data)
 
 
 class MeView(APIView):
@@ -104,3 +107,44 @@ class SaleCreateView(APIView):
 
         out = SaleDetailSerializer(sale)
         return Response(out.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+
+
+class SaleBatchSyncView(APIView):
+    """POST /api/sync/sales/ — batch, idempotent on offline_uuid, per-UUID
+    result (CLAUDE.md §7). Each sale gets its own create_sale() call (so its
+    own transaction) — one bad entry in a batch of 20 must not roll back the
+    other 19. allow_oversell=True always: a sale that already happened at
+    the register must never be silently discarded for going stock-negative."""
+
+    def post(self, request):
+        serializer = SaleBatchSyncSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        results = []
+        for sale_data in serializer.validated_data['sales']:
+            offline_uuid = sale_data['offline_uuid']
+            try:
+                sale, created = create_sale(
+                    channel=sale_data['channel'],
+                    items=sale_data['items'],
+                    payment_method=sale_data['payment_method'],
+                    offline_uuid=offline_uuid,
+                    customer_phone=sale_data.get('customer_phone') or None,
+                    customer_full_name=sale_data.get('customer_full_name', ''),
+                    customer_email=sale_data.get('customer_email', ''),
+                    customer_birthday=sale_data.get('customer_birthday'),
+                    attendant=request.user,
+                    allow_oversell=True,
+                )
+                results.append({
+                    'offline_uuid': str(offline_uuid),
+                    'status': 'accepted',
+                    'sale': SaleDetailSerializer(sale).data,
+                    'created': created,
+                })
+            except ValueError as exc:
+                # Not a stock issue (that can never fail here) — a genuine
+                # malformed entry, e.g. a book_id that doesn't exist.
+                results.append({'offline_uuid': str(offline_uuid), 'status': 'rejected', 'error': str(exc)})
+
+        return Response({'results': results}, status=status.HTTP_200_OK)

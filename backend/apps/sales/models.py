@@ -131,3 +131,28 @@ class SaleItem(models.Model):
     @property
     def line_total(self):
         return self.unit_price * self.qty - self.line_discount
+
+
+class StockDiscrepancy(models.Model):
+    """A sale (typically synced from an offline device) pushed a book's
+    stock_qty negative. CLAUDE.md §7 is explicit: the sale is real and must
+    never be rejected for this — instead it's flagged here for the owner to
+    reconcile in the portal."""
+
+    book = models.ForeignKey('catalog.Book', on_delete=models.CASCADE, related_name='stock_discrepancies')
+    sale_item = models.ForeignKey(SaleItem, on_delete=models.CASCADE, related_name='stock_discrepancies')
+    stock_qty_after = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    resolved = models.BooleanField(default=False)
+    resolved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name='+'
+    )
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    resolution_notes = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'stock discrepancies'
+
+    def __str__(self):
+        return f'{self.book} went to {self.stock_qty_after} (Sale #{self.sale_item.sale_id})'

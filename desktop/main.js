@@ -1,8 +1,10 @@
 const { app, BrowserWindow, ipcMain, safeStorage } = require('electron');
 const fs = require('fs');
 const path = require('path');
+const db = require('./db');
 
 const CONFIG_PATH = () => path.join(app.getPath('userData'), 'device-config.enc');
+const userDataPath = () => app.getPath('userData');
 
 function readConfig() {
   try {
@@ -57,6 +59,22 @@ ipcMain.handle('device-config:clear', () => {
   clearConfig();
   return true;
 });
+
+// ---------- Local SQLite mirror + outbox (CLAUDE.md §7) ----------
+// The renderer is sandboxed with no Node access, so every SQLite operation
+// is a thin IPC round-trip into db.js here.
+
+ipcMain.handle('db:upsertBooks', (_event, books) => db.upsertBooks(userDataPath(), books));
+ipcMain.handle('db:searchLocalBooks', (_event, query) => db.searchLocalBooks(userDataPath(), query));
+ipcMain.handle('db:lookupLocalBook', (_event, code) => db.lookupLocalBook(userDataPath(), code));
+ipcMain.handle('db:adjustLocalStock', (_event, bookId, delta) => db.adjustLocalStock(userDataPath(), bookId, delta));
+ipcMain.handle('db:getSyncMeta', (_event, key) => db.getSyncMeta(userDataPath(), key));
+ipcMain.handle('db:setSyncMeta', (_event, key, value) => db.setSyncMeta(userDataPath(), key, value));
+ipcMain.handle('db:addToOutbox', (_event, offlineUuid, payload) => db.addToOutbox(userDataPath(), offlineUuid, payload));
+ipcMain.handle('db:getPendingOutbox', () => db.getPendingOutbox(userDataPath()));
+ipcMain.handle('db:getOutboxPendingCount', () => db.getOutboxPendingCount(userDataPath()));
+ipcMain.handle('db:markOutboxSynced', (_event, offlineUuid, serverResponse) => db.markOutboxSynced(userDataPath(), offlineUuid, serverResponse));
+ipcMain.handle('db:markOutboxFailed', (_event, offlineUuid, errorMessage) => db.markOutboxFailed(userDataPath(), offlineUuid, errorMessage));
 
 app.whenReady().then(() => {
   createWindow();

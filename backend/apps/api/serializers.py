@@ -40,6 +40,22 @@ class SaleCreateSerializer(serializers.Serializer):
         return items
 
 
+class SaleSyncItemSerializer(SaleCreateSerializer):
+    # Required here (unlike the single-sale endpoint) — every queued outbox
+    # entry was already assigned a UUID client-side before it could be
+    # queued at all, online or offline (CLAUDE.md §7).
+    offline_uuid = serializers.UUIDField(required=True)
+
+
+class SaleBatchSyncSerializer(serializers.Serializer):
+    sales = SaleSyncItemSerializer(many=True)
+
+    def validate_sales(self, sales):
+        if not sales:
+            raise serializers.ValidationError('At least one sale is required.')
+        return sales
+
+
 class SaleItemOutputSerializer(serializers.ModelSerializer):
     title = serializers.CharField(source='book.title')
     author = serializers.CharField(source='book.author')

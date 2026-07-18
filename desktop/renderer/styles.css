@@ -89,6 +89,9 @@ input, select { font-family: var(--font-body); }
 }
 .sync-pill--online { background: var(--color-success-container); color: var(--color-success); border-color: #a5d6a7; }
 .sync-pill--offline { background: var(--color-error-container); color: var(--color-error); border-color: #ef9a9a; }
+.sync-pill--syncing { background: #fff3cd; color: #8a6d00; border-color: #ffe08a; }
+.sync-pill--syncing .sync-dot { animation: sync-pulse 1s ease-in-out infinite; }
+@keyframes sync-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
 
 .icon-btn {
@@ -101,10 +104,17 @@ input, select { font-family: var(--font-body); }
 }
 .icon-btn:hover { background: rgba(0,0,0,0.05); }
 
-/* Register layout */
+/* #view-app fills the window as a column (topbar + one flexed content
+   area) so both .register and .receipt-view can use flex:1 + min-height:0
+   to get a real, scrollable height — rather than height:100%, which
+   resolves to nothing against an auto-height parent and left content that
+   overflows the window genuinely unreachable (body has overflow:hidden). */
+#view-app { height: 100vh; display: flex; flex-direction: column; }
+
 .register {
   display: flex;
-  height: calc(100vh - 56px);
+  flex: 1;
+  min-height: 0;
 }
 
 .panel-search {
@@ -297,7 +307,7 @@ input, select { font-family: var(--font-body); }
 }
 
 /* Receipt view */
-.receipt-view { height: 100%; overflow-y: auto; padding: 2rem; display: flex; flex-direction: column; align-items: center; }
+.receipt-view { flex: 1; min-height: 0; overflow-y: auto; padding: 2rem; display: flex; flex-direction: column; align-items: center; }
 .receipt-success { text-align: center; margin-bottom: 1.5rem; }
 .receipt-success .check { font-size: 2.5rem; color: var(--color-success); }
 .receipt {

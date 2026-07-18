@@ -22,6 +22,7 @@
         <a href="#">Orders</a>
         <a href="#">Customers &amp; Loyalty</a>
         <a href="{% url 'portal:discount_list' %}" class="{% if active_nav == 'discounts' %}is-active{% endif %}">Discounts</a>
+        <a href="{% url 'portal:reconciliation_list' %}" class="{% if active_nav == 'reconciliation' %}is-active{% endif %}">Reconciliation</a>
         <a href="#">Reports</a>
         <a href="#">Expenses</a>
       </nav>

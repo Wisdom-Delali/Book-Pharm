@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import DiscountRule, Sale, SaleItem
+from .models import DiscountRule, Sale, SaleItem, StockDiscrepancy
 
 
 @admin.register(DiscountRule)
@@ -22,3 +22,10 @@ class SaleAdmin(admin.ModelAdmin):
     search_fields = ['id', 'offline_uuid', 'external_ref', 'customer__phone']
     inlines = [SaleItemInline]
     readonly_fields = ['offline_uuid', 'synced_at', 'created_at']
+
+
+@admin.register(StockDiscrepancy)
+class StockDiscrepancyAdmin(admin.ModelAdmin):
+    list_display = ['book', 'stock_qty_after', 'sale_item', 'resolved', 'created_at']
+    list_filter = ['resolved']
+    readonly_fields = ['book', 'sale_item', 'stock_qty_after', 'created_at']

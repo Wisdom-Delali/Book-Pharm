@@ -64,19 +64,25 @@ Phased todo list. Each phase ends with something demonstrable. Read `CLAUDE.md` 
 
 The hardest phase. Don't rush it.
 
-- [ ] SQLite schema in Electron: catalog mirror + sales outbox
-- [ ] Catalog pull on app start + periodic refresh
-- [ ] Client-side UUID generation for every sale (online and offline alike)
-- [ ] Outbox write on every sale, regardless of connectivity
-- [ ] `POST /api/sync/sales/` — batch, idempotent on `offline_uuid`, per-UUID result
-- [ ] Sync worker in Electron: retry with backoff, drain outbox on reconnect
-- [ ] Online/offline indicator in the POS top bar (must be unmissable)
-- [ ] **Oversell reconciliation:** accept synced sales that push stock negative, flag them for the owner
-- [ ] Portal: reconciliation alert view for negative/conflicted stock
-- [ ] Test: pull the network mid-sale, sell 20 items offline, reconnect, verify zero loss and no duplicates
-- [ ] Test: replay the same batch twice, confirm idempotency
+- [x] SQLite schema in Electron: catalog mirror + sales outbox — via `node:sqlite` (Node 22+ built-in). Deliberately not `better-sqlite3`: that's a native module that has to be rebuilt/matched against Electron's exact ABI per platform; `node:sqlite` needs neither, one less thing to break on the owner's actual machine
+- [x] Catalog pull on app start + periodic refresh — every 60s while online, incremental via `?updated_since=`
+- [x] Client-side UUID generation for every sale (online and offline alike) — `crypto.randomUUID()` at checkout, before any network call
+- [x] Outbox write on every sale, regardless of connectivity — durability first, always; the online path still tries for an immediate authoritative (discount-applied) receipt, falling back to a clearly-marked local-subtotal-only receipt if that fails
+- [x] `POST /api/sync/sales/` — batch, idempotent on `offline_uuid`, per-UUID result — reuses Phase 2's `create_sale()` with `allow_oversell=True`; each sale is its own transaction so one bad entry can't roll back the rest of the batch
+- [x] Sync worker in Electron: retry with backoff, drain outbox on reconnect — 5s → 60s exponential backoff, resets on the `online` event and after every successful round-trip
+- [x] Online/offline indicator in the POS top bar (must be unmissable) — three states now, not just two: red "Offline (n queued)", amber "Syncing (n)", green "Synced"
+- [x] **Oversell reconciliation:** accept synced sales that push stock negative, flag them for the owner — new `StockDiscrepancy` model, logged automatically in `create_sale()` whenever `stock_qty` goes negative regardless of which path caused it
+- [x] Portal: reconciliation alert view for negative/conflicted stock — list + resolve-with-notes, plus a dashboard banner mirroring the low-stock alert pattern
+- [x] Test: pull the network mid-sale, sell 20 items offline, reconnect, verify zero loss and no duplicates — ✅ both as a real Electron GUI test (killed the Django server, sold through the actual app, confirmed durable queueing, confirmed the app survives a reload/restart *while still offline* without blocking the attendant, restarted the server, watched the sync worker auto-drain with no manual action) and as a 20-item batch against `/api/sync/sales/` (20/20 accepted, stock decremented exactly)
+- [x] Test: replay the same batch twice, confirm idempotency — ✅ both the 2-sale oversell batch and the 20-sale batch; every replayed entry returned `created: false`, stock and sale counts unchanged
 
-**Done when:** you can run a full book-fair simulation with the network off and lose nothing on reconnect.
+**Done when:** you can run a full book-fair simulation with the network off and lose nothing on reconnect. ✅ Verified 2026-07-18.
+
+**Bugs found and fixed during this phase's testing:**
+1. `cover_image` URLs from the API were relative (`/media/...`) — fine for the portal (same origin) but broken in Electron, which loads from `file://`. Fixed by passing `context={'request': request}` to the one serializer instantiation that was missing it (the list endpoint already had this automatically via DRF's generic view).
+2. MariaDB strict mode gap from Phase 2 needed no further changes, but is worth re-noting: it's what makes `DecimalField` overflow errors loud instead of silently truncating — exactly the kind of bug offline sync could otherwise hide.
+3. **The important one:** `initApp()` originally gated entry to the register screen on a successful `/api/me/` ping. That meant a device that already had a saved token — but happened to reload or restart *while offline* — got stuck on the settings screen, unable to sell anything, which defeats the entire point of this phase. Fixed to enter the register immediately whenever a device config exists, with the attendant-name ping happening in the background and never blocking. Also added a "Back to Register" escape hatch on the settings screen for when it's opened mid-session rather than at first run.
+4. The receipt view's height was `100%` against a parent with no defined height, which resolves to nothing — combined with `body { overflow: hidden }`, this meant the pending-sync banner pushing the receipt taller than the window made the "New Transaction"/"Print Receipt" buttons genuinely unreachable (clipped, not scrollable). Fixed by making `#view-app` a proper `100vh` flex column so both the register and receipt views get a real height to scroll within.
 
 ---
 

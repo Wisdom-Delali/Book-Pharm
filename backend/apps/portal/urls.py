@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import discount_views, views
+from . import discount_views, reconciliation_views, views
 
 app_name = 'portal'
 
@@ -13,4 +13,6 @@ urlpatterns = [
     path('discounts/', discount_views.discount_list, name='discount_list'),
     path('discounts/new/', discount_views.discount_create, name='discount_create'),
     path('discounts/<int:pk>/edit/', discount_views.discount_update, name='discount_update'),
+    path('reconciliation/', reconciliation_views.reconciliation_list, name='reconciliation_list'),
+    path('reconciliation/<int:pk>/resolve/', reconciliation_views.reconciliation_resolve, name='reconciliation_resolve'),
 ]

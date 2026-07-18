@@ -1,6 +1,9 @@
 // Book Pharm POS — renderer logic. No Node/Electron APIs here except the
-// narrow `window.deviceConfig` bridge exposed by preload.js; everything
-// else (fetch, crypto.randomUUID, window.print) is standard web platform.
+// `window.deviceConfig` and `window.localDb` bridges exposed by preload.js;
+// everything else (fetch, crypto.randomUUID, window.print) is standard web
+// platform. Offline sync design follows CLAUDE.md §7: every sale is written
+// to the local outbox before anything else, online or offline alike, and
+// the outbox is drained by a retrying background worker.
 
 let apiBaseUrl = null;
 let apiToken = null;
@@ -10,6 +13,12 @@ const $ = (id) => document.getElementById(id);
 
 function money(n) {
   return `GHS ${Number(n).toFixed(2)}`;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
 }
 
 function showView(name) {
@@ -27,7 +36,7 @@ function showReceiptView() {
 }
 
 async function apiFetch(path, options = {}) {
-  const res = await fetch(`${apiBaseUrl}${path}`, {
+  return fetch(`${apiBaseUrl}${path}`, {
     ...options,
     headers: {
       'Authorization': `Token ${apiToken}`,
@@ -35,7 +44,6 @@ async function apiFetch(path, options = {}) {
       ...(options.headers || {}),
     },
   });
-  return res;
 }
 
 // ---------- Settings / device setup ----------
@@ -43,23 +51,32 @@ async function apiFetch(path, options = {}) {
 async function initApp() {
   const config = await window.deviceConfig.get();
   if (!config || !config.apiBaseUrl || !config.token) {
-    showView('settings');
+    showView('settings'); // true first run — nothing saved yet, nothing to be offline-resilient about
     return;
   }
   apiBaseUrl = config.apiBaseUrl.replace(/\/$/, '');
   apiToken = config.token;
 
+  // A device that's already configured must never be blocked from selling
+  // just because it can't reach the server right now — enter the register
+  // immediately with a cached attendant name, and refresh that name in the
+  // background. This matters most exactly when it's hardest to notice:
+  // an app restart or crash recovery mid-offline-session at a book fair.
+  const cachedName = await window.localDb.getSyncMeta('attendant_name');
+  $('attendant-name').textContent = cachedName || 'Attendant';
+  showView('app');
+  startBackgroundWork();
+
   try {
     const res = await apiFetch('/api/me/');
-    if (!res.ok) throw new Error('Token rejected by server.');
-    const me = await res.json();
-    $('attendant-name').textContent = me.full_name || me.email;
-    showView('app');
+    if (res.ok) {
+      const me = await res.json();
+      const name = me.full_name || me.email;
+      $('attendant-name').textContent = name;
+      await window.localDb.setSyncMeta('attendant_name', name);
+    }
   } catch (err) {
-    $('settings-error').textContent = `Could not connect: ${err.message}`;
-    $('settings-error').classList.remove('hidden');
-    $('settings-api-url').value = apiBaseUrl || '';
-    showView('settings');
+    // Offline at boot — fine, already in the register on cached data.
   }
 }
 
@@ -81,12 +98,15 @@ $('settings-save').addEventListener('click', async () => {
     const res = await fetch(`${url}/api/me/`, { headers: { Authorization: `Token ${token}` } });
     if (!res.ok) throw new Error(`Server responded ${res.status}. Check the URL and token.`);
     const me = await res.json();
+    const name = me.full_name || me.email;
     await window.deviceConfig.set({ apiBaseUrl: url, token });
     apiBaseUrl = url;
     apiToken = token;
-    $('attendant-name').textContent = me.full_name || me.email;
+    $('attendant-name').textContent = name;
+    await window.localDb.setSyncMeta('attendant_name', name);
     $('settings-token').value = '';
     showView('app');
+    startBackgroundWork();
   } catch (err) {
     errorEl.textContent = `Could not connect: ${err.message}`;
     errorEl.classList.remove('hidden');
@@ -97,23 +117,91 @@ $('settings-btn').addEventListener('click', () => {
   $('settings-api-url').value = apiBaseUrl || '';
   $('settings-token').value = '';
   $('settings-error').classList.add('hidden');
+  // Already configured and mid-session — offer a way back without forcing
+  // a reconnect (this device may just be offline right now, which is fine).
+  $('settings-cancel').classList.toggle('hidden', !(apiBaseUrl && apiToken));
   showView('settings');
 });
 
-// ---------- Sync indicator (connectivity only — offline queueing is Phase 3) ----------
+$('settings-cancel').addEventListener('click', () => showView('app'));
 
-function updateSyncPill() {
+let backgroundWorkStarted = false;
+function startBackgroundWork() {
+  if (backgroundWorkStarted) return;
+  backgroundWorkStarted = true;
+  pullCatalog();
+  scheduleSyncRetry(0);
+  setInterval(pullCatalog, 60000);
+  updateSyncPill();
+}
+
+// ---------- Sync indicator: connectivity + outbox depth ----------
+
+async function updateSyncPill() {
   const pill = $('sync-pill');
   const label = $('sync-label');
   const online = navigator.onLine;
-  pill.classList.toggle('sync-pill--online', online);
-  pill.classList.toggle('sync-pill--offline', !online);
-  label.textContent = online ? 'Online' : 'Offline';
+  const pendingCount = apiBaseUrl ? await window.localDb.getOutboxPendingCount() : 0;
+
+  pill.classList.remove('sync-pill--online', 'sync-pill--offline', 'sync-pill--syncing');
+  if (!online) {
+    pill.classList.add('sync-pill--offline');
+    label.textContent = pendingCount > 0 ? `Offline (${pendingCount} queued)` : 'Offline';
+  } else if (pendingCount > 0) {
+    pill.classList.add('sync-pill--syncing');
+    label.textContent = `Syncing (${pendingCount})`;
+  } else {
+    pill.classList.add('sync-pill--online');
+    label.textContent = 'Synced';
+  }
 }
-window.addEventListener('online', updateSyncPill);
+
+window.addEventListener('online', () => {
+  updateSyncPill();
+  pullCatalog();
+  syncBackoffMs = SYNC_BACKOFF_MIN;
+  scheduleSyncRetry(0);
+});
 window.addEventListener('offline', updateSyncPill);
 
-// ---------- Search / scan ----------
+// ---------- Catalog pull (incremental, into the local SQLite mirror) ----------
+
+async function pullCatalog() {
+  if (!apiBaseUrl || !navigator.onLine) return;
+  const since = await window.localDb.getSyncMeta('catalog_last_synced_at');
+  const requestStartedAt = new Date().toISOString();
+  try {
+    const url = since ? `/api/catalog/?updated_since=${encodeURIComponent(since)}` : '/api/catalog/';
+    const res = await apiFetch(url);
+    if (!res.ok) return;
+    const books = await res.json();
+    if (books.length > 0) await window.localDb.upsertBooks(books);
+    await window.localDb.setSyncMeta('catalog_last_synced_at', requestStartedAt);
+    refreshAttendantNameIfNeeded();
+  } catch (err) {
+    // Offline or server unreachable — next periodic pull (or the 'online'
+    // event) will retry. The local mirror just stays as fresh as it last was.
+  }
+}
+
+async function refreshAttendantNameIfNeeded() {
+  // The boot-time /api/me/ ping may have failed if we started up offline
+  // (showing the "Attendant" placeholder) — a successful catalog pull means
+  // we're online now, so it's a good moment to quietly fill in the real name.
+  if ($('attendant-name').textContent !== 'Attendant') return;
+  try {
+    const res = await apiFetch('/api/me/');
+    if (!res.ok) return;
+    const me = await res.json();
+    const name = me.full_name || me.email;
+    $('attendant-name').textContent = name;
+    await window.localDb.setSyncMeta('attendant_name', name);
+  } catch (err) {
+    // Try again on the next successful catalog pull.
+  }
+}
+
+// ---------- Search / scan — live if online, local mirror fallback if not ----------
 
 let searchDebounce = null;
 
@@ -123,17 +211,30 @@ $('search-input').addEventListener('keydown', async (e) => {
   if (!code) return;
   $('scanner-state').textContent = 'LOOKING UP...';
   try {
-    const res = await apiFetch(`/api/catalog/lookup/?code=${encodeURIComponent(code)}`);
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      throw new Error(body.error || `Not found (${res.status})`);
+    let book = null;
+    let notFoundOnline = false;
+    if (navigator.onLine) {
+      try {
+        const res = await apiFetch(`/api/catalog/lookup/?code=${encodeURIComponent(code)}`);
+        if (res.ok) {
+          book = await res.json();
+        } else if (res.status === 404) {
+          notFoundOnline = true;
+        }
+      } catch (networkErr) {
+        // fall through to local lookup
+      }
     }
-    const book = await res.json();
+    if (!book && !notFoundOnline) {
+      book = await window.localDb.lookupLocalBook(code);
+    }
+    if (!book) {
+      showError(`Scan failed: no book matches "${code}".`);
+      return;
+    }
     addToCart(book);
     e.target.value = '';
     $('search-results').innerHTML = '';
-  } catch (err) {
-    showError(`Scan failed: ${err.message}`);
   } finally {
     $('scanner-state').textContent = 'READY';
   }
@@ -150,15 +251,19 @@ $('search-input').addEventListener('input', (e) => {
 });
 
 async function runSearch(q) {
-  try {
-    const res = await apiFetch(`/api/catalog/?q=${encodeURIComponent(q)}`);
-    if (!res.ok) return;
-    const results = await res.json();
-    renderSearchResults(results);
-  } catch (err) {
-    // Search-as-you-type failures are silent — the Enter-to-scan path is the
-    // one that surfaces errors; a flaky keystroke-level fetch shouldn't nag.
+  if (navigator.onLine) {
+    try {
+      const res = await apiFetch(`/api/catalog/?q=${encodeURIComponent(q)}`);
+      if (res.ok) {
+        renderSearchResults(await res.json());
+        return;
+      }
+    } catch (err) {
+      // fall through to local search
+    }
   }
+  const localResults = await window.localDb.searchLocalBooks(q);
+  renderSearchResults(localResults);
 }
 
 function renderSearchResults(results) {
@@ -182,12 +287,6 @@ function renderSearchResults(results) {
     });
     container.appendChild(div);
   });
-}
-
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
 }
 
 // ---------- Cart ----------
@@ -275,7 +374,7 @@ function hideError() {
   $('error-banner').classList.add('hidden');
 }
 
-// ---------- Checkout ----------
+// ---------- Checkout — outbox first, always, then try for an authoritative receipt ----------
 
 function setPaymentButtonsDisabled(disabled) {
   ['pay-cash', 'pay-momo', 'pay-card'].forEach((id) => { $(id).disabled = disabled; });
@@ -295,31 +394,55 @@ async function checkout(paymentMethod) {
   hideError();
   setPaymentButtonsDisabled(true);
 
+  const offlineUuid = crypto.randomUUID();
   const payload = {
     channel: 'IN_STORE',
     items: cart.map((i) => ({ book_id: i.book_id, qty: i.qty })),
     payment_method: paymentMethod,
-    offline_uuid: crypto.randomUUID(),
+    offline_uuid: offlineUuid,
     customer_phone: phone,
     customer_full_name: $('customer-name').value.trim(),
     customer_email: $('customer-email').value.trim(),
     customer_birthday: $('customer-birthday').value || null,
   };
 
-  try {
-    const res = await apiFetch('/api/sales/', { method: 'POST', body: JSON.stringify(payload) });
-    const body = await res.json();
-    if (!res.ok) {
-      throw new Error(body.error || `Sale failed (${res.status})`);
-    }
-    renderReceipt(body, paymentMethod);
-    resetForNextTransaction();
-    showReceiptView();
-  } catch (err) {
-    showError(err.message);
-  } finally {
-    setPaymentButtonsDisabled(false);
+  // Durability first — this write must happen before any network attempt,
+  // online or not. A sale that made it here is real; losing it because the
+  // network dropped mid-request is exactly the failure mode Phase 3 exists
+  // to close off.
+  await window.localDb.addToOutbox(offlineUuid, payload);
+  for (const item of cart) {
+    await window.localDb.adjustLocalStock(item.book_id, item.qty);
   }
+
+  let serverSale = null;
+  if (navigator.onLine) {
+    try {
+      const res = await apiFetch('/api/sales/', { method: 'POST', body: JSON.stringify(payload) });
+      if (res.ok) {
+        serverSale = await res.json();
+        await window.localDb.markOutboxSynced(offlineUuid, serverSale);
+      }
+      // A non-ok response here (e.g. validation) is left PENDING in the
+      // outbox; the batch sync worker will pick it up and surface it there
+      // rather than blocking this attendant's receipt on it.
+    } catch (networkErr) {
+      // Offline in practice, even though navigator.onLine said otherwise —
+      // fall through to the local receipt below.
+    }
+  }
+
+  if (serverSale) {
+    renderReceipt(serverSale, paymentMethod, false);
+  } else {
+    renderReceipt(buildLocalReceipt(payload, cart, offlineUuid), paymentMethod, true);
+  }
+
+  resetForNextTransaction();
+  showReceiptView();
+  setPaymentButtonsDisabled(false);
+  updateSyncPill();
+  scheduleSyncRetry(0);
 }
 
 $('pay-cash').addEventListener('click', () => checkout('CASH'));
@@ -335,9 +458,29 @@ function resetForNextTransaction() {
   $('customer-birthday').value = '';
 }
 
+function buildLocalReceipt(payload, cartAtCheckout, offlineUuid) {
+  // Discount computation is server-only, deliberately (never a second
+  // source of truth for that logic) — an offline receipt shows subtotal as
+  // the total and is clearly marked pending; discounts (if any) land once
+  // this syncs.
+  const items = cartAtCheckout.map((i) => ({
+    title: i.title, author: i.author, qty: i.qty, unit_price: i.unit_price, line_discount: 0,
+  }));
+  const subtotal = items.reduce((sum, i) => sum + i.unit_price * i.qty, 0);
+  return {
+    id: null,
+    offline_uuid: offlineUuid,
+    items,
+    subtotal,
+    discount_amount: 0,
+    total: subtotal,
+    created_at: new Date().toISOString(),
+  };
+}
+
 const PAYMENT_LABELS = { CASH: 'Cash', MOMO: 'Mobile Money', CARD: 'Card' };
 
-function renderReceipt(sale, paymentMethod) {
+function renderReceipt(sale, paymentMethod, pending) {
   const itemsHtml = sale.items.map((item) => `
     <div class="receipt-line">
       <div>
@@ -349,9 +492,10 @@ function renderReceipt(sale, paymentMethod) {
   `).join('');
 
   $('receipt-content').innerHTML = `
+    ${pending ? `<div class="error-banner" style="margin-bottom: 1rem;">Recorded offline — will sync automatically once reconnected. Total may adjust for discounts.</div>` : ''}
     <div class="receipt-header">
       <h3>Book Pharm</h3>
-      <p class="mono" style="font-size: 0.75rem;">Sale #${sale.id} &middot; ${new Date(sale.created_at).toLocaleString()}</p>
+      <p class="mono" style="font-size: 0.75rem;">${sale.id ? `Sale #${sale.id}` : 'Pending sync'} &middot; ${new Date(sale.created_at).toLocaleString()}</p>
     </div>
     <div>${itemsHtml}</div>
     <div class="receipt-summary">
@@ -369,6 +513,56 @@ function renderReceipt(sale, paymentMethod) {
 
 $('new-transaction').addEventListener('click', () => showView('app'));
 $('print-receipt').addEventListener('click', () => window.print());
+
+// ---------- Sync worker: drains the outbox, retries with backoff ----------
+
+const SYNC_BACKOFF_MIN = 5000;
+const SYNC_BACKOFF_MAX = 60000;
+let syncBackoffMs = SYNC_BACKOFF_MIN;
+let syncTimer = null;
+
+function scheduleSyncRetry(delayMs) {
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(drainOutbox, delayMs === undefined ? syncBackoffMs : delayMs);
+}
+
+async function drainOutbox() {
+  if (!apiBaseUrl) return; // not configured yet
+  if (!navigator.onLine) {
+    scheduleSyncRetry();
+    return;
+  }
+
+  const pending = await window.localDb.getPendingOutbox();
+  if (pending.length === 0) {
+    syncBackoffMs = SYNC_BACKOFF_MIN;
+    updateSyncPill();
+    scheduleSyncRetry();
+    return;
+  }
+
+  try {
+    const res = await apiFetch('/api/sync/sales/', {
+      method: 'POST',
+      body: JSON.stringify({ sales: pending.map((p) => p.payload) }),
+    });
+    if (!res.ok) throw new Error(`Batch sync failed (${res.status})`);
+    const body = await res.json();
+    for (const result of body.results) {
+      if (result.status === 'accepted') {
+        await window.localDb.markOutboxSynced(result.offline_uuid, result.sale);
+      } else {
+        await window.localDb.markOutboxFailed(result.offline_uuid, result.error || 'Rejected by server');
+      }
+    }
+    syncBackoffMs = SYNC_BACKOFF_MIN; // reset backoff after a successful round-trip
+  } catch (err) {
+    syncBackoffMs = Math.min(syncBackoffMs * 2, SYNC_BACKOFF_MAX);
+  }
+
+  updateSyncPill();
+  scheduleSyncRetry();
+}
 
 // ---------- Boot ----------
 

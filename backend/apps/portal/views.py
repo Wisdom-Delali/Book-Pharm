@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.catalog.forms import BookForm, StockAdjustmentForm
 from apps.catalog.models import Book, Category, StockAdjustment
+from apps.sales.models import StockDiscrepancy
 
 from .htmx import is_htmx as _is_htmx
 
@@ -64,6 +65,7 @@ def dashboard(request):
         'active_nav': 'dashboard',
         'low_stock_books': Book.objects.low_stock().select_related('category')[:10],
         'low_stock_count': Book.objects.low_stock().count(),
+        'discrepancy_count': StockDiscrepancy.objects.filter(resolved=False).count(),
     })
 
 

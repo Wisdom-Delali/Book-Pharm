@@ -2,6 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<!-- script-src 'self' blocks unsafe-eval and any remote script injection.
+     connect-src/img-src stay broad because apiBaseUrl is user-configured
+     (shop's own server, any host/port) — can't pin it at build time. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: http: https:; connect-src http: https:;">
 <title>Book Pharm POS</title>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Libre+Caslon+Text:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
@@ -22,6 +26,7 @@
     <input type="text" id="settings-token" placeholder="Paste token here">
   </div>
   <button id="settings-save">Connect</button>
+  <button id="settings-cancel" class="hidden" style="background: none; color: var(--color-secondary); font-weight: 600;">Back to Register</button>
 </section>
 
 <!-- Main POS shell -->

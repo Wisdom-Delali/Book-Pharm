@@ -12,7 +12,7 @@ from apps.catalog.models import Book
 from apps.customers.models import Customer
 from apps.customers.phone import normalize_phone
 
-from .models import DiscountRule, Sale, SaleItem
+from .models import DiscountRule, Sale, SaleItem, StockDiscrepancy
 
 
 class InsufficientStockError(Exception):
@@ -123,8 +123,15 @@ def create_sale(
     )
 
     for book, qty, unit_price, line_discount in resolved_items:
-        SaleItem.objects.create(sale=sale, book=book, qty=qty, unit_price=unit_price, line_discount=line_discount)
+        sale_item = SaleItem.objects.create(
+            sale=sale, book=book, qty=qty, unit_price=unit_price, line_discount=line_discount
+        )
         book.stock_qty -= qty
         book.save(update_fields=['stock_qty', 'updated_at'])
+        # Whatever path got us here (should only be allow_oversell=True in
+        # practice, since the checked path never lets this happen) — the
+        # condition that matters is "stock is negative", not how it happened.
+        if book.stock_qty < 0:
+            StockDiscrepancy.objects.create(book=book, sale_item=sale_item, stock_qty_after=book.stock_qty)
 
     return sale, True
