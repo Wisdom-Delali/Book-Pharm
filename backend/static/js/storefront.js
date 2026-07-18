@@ -87,4 +87,29 @@ document.addEventListener('DOMContentLoaded', () => {
       input.value = Math.min(max, Math.max(min, next));
     });
   });
+
+  // Mobile search expand (WISDOM.md #8). No-op above the 900px breakpoint —
+  // .is-open has no visual effect there (the input is already always
+  // visible), but guarding on width avoids the icon glyph swapping to
+  // "close" on desktop for no visible reason after a stray click.
+  const searchForm = document.querySelector('.storefront-topbar__search');
+  const searchToggle = document.querySelector('.storefront-topbar__search-toggle');
+  if (searchForm && searchToggle) {
+    const toggleIcon = searchToggle.querySelector('.material-symbols-outlined');
+    searchToggle.addEventListener('click', () => {
+      if (window.innerWidth > 900) return;
+      const isOpen = searchForm.classList.toggle('is-open');
+      toggleIcon.textContent = isOpen ? 'close' : 'search';
+      if (isOpen) searchForm.querySelector('input').focus();
+    });
+  }
+});
+
+// New Arrivals (and any future) horizontal rail — click-to-scroll arrows.
+document.addEventListener('click', (event) => {
+  const btn = event.target.closest('[data-rail-scroll]');
+  if (!btn) return;
+  const rail = btn.parentElement.querySelector('.book-rail');
+  if (!rail) return;
+  rail.scrollBy({ left: parseInt(btn.dataset.railScroll, 10) * 320, behavior: 'smooth' });
 });

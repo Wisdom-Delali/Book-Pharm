@@ -133,7 +133,7 @@ def dashboard(request):
 
 @login_required
 def book_list(request):
-    return render(request, PAGE_TEMPLATE, _list_context(request))
+    return _render_list(request)
 
 
 @login_required

@@ -32,7 +32,7 @@ def _render_list(request, extra_context=None):
 
 @login_required
 def expense_list(request):
-    return render(request, PAGE_TEMPLATE, _list_context(request))
+    return _render_list(request)
 
 
 @login_required

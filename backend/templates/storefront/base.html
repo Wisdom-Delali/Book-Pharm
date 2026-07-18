@@ -1,4 +1,4 @@
-{% load static %}
+{% load static storefront_extras %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -41,7 +41,7 @@
       <nav class="storefront-sidebar__nav">
         {% for cat in nav_categories %}
         <a href="{% url 'storefront:book_list' %}?category={{ cat.slug }}" class="{% if selected_category == cat.slug %}is-active{% endif %}">
-          <span class="material-symbols-outlined">category</span> {{ cat.name }}
+          <span class="material-symbols-outlined">{{ cat.name|category_icon }}</span> {{ cat.name }}
         </a>
         {% endfor %}
       </nav>
@@ -56,7 +56,9 @@
       <header class="storefront-topbar">
         <a class="storefront-topbar__brand" href="{% url 'storefront:home' %}">Book Pharm</a>
         <form class="storefront-topbar__search" method="get" action="{% url 'storefront:book_list' %}">
-          <span class="material-symbols-outlined">search</span>
+          <button type="button" class="storefront-topbar__search-toggle" aria-label="Toggle search">
+            <span class="material-symbols-outlined">search</span>
+          </button>
           <input type="search" name="q" placeholder="Search books or authors..." value="{{ query|default:'' }}">
         </form>
         <div class="storefront-topbar__spacer"></div>

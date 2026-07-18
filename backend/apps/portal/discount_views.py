@@ -29,7 +29,7 @@ def _render_list(request, extra_context=None):
 
 @login_required
 def discount_list(request):
-    return render(request, PAGE_TEMPLATE, _list_context())
+    return _render_list(request)
 
 
 @login_required

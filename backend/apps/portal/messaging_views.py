@@ -31,7 +31,7 @@ def _render_list(request, extra_context=None):
 
 @login_required
 def campaign_list(request):
-    return render(request, PAGE_TEMPLATE, _list_context())
+    return _render_list(request)
 
 
 @login_required
