@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Book Pharm POS</title>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Libre+Caslon+Text:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Settings / device setup view -->
+<section id="view-settings" class="settings-view hidden">
+  <h2>Connect this device</h2>
+  <p style="color: var(--color-secondary); font-size: 0.85rem;">Enter the API address and the device token issued by the owner (from the portal admin).</p>
+  <div id="settings-error" class="error-banner hidden"></div>
+  <div>
+    <label for="settings-api-url">API Base URL</label>
+    <input type="text" id="settings-api-url" placeholder="http://127.0.0.1:8000">
+  </div>
+  <div>
+    <label for="settings-token">Device Token</label>
+    <input type="text" id="settings-token" placeholder="Paste token here">
+  </div>
+  <button id="settings-save">Connect</button>
+</section>
+
+<!-- Main POS shell -->
+<div id="view-app" class="hidden">
+  <header class="topbar">
+    <div class="topbar__left">
+      <span class="topbar__brand">Book Pharm</span>
+      <div class="topbar__attendant">
+        <span class="name" id="attendant-name">—</span>
+        <span class="shift">Register</span>
+      </div>
+    </div>
+    <div class="topbar__right">
+      <span class="sync-pill sync-pill--online" id="sync-pill">
+        <span class="sync-dot"></span>
+        <span id="sync-label">Online</span>
+      </span>
+      <button class="icon-btn" id="settings-btn" title="Device settings">&#9881;</button>
+    </div>
+  </header>
+
+  <!-- Register (checkout) view -->
+  <main id="view-register" class="register">
+    <section class="panel-search">
+      <div class="search-box">
+        <input type="text" id="search-input" placeholder="Scan ISBN or type title..." autocomplete="off">
+      </div>
+      <div class="search-results" id="search-results"></div>
+      <div class="scanner-status">
+        <span>Scanner</span>
+        <span id="scanner-state">READY</span>
+      </div>
+    </section>
+
+    <section class="panel-cart">
+      <div class="panel-cart__header">
+        <h1>Current Basket</h1>
+        <button class="clear-cart" id="clear-cart">Clear All</button>
+      </div>
+      <div id="error-banner" class="error-banner hidden"></div>
+      <div class="cart-items" id="cart-items">
+        <p class="empty-cart">Scan or search a book to begin.</p>
+      </div>
+    </section>
+
+    <section class="panel-summary">
+      <h3>Order Summary</h3>
+
+      <div class="customer-fields">
+        <div>
+          <label for="customer-phone">Customer phone (required)</label>
+          <input type="text" id="customer-phone" placeholder="024 xxx xxxx">
+        </div>
+        <div>
+          <label for="customer-name">Name (optional)</label>
+          <input type="text" id="customer-name" placeholder="Full name">
+        </div>
+        <div>
+          <label for="customer-email">Email (optional)</label>
+          <input type="email" id="customer-email" placeholder="email@example.com">
+        </div>
+        <div>
+          <label for="customer-birthday">Birthday (optional)</label>
+          <input type="date" id="customer-birthday">
+        </div>
+      </div>
+
+      <div class="summary-line"><span>Subtotal</span><span id="summary-subtotal">GHS 0.00</span></div>
+      <div class="summary-total">
+        <span class="label">Est. Total</span>
+        <span class="value" id="summary-total">GHS 0.00</span>
+      </div>
+      <p style="font-size: 0.7rem; color: var(--color-secondary); margin-top: 0.25rem;">Discounts are applied and finalized at checkout.</p>
+
+      <div class="payment-buttons">
+        <button class="pay-btn-cash" id="pay-cash">Cash Payment</button>
+        <div class="pay-row">
+          <button class="pay-btn-alt" id="pay-momo">Mobile Money</button>
+          <button class="pay-btn-alt" id="pay-card">Card</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Receipt view -->
+  <main id="view-receipt" class="receipt-view hidden">
+    <div class="receipt-success no-print">
+      <div class="check">&#10003;</div>
+      <h2>Transaction Complete</h2>
+      <p>The sale has been recorded.</p>
+    </div>
+    <div class="receipt" id="receipt-content"></div>
+    <div class="receipt-actions no-print">
+      <button class="primary" id="new-transaction">New Transaction</button>
+      <button class="secondary" id="print-receipt">Print Receipt</button>
+    </div>
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -42,19 +42,21 @@ Phased todo list. Each phase ends with something demonstrable. Read `CLAUDE.md` 
 
 ## Phase 2 — POS core (in-store sales)
 
-- [ ] `Sale`, `SaleItem`, `DiscountRule` models
-- [ ] Sale service layer: create sale, apply discounts, decrement stock, atomic transaction
-- [ ] `POST /api/sales/` (single sale, online path)
-- [ ] Barcode/ISBN lookup endpoint
-- [ ] Electron shell: main process, preload, secure IPC, window config
-- [ ] POS checkout UI: scan/search panel, running cart, totals, payment buttons
-- [ ] Payment methods: cash, MoMo, card (record method; MoMo/card here are recorded, not gateway-processed — in-store payment happens outside the app)
-- [ ] Customer capture at checkout (phone, name, email, birthday) — phone required, rest optional-but-prompted
-- [ ] Receipt generation + print preview
-- [ ] Device token auth via `safeStorage`
-- [ ] Portal: discount rule config (percent + fixed)
+- [x] `Sale`, `SaleItem`, `DiscountRule` models — plus a minimal `Customer` model (phone identity key, `+233XXXXXXXXX` normalization) since `Sale.customer` needs somewhere to point
+- [x] Sale service layer: create sale, apply discounts, decrement stock, atomic transaction — `apps/sales/services.py::create_sale()`, `select_for_update()` on the books involved, idempotent on `offline_uuid` (a replay returns the existing sale rather than erroring or double-decrementing — this also sets up Phase 3's batch endpoint to reuse the exact same function)
+- [x] `POST /api/sales/` (single sale, online path) — rejects outright on insufficient stock (409) since the device is online and can just check; Phase 3's offline batch path will call the same service with `allow_oversell=True` instead
+- [x] Barcode/ISBN lookup endpoint — `GET /api/catalog/lookup/?code=`, resolves ISBN (any formatting) or internal code; `GET /api/catalog/?q=` reused for live title search
+- [x] Electron shell: main process, preload, secure IPC, window config — `contextIsolation`/`sandbox` on, `nodeIntegration` off
+- [x] POS checkout UI: scan/search panel, running cart, totals, payment buttons
+- [x] Payment methods: cash, MoMo, card (recorded only, not gateway-processed)
+- [x] Customer capture at checkout (phone, name, email, birthday) — phone required, rest optional-but-prompted
+- [x] Receipt generation + print preview — `window.print()`, receipt shows the server's authoritative totals (client never computes its own discount estimate, to avoid a second source of truth for discount logic)
+- [x] Device token auth via `safeStorage` — settings screen validates the token against `/api/me/` before storing
+- [x] Portal: discount rule config (percent + fixed) — same HTMX slide-over pattern as Phase 1's catalog UI
 
-**Done when:** an attendant can run a full in-store sale end to end, online, and stock drops correctly.
+**Done when:** an attendant can run a full in-store sale end to end, online, and stock drops correctly. ✅ Verified 2026-07-18 — real Electron GUI, screenshotted end to end: connected a device token, live-searched a title, added to cart, captured a customer, completed a cash sale, confirmed stock decremented (28→27) and the customer record was correctly matched by phone (not duplicated) in the database.
+
+**Two bugs caught and fixed during this phase's testing** (not Phase 2 code, but surfaced by it): `rest_framework.authtoken.TokenAuthentication` was the wrong import path from Phase 0 (fixed to `rest_framework.authentication.TokenAuthentication`) — nothing had exercised a DRF view until now. Also, MariaDB strict mode wasn't enabled, which silently truncates instead of rejecting bad data; added `init_command: SET sql_mode='STRICT_TRANS_TABLES'` to `DATABASES.OPTIONS`.
 
 ---
 

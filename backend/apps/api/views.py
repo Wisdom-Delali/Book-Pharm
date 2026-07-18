@@ -62,6 +62,15 @@ class BookLookupView(APIView):
         return Response(BookSyncSerializer(book).data)
 
 
+class MeView(APIView):
+    """GET /api/me/ — who does this device token belong to. Used by the POS
+    top bar; also doubles as a cheap "is this token still valid" ping."""
+
+    def get(self, request):
+        user = request.user
+        return Response({'email': user.email, 'full_name': user.full_name, 'role': user.role})
+
+
 class SaleCreateView(APIView):
     """POST /api/sales/ — single sale, connected path (Phase 2). Rejects
     outright on insufficient stock, since the device is online and can just
