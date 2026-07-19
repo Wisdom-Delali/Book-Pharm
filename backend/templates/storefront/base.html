@@ -21,14 +21,8 @@
 <body>
   <div class="storefront-shell">
     <aside class="storefront-sidebar">
-      <a class="storefront-sidebar__brand" href="{% url 'storefront:home' %}">Book Pharm</a>
-      <p class="storefront-sidebar__tagline">Literary Apothecary</p>
-
       <nav class="storefront-sidebar__nav">
-        <a href="{% url 'storefront:home' %}" class="{% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">
-          <span class="material-symbols-outlined">storefront</span> Home
-        </a>
-        <a href="{% url 'storefront:book_list' %}" class="{% if request.resolver_match.url_name == 'book_list' and not selected_category %}is-active{% endif %}">
+        <a href="{% url 'storefront:book_list' %}" class="{% if request.resolver_match.url_name == 'book_list' and not selected_category and request.GET.sort != 'new' %}is-active{% endif %}">
           <span class="material-symbols-outlined">auto_stories</span> All Books
         </a>
         <a href="{% url 'storefront:book_list' %}?sort=new" class="{% if request.GET.sort == 'new' %}is-active{% endif %}">
@@ -59,11 +53,14 @@
           <button type="button" class="storefront-topbar__search-toggle" aria-label="Toggle search">
             <span class="material-symbols-outlined">search</span>
           </button>
-          <input type="search" name="q" placeholder="Search books or authors..." value="{{ query|default:'' }}">
+          <input type="search" name="q" placeholder="Search for your next adventure..." value="{{ query|default:'' }}">
         </form>
-        <div class="storefront-topbar__spacer"></div>
-        <a href="{% url 'storefront:cart' %}" class="storefront-topbar__cart">
-          <span class="material-symbols-outlined">shopping_cart</span> Cart
+        <nav class="storefront-topbar__links">
+          <a href="{% url 'storefront:home' %}" class="{% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">Home</a>
+          <a href="{% url 'storefront:book_list' %}" class="{% if request.resolver_match.url_name == 'book_list' %}is-active{% endif %}">Browse</a>
+        </nav>
+        <a href="{% url 'storefront:cart' %}" class="storefront-topbar__cart" aria-label="Cart">
+          <span class="material-symbols-outlined">shopping_cart</span>
           <span class="cart-badge" {% if not cart_count %}style="display: none;"{% endif %}>{{ cart_count|default:0 }}</span>
         </a>
       </header>

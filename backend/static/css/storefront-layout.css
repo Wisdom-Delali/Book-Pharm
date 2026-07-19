@@ -15,9 +15,21 @@
 
 .material-symbols-outlined { font-size: 1.25em; vertical-align: middle; line-height: 1; }
 
+/* Uniform site-wide texture (per art-direction reference): a soft dot grid
+   instead of a flat fill, carried on `body` so it's the same everywhere,
+   never a per-section background that would visibly seam at edges. Values
+   match the original mockup's own DESIGN.md dot pattern. */
+body {
+  background-color: var(--color-background);
+  background-image: radial-gradient(var(--color-outline-variant) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
 /* Shell: sticky sidebar + sticky topbar + scrolling main column. Sidebar
    collapses below 900px in favor of the fixed bottom nav (mockups show the
-   same swap at their md breakpoint). */
+   same swap at their md breakpoint). No hard border lines between
+   sidebar/topbar/content — sections are separated by whitespace and subtle
+   shadow instead, per art direction. */
 .storefront-shell { display: flex; min-height: 100vh; }
 
 .storefront-sidebar {
@@ -29,20 +41,8 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  background: var(--color-surface-container-low);
-  border-right: 1px solid var(--color-outline-variant);
-  padding: var(--space-stack-md);
+  padding: var(--space-stack-lg) var(--space-stack-md) var(--space-stack-md);
 }
-.storefront-sidebar__brand {
-  font-family: var(--font-display);
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--color-secondary);
-  text-decoration: none;
-  display: block;
-  margin-bottom: 0.15rem;
-}
-.storefront-sidebar__tagline { color: var(--color-on-surface-variant); font-size: 0.75rem; margin-bottom: var(--space-stack-lg); }
 .storefront-sidebar__section-label {
   font-size: 0.7rem;
   font-weight: 700;
@@ -65,7 +65,7 @@
 }
 .storefront-sidebar__nav a:hover { background: var(--color-surface-container-high); }
 .storefront-sidebar__nav a.is-active { background: var(--color-secondary); color: var(--color-on-secondary); }
-.storefront-sidebar__foot { margin-top: auto; padding-top: var(--space-stack-md); border-top: 1px solid var(--color-outline-variant); font-size: 0.8rem; color: var(--color-on-surface-variant); }
+.storefront-sidebar__foot { margin-top: auto; padding-top: var(--space-stack-md); font-size: 0.8rem; color: var(--color-on-surface-variant); }
 
 .storefront-columns { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 
@@ -75,15 +75,18 @@
   z-index: 10;
   display: flex;
   align-items: center;
-  gap: var(--space-stack-md);
-  background: var(--color-surface-container-lowest);
-  border-bottom: 1px solid var(--color-outline-variant);
-  padding: 0.85rem var(--space-margin, 24px);
+  gap: 1.5rem;
+  /* Same dot texture as body, not a flat panel — needs to stay opaque
+     (position:sticky, content scrolls under it) but shouldn't read as a
+     separate bar sitting on top of the page. */
+  background-color: var(--color-background);
+  background-image: radial-gradient(var(--color-outline-variant) 1px, transparent 1px);
+  background-size: 24px 24px;
+  padding: 1.1rem var(--space-margin, 24px) 0.75rem;
 }
 .storefront-topbar__brand {
-  display: none;
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.6rem;
   font-weight: 700;
   color: var(--color-secondary);
   text-decoration: none;
@@ -107,25 +110,28 @@
   padding: 0.65rem 1rem 0.65rem 2.6rem;
   border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-full);
-  background: var(--color-surface);
+  background: var(--color-surface-container-lowest);
   font-family: var(--font-body);
 }
-.storefront-topbar__spacer { flex: 1; }
+.storefront-topbar__links { display: flex; align-items: center; gap: 1.5rem; margin-left: auto; flex-shrink: 0; }
+.storefront-topbar__links a {
+  color: var(--color-on-surface-variant);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 2px solid transparent;
+}
+.storefront-topbar__links a.is-active { color: var(--color-on-surface); border-bottom-color: var(--color-secondary); }
 .storefront-topbar__cart {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  text-decoration: none;
   color: var(--color-on-surface);
-  font-weight: 600;
-  font-size: 0.9rem;
-  padding: 0.55rem 1rem;
-  border-radius: var(--radius-full);
-  background: var(--color-surface-container-high);
   flex-shrink: 0;
 }
-.cart-badge { background: var(--color-secondary); color: var(--color-on-secondary); border-radius: var(--radius-full); font-size: 0.7rem; font-weight: 700; padding: 0.05rem 0.5rem; }
+.storefront-topbar__cart .material-symbols-outlined { font-size: 1.6rem; }
+.cart-badge { background: var(--color-secondary); color: var(--color-on-secondary); border-radius: var(--radius-full); font-size: 0.65rem; font-weight: 700; padding: 0.05rem 0.4rem; position: absolute; top: -0.4rem; right: -0.55rem; }
 
 .storefront-main { flex: 1; width: 100%; max-width: 1200px; margin: 0 auto; padding: var(--space-margin, 24px); }
 
@@ -134,8 +140,10 @@
   position: fixed;
   bottom: 0; left: 0; right: 0;
   z-index: 20;
-  background: var(--color-surface-container-lowest);
-  border-top: 1px solid var(--color-outline-variant);
+  background-color: var(--color-background);
+  background-image: radial-gradient(var(--color-outline-variant) 1px, transparent 1px);
+  background-size: 24px 24px;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
   justify-content: space-around;
   padding: 0.5rem 0 0.65rem;
 }
@@ -155,7 +163,7 @@
 
 @media (max-width: 900px) {
   .storefront-sidebar { display: none; }
-  .storefront-topbar__brand { display: block; }
+  .storefront-topbar__links { display: none; }
   .storefront-bottomnav { display: flex; }
   .storefront-main { padding-bottom: 5.5rem; }
 
@@ -193,25 +201,38 @@
   }
 }
 
-/* Hero + home page bento */
+/* Hero: a generated warm-library photo (apps/catalog-style local generation
+   — see scratchpad note in the commit; no external stock-photo fetch) with
+   a left-to-right dark gradient laid on top in the template (inline style,
+   so {% static %} resolves correctly — a CSS file can't use template tags).
+   Text sits in the dark zone; the photo reads through on the right. */
 .hero-banner {
+  position: relative;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-stack-lg);
-  background: rgba(212, 175, 55, 0.14);
+  min-height: 380px;
   border-radius: var(--radius-xl);
   padding: var(--space-stack-lg) var(--space-card-padding);
   margin-bottom: var(--space-stack-lg);
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
 }
-.hero-banner__content { flex: 1; min-width: 240px; }
+.hero-banner__content { max-width: 540px; }
+.hero-banner__eyebrow { font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.75rem; color: var(--color-primary-container); margin-bottom: 0.5rem; }
 .hero-banner__content h1 {
-  /* Scoped to the hero only — the global h1 (48px) is right for a product
-     page title, but made the jump to the hero's own body copy feel abrupt. */
+  /* White — sits on the photo's dark gradient zone, not the page bg — and
+     scoped to the hero only; the global h1 (48px) is right for a product
+     page title but made the jump to the hero's own body copy feel abrupt. */
+  color: #ffffff;
   font-size: 2.5rem;
 }
-.hero-banner__eyebrow { font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.75rem; color: var(--color-tertiary); margin-bottom: 0.5rem; }
+.hero-banner__content p.text-muted { color: rgba(255, 255, 255, 0.85); }
 .hero-banner__cta { margin-top: 1.25rem; }
+@media (max-width: 640px) {
+  .hero-banner { min-height: 320px; padding: var(--space-stack-md); }
+  .hero-banner__content h1 { font-size: 1.9rem; }
+}
 
 .section-heading { display: flex; align-items: baseline; justify-content: space-between; margin: var(--space-stack-lg) 0 var(--space-stack-md); }
 .section-heading h2 { margin: 0; }
@@ -219,8 +240,10 @@
 
 /* Slim single-line value-prop banner (replaces the old three-card promo
    grid — same three facts, far less vertical weight so the page gets to
-   Featured/New Arrivals faster). Wraps to multiple lines on narrow
-   viewports rather than needing its own mobile layout. */
+   Featured/New Arrivals faster). No border lines (art direction) — a
+   translucent tint marks it as its own strip instead of a hard rule.
+   Wraps to multiple lines on narrow viewports rather than needing its own
+   mobile layout. */
 .value-props {
   display: flex;
   flex-wrap: wrap;
@@ -228,8 +251,8 @@
   gap: 0.5rem 2rem;
   padding: 0.9rem 1rem;
   margin-bottom: var(--space-stack-lg);
-  border-top: 1px solid var(--color-outline-variant);
-  border-bottom: 1px solid var(--color-outline-variant);
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: var(--radius-lg);
   font-size: 0.85rem;
   color: var(--color-on-surface-variant);
 }

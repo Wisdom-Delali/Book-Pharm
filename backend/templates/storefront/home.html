@@ -1,9 +1,10 @@
 {% extends 'storefront/base.html' %}
+{% load static %}
 
 {% block title %}Book Pharm | Literary Apothecary{% endblock %}
 
 {% block content %}
-<section class="hero-banner">
+<section class="hero-banner" style="background-image: linear-gradient(to right, rgba(15, 9, 5, 0.88) 0%, rgba(15, 9, 5, 0.55) 45%, rgba(15, 9, 5, 0.12) 82%), url('{% static 'img/hero-library.jpg' %}');">
   <div class="hero-banner__content">
     <p class="hero-banner__eyebrow">Ghana's Literary Apothecary</p>
     {% if active_discount %}
