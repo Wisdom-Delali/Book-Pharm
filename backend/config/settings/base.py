@@ -103,8 +103,17 @@ LOGIN_REDIRECT_URL = 'portal:dashboard'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
+        # DB_NAME/DB_USER default to '' rather than being required: dev.py
+        # and prod.py always set them for real (a real .env file or, on
+        # cPanel, real dashboard env vars), so this default is never what
+        # actually runs there — it only matters for vercel.py's sqlite
+        # path, which replaces this whole dict outright and never touches
+        # these values, but still executes this module-level construction
+        # first as a side effect of `from .base import *`. Requiring them
+        # unconditionally crashed the sqlite-mode deploy at import time
+        # before vercel.py ever got the chance to override DATABASES.
+        'NAME': config('DB_NAME', default=''),
+        'USER': config('DB_USER', default=''),
         'PASSWORD': config('DB_PASSWORD', default=''),
         'HOST': config('DB_HOST', default='127.0.0.1'),
         'PORT': config('DB_PORT', default='3306'),
