@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.catalog.models import Book, Category
+from apps.catalog.models import Book, Category, Tag
 from apps.fulfillment.models import DeliveryPricingRule, Fulfillment, Review
 from apps.payments.models import PaymentTransaction
 from apps.payments.paystack import PaystackError, initialize_transaction, verify_transaction
@@ -25,15 +25,20 @@ PAGE_SIZE = 12
 
 
 def book_list(request):
-    books = Book.objects.filter(is_active=True).select_related('category')
+    books = Book.objects.filter(is_active=True).select_related('category').prefetch_related('tags')
     query = request.GET.get('q', '').strip()
     if query:
         books = books.filter(Q(title__icontains=query) | Q(author__icontains=query))
     category_slug = request.GET.get('category', '').strip()
     if category_slug:
         books = books.filter(category__slug=category_slug)
+    tag_slug = request.GET.get('tag', '').strip()
+    if tag_slug:
+        books = books.filter(tags__slug=tag_slug)
     sort = request.GET.get('sort', '').strip()
     books = books.order_by('-created_at') if sort == 'new' else books.order_by('title')
+    if tag_slug:
+        books = books.distinct()
 
     paginator = Paginator(books, PAGE_SIZE)
     page_obj = paginator.get_page(request.GET.get('page'))
@@ -41,8 +46,10 @@ def book_list(request):
     return render(request, 'storefront/book_list.html', {
         'page_obj': page_obj,
         'categories': Category.objects.all(),
+        'tags': Tag.objects.all(),
         'query': query,
         'selected_category': category_slug,
+        'selected_tag': tag_slug,
         'sort': sort,
     })
 
@@ -56,7 +63,7 @@ def home(request):
         .annotate(total_sold=Coalesce(
             Sum('sale_items__qty', filter=Q(sale_items__sale__payment_status=Sale.PaymentStatus.PAID)), 0,
         ))
-        .select_related('category')
+        .select_related('category').prefetch_related('tags')
         .order_by('-total_sold', '-created_at')[:2]
     )
     featured_books = [
@@ -67,7 +74,7 @@ def home(request):
     new_arrivals = list(
         Book.objects.filter(is_active=True)
         .exclude(id__in=featured_ids)
-        .select_related('category')
+        .select_related('category').prefetch_related('tags')
         .order_by('-created_at')[:8]
     )
 
@@ -100,7 +107,7 @@ def book_detail(request, slug):
     reviews = reviews_qs[:10]
     related_books = (
         Book.objects.filter(category=book.category, is_active=True)
-        .exclude(pk=book.pk).select_related('category')[:4]
+        .exclude(pk=book.pk).select_related('category').prefetch_related('tags')[:4]
     )
 
     # WEB-08: server-rendered meta tags + structured data for search

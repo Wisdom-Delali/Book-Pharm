@@ -18,8 +18,11 @@ class CheckoutForm(forms.Form):
         queryset=DeliveryPricingRule.objects.filter(is_active=True, method=DeliveryPricingRule.Method.FIXED_ZONE),
         required=False, label='Delivery zone',
     )
+    # Single-line, not Textarea: google.maps.places.Autocomplete attaches to
+    # an HTMLInputElement specifically (checkout.html) — a full formatted
+    # address reads fine on one line regardless.
     address = forms.CharField(
-        max_length=255, required=False, widget=forms.Textarea(attrs={'rows': 2}),
+        max_length=255, required=False, widget=forms.TextInput(attrs={'autocomplete': 'off'}),
         label='Address / drop-off location',
     )
 

@@ -49,6 +49,9 @@
   <div class="storefront-shell">
     <aside class="storefront-sidebar">
       <nav class="storefront-sidebar__nav">
+        <a href="{% url 'storefront:home' %}" class="{% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">
+          <span class="material-symbols-outlined">storefront</span> Home
+        </a>
         <a href="{% url 'storefront:book_list' %}" class="{% if request.resolver_match.url_name == 'book_list' and not selected_category and request.GET.sort != 'new' %}is-active{% endif %}">
           <span class="material-symbols-outlined">auto_stories</span> All Books
         </a>

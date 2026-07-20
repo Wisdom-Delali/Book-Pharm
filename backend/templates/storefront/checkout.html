@@ -59,6 +59,12 @@
       <div id="address-field" class="form-field" style="display: none;">
         <label class="form-label" id="address-label" for="{{ form.address.id_for_label }}">Address</label>
         {{ form.address }}
+        {% if google_maps_api_key %}
+        <button type="button" id="use-my-location" class="btn btn--secondary" style="margin-top: 0.5rem; font-size: 0.8rem; padding: 0.4rem 0.9rem;">
+          <span class="material-symbols-outlined" style="font-size: 1rem;">my_location</span> Use my current location
+        </button>
+        <p id="location-status" class="text-muted" style="font-size: 0.8rem; display: none;"></p>
+        {% endif %}
         {% for error in form.address.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
       </div>
     </div>
@@ -113,4 +119,59 @@
   });
   updateFulfillmentFields();
 </script>
+
+{% if google_maps_api_key %}
+<script>
+  // Places Autocomplete on the address field — addressInput is declared
+  // above; classic (non-module) <script> tags in one document share the
+  // same top-level scope, so it's visible here without re-querying.
+  function initBookPharmPlaces() {
+    if (window.google && google.maps.places && addressInput) {
+      new google.maps.places.Autocomplete(addressInput, {
+        fields: ['formatted_address'],
+        componentRestrictions: { country: 'gh' },
+      });
+    }
+  }
+
+  const locationBtn = document.getElementById('use-my-location');
+  const locationStatus = document.getElementById('location-status');
+  if (locationBtn) {
+    locationBtn.addEventListener('click', () => {
+      if (!navigator.geolocation) {
+        locationStatus.textContent = 'Geolocation is not supported by this browser.';
+        locationStatus.style.display = 'block';
+        return;
+      }
+      locationBtn.disabled = true;
+      locationStatus.textContent = 'Finding your location…';
+      locationStatus.style.display = 'block';
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          try {
+            const { latitude, longitude } = pos.coords;
+            const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key={{ google_maps_api_key }}`);
+            const data = await res.json();
+            if (res.ok && data.results && data.results[0]) {
+              addressInput.value = data.results[0].formatted_address;
+              locationStatus.style.display = 'none';
+            } else {
+              locationStatus.textContent = "Couldn't find an address for your location — please type it in.";
+            }
+          } catch (err) {
+            locationStatus.textContent = 'Something went wrong looking up your location — please type your address.';
+          } finally {
+            locationBtn.disabled = false;
+          }
+        },
+        () => {
+          locationStatus.textContent = 'Location permission denied — please type your address.';
+          locationBtn.disabled = false;
+        }
+      );
+    });
+  }
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places&callback=initBookPharmPlaces" async defer></script>
+{% endif %}
 {% endblock %}

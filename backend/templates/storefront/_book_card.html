@@ -29,6 +29,11 @@ with the price for space in the same row.
     <div class="book-card__body">
       <p class="book-card__title">{{ book.title }}</p>
       <p class="book-card__author">{{ book.author }}</p>
+      {% if book.tags.all %}
+      <div class="tag-chips">
+        {% for tag in book.tags.all %}<span class="badge badge--tag">{{ tag.name }}</span>{% endfor %}
+      </div>
+      {% endif %}
     </div>
   </a>
   <div class="book-card__row">

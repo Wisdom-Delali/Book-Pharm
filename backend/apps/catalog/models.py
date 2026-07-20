@@ -22,6 +22,28 @@ class Category(models.Model):
         return self.name
 
 
+class Tag(models.Model):
+    """Freeform, owner-created labels — deliberately separate from Category.
+    A book has exactly one Category (a fixed taxonomy); it can carry any
+    number of Tags, created ad hoc as the owner types them (e.g. "First
+    Edition", "Signed", "Staff Pick") rather than picked from a managed
+    list. See BookForm.clean_tags() for the get-or-create-on-save flow."""
+
+    name = models.CharField(max_length=50, unique=True)
+    slug = models.SlugField(max_length=60, unique=True, blank=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+
 class BookQuerySet(models.QuerySet):
     def low_stock(self):
         return self.filter(stock_qty__lte=models.F('low_stock_threshold'))
@@ -37,6 +59,9 @@ class Book(models.Model):
     title = models.CharField(max_length=255)
     author = models.CharField(max_length=255, blank=True)
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='books')
+    # Distinct from category: a book has one category (fixed taxonomy) but
+    # any number of tags (freeform, e.g. "First Edition" + "Signed").
+    tags = models.ManyToManyField(Tag, blank=True, related_name='books')
     cost_price = models.DecimalField(max_digits=10, decimal_places=2)
     selling_price = models.DecimalField(max_digits=10, decimal_places=2)
     # Signed, not PositiveInteger: offline sync must allow this to go negative

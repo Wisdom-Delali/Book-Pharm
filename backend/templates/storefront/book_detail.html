@@ -27,6 +27,11 @@
     <span class="book-detail__eyebrow">{{ book.category.name }}</span>
     <h1>{{ book.title }}</h1>
     <p class="text-muted" style="font-size: 1.1rem; font-style: italic;">{{ book.author }}</p>
+    {% if book.tags.all %}
+    <div class="tag-chips">
+      {% for tag in book.tags.all %}<a class="badge badge--tag" href="{% url 'storefront:book_list' %}?tag={{ tag.slug }}" style="text-decoration: none;">{{ tag.name }}</a>{% endfor %}
+    </div>
+    {% endif %}
 
     <div class="rating-row">
       <span class="star-display">{% for i in "12345" %}{% if forloop.counter <= full_stars %}&#9733;{% else %}&#9734;{% endif %}{% endfor %}</span>

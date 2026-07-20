@@ -44,7 +44,12 @@
     <div class="card" style="margin-bottom: var(--space-stack-md);">
       <h3>Fulfillment</h3>
       <p><span class="badge">{{ sale.fulfillment.get_type_display }}</span></p>
-      {% if sale.fulfillment.address %}<p class="text-muted">{{ sale.fulfillment.address }}</p>{% endif %}
+      {% if sale.fulfillment.address %}
+      <p class="text-muted">
+        {{ sale.fulfillment.address }}
+        <a href="https://www.google.com/maps/search/?api=1&query={{ sale.fulfillment.address|urlencode }}" target="_blank" rel="noopener">View on Map</a>
+      </p>
+      {% endif %}
       {% if sale.fulfillment.type == 'RIDER_DELIVERY' %}
         {% if sale.fulfillment.rider_booked_at %}
         <p class="badge badge--ok">Booked by {{ sale.fulfillment.rider_booked_by }} at {{ sale.fulfillment.rider_booked_at|date:"M j, g:i A" }}</p>

@@ -29,7 +29,7 @@
         <td class="mono"><a href="{% url 'portal:order_detail' fulfillment.sale.pk %}">#{{ fulfillment.sale.id }}</a></td>
         <td>{{ fulfillment.sale.customer.full_name|default:"—" }}</td>
         <td class="mono">{{ fulfillment.sale.customer.phone }}</td>
-        <td>{{ fulfillment.address }}</td>
+        <td>{{ fulfillment.address }} <a href="https://www.google.com/maps/search/?api=1&query={{ fulfillment.address|urlencode }}" target="_blank" rel="noopener" title="View on Google Maps"><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">map</span></a></td>
         <td class="text-muted">{{ fulfillment.sale.created_at|date:"M j, g:i A" }}</td>
         <td class="text-right">
           <form method="post" action="{% url 'portal:mark_rider_booked' fulfillment.pk %}">

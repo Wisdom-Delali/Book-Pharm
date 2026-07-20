@@ -18,6 +18,12 @@
       <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
       {% endfor %}
     </select>
+    <select name="tag">
+      <option value="">All Tags</option>
+      {% for tag in tags %}
+      <option value="{{ tag.id }}" {% if selected_tag == tag.id|stringformat:"s" %}selected{% endif %}>{{ tag.name }}</option>
+      {% endfor %}
+    </select>
     <label class="toolbar__checkbox">
       <input type="checkbox" name="low_stock" value="1" {% if low_stock_only %}checked{% endif %}>
       Low stock only
@@ -49,6 +55,11 @@
               <div>
                 <strong>{{ book.title }}</strong><br>
                 <span class="text-muted">{{ book.author }}</span>
+                {% if book.tags.all %}
+                <div class="tag-chips">
+                  {% for tag in book.tags.all %}<span class="badge badge--tag">{{ tag.name }}</span>{% endfor %}
+                </div>
+                {% endif %}
               </div>
             </div>
           </td>

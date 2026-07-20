@@ -74,6 +74,12 @@ a { color: var(--color-primary); }
 
 .badge--error { background: var(--color-error-container); color: var(--color-on-error-container); }
 .badge--ok { background: var(--color-surface-container-high); color: var(--color-secondary); }
+/* Tags (freeform, user-created) vs. the plain .badge used for Category
+   (fixed taxonomy) — same shape, gold/tertiary so the two read as visually
+   distinct families at a glance, not just by position. */
+.badge--tag { background: var(--color-tertiary-container); color: var(--color-on-tertiary-container); font-size: 0.7rem; }
+
+.tag-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.3rem; }
 
 .text-muted { color: var(--color-on-surface-variant); }
 .text-error { color: var(--color-error); font-weight: 700; }

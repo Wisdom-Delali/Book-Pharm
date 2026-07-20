@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from apps.catalog.forms import BookForm, StockAdjustmentForm
-from apps.catalog.models import Book, Category, StockAdjustment
+from apps.catalog.models import Book, Category, StockAdjustment, Tag
 from apps.fulfillment.models import Fulfillment
 from apps.reports.utils import range_bounds_utc
 from apps.sales.models import Sale, SaleItem, StockDiscrepancy
@@ -25,7 +25,7 @@ PAGE_SIZE = 20
 
 
 def _filtered_books(request):
-    qs = Book.objects.select_related('category').all()
+    qs = Book.objects.select_related('category').prefetch_related('tags').all()
     query = request.GET.get('q', '').strip()
     if query:
         qs = qs.filter(
@@ -37,9 +37,12 @@ def _filtered_books(request):
     category_id = request.GET.get('category', '').strip()
     if category_id:
         qs = qs.filter(category_id=category_id)
+    tag_id = request.GET.get('tag', '').strip()
+    if tag_id:
+        qs = qs.filter(tags__id=tag_id)
     if request.GET.get('low_stock') == '1':
         qs = qs.low_stock()
-    return qs.order_by('title')
+    return qs.order_by('title').distinct()
 
 
 def _list_context(request):
@@ -48,8 +51,10 @@ def _list_context(request):
         'active_nav': 'catalog',
         'page_obj': paginator.get_page(request.GET.get('page')),
         'categories': Category.objects.all(),
+        'tags': Tag.objects.all(),
         'query': request.GET.get('q', ''),
         'selected_category': request.GET.get('category', ''),
+        'selected_tag': request.GET.get('tag', ''),
         'low_stock_only': request.GET.get('low_stock') == '1',
         'panel_open': False,
         'book_form': None,

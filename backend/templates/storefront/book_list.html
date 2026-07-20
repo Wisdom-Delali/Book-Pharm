@@ -6,11 +6,20 @@
 <h1>{% if query %}Results for &ldquo;{{ query }}&rdquo;{% elif sort == 'new' %}New Arrivals{% else %}Browse Our Collection{% endif %}</h1>
 
 <div class="filter-bar">
-  <a class="filter-bar__chip{% if not selected_category %} is-active{% endif %}" href="{% url 'storefront:book_list' %}{% if query %}?q={{ query }}{% endif %}">All Categories</a>
+  <a class="filter-bar__chip{% if not selected_category %} is-active{% endif %}" href="{% url 'storefront:book_list' %}{% if query %}?q={{ query }}{% endif %}{% if selected_tag %}{% if query %}&{% else %}?{% endif %}tag={{ selected_tag }}{% endif %}">All Categories</a>
   {% for cat in categories %}
-  <a class="filter-bar__chip{% if selected_category == cat.slug %} is-active{% endif %}" href="?category={{ cat.slug }}{% if query %}&q={{ query }}{% endif %}">{{ cat.name }}</a>
+  <a class="filter-bar__chip{% if selected_category == cat.slug %} is-active{% endif %}" href="?category={{ cat.slug }}{% if query %}&q={{ query }}{% endif %}{% if selected_tag %}&tag={{ selected_tag }}{% endif %}">{{ cat.name }}</a>
   {% endfor %}
 </div>
+
+{% if tags %}
+<div class="filter-bar">
+  <a class="filter-bar__chip{% if not selected_tag %} is-active{% endif %}" href="?{% if query %}q={{ query }}&{% endif %}{% if selected_category %}category={{ selected_category }}{% endif %}">All Tags</a>
+  {% for tag in tags %}
+  <a class="filter-bar__chip{% if selected_tag == tag.slug %} is-active{% endif %}" href="?tag={{ tag.slug }}{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">{{ tag.name }}</a>
+  {% endfor %}
+</div>
+{% endif %}
 
 <div class="book-grid">
   {% for book in page_obj %}
@@ -23,11 +32,11 @@
 {% if page_obj.paginator.num_pages > 1 %}
 <div class="pagination">
   {% if page_obj.has_previous %}
-  <a class="btn btn--secondary" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">Previous</a>
+  <a class="btn btn--secondary" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_tag %}&tag={{ selected_tag }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">Previous</a>
   {% endif %}
   <span class="text-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
   {% if page_obj.has_next %}
-  <a class="btn btn--secondary" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">Next</a>
+  <a class="btn btn--secondary" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_tag %}&tag={{ selected_tag }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">Next</a>
   {% endif %}
 </div>
 {% endif %}

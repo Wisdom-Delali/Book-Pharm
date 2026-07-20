@@ -60,7 +60,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  padding: 0.6rem 0.75rem;
+  padding: 0.9rem 1.1rem;
   border-radius: var(--radius-full);
   color: var(--color-on-surface-variant);
   text-decoration: none;
@@ -273,7 +273,7 @@ body {
      real, visible input instead of sitting beside it. */
   .storefront-topbar__search.is-open .storefront-topbar__search-toggle {
     position: absolute;
-    left: 0.6rem;
+    left: 1.6rem;
     top: 50%;
     transform: translateY(-50%);
   }
@@ -646,7 +646,43 @@ body {
 .summary-total { display: flex; justify-content: space-between; align-items: baseline; padding-top: 1rem; margin-top: 1rem; border-top: 2px dashed var(--color-outline-variant); }
 .summary-total .value { font-family: var(--font-display); font-size: 1.75rem; color: var(--color-primary); }
 
-/* Order confirmation */
+/* Order confirmation — split screen (same pattern as the portal login
+   page): functional content (summary, fulfillment, confirm/review) on the
+   left, a branded reassurance panel on the right. Scoped to .storefront-
+   main's own width/padding, unlike login's page-filling shell, since this
+   page keeps the normal sidebar/topbar chrome around it. */
+.order-confirm-card {
+  display: flex;
+  align-items: stretch;
+  background: var(--color-surface-container-lowest);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(92, 64, 51, 0.10);
+  margin: var(--space-stack-sm) 0 var(--space-stack-lg);
+}
+.order-confirm-panel { flex: 1 1 50%; min-width: 0; }
+.order-confirm-panel--main { padding: var(--space-stack-lg); }
+.order-confirm-panel--visual {
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  padding: var(--space-stack-lg);
+}
+.order-confirm-visual-content { color: #ffffff; text-align: center; margin: 0 auto; max-width: 320px; }
+.order-confirm-visual-icon { font-size: 3rem; color: var(--color-primary-container); }
+.order-confirm-visual-content h2 { font-family: var(--font-display); color: #ffffff; margin: 0.5rem 0; }
+.order-confirm-visual-content p { color: rgba(255, 255, 255, 0.85); margin: 0; }
+.order-confirm-visual-content .feature-badges { justify-content: center; }
+.order-confirm-visual-content .feature-badge { background: rgba(255, 255, 255, 0.14); color: #ffffff; }
+.order-confirm-visual-content .feature-badge .material-symbols-outlined { color: #ffffff; }
+
+@media (max-width: 860px) {
+  .order-confirm-card { flex-direction: column; box-shadow: none; border-radius: var(--radius-lg); }
+  .order-confirm-panel--visual { display: none; }
+}
+
 /* Top margin deliberately smaller than the bottom one — the page chrome
    above (topbar padding + .storefront-main padding) already pushes this
    down before it starts; stacking a full --space-stack-lg on top of that

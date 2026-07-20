@@ -69,6 +69,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'apps.storefront.context_processors.cart_context',
                 'apps.storefront.context_processors.nav_context',
+                'apps.storefront.context_processors.google_maps_context',
             ],
         },
     },
@@ -135,6 +136,13 @@ PAYSTACK_SECRET_KEY = config('PAYSTACK_SECRET_KEY', default='')
 PAYSTACK_PUBLIC_KEY = config('PAYSTACK_PUBLIC_KEY', default='')
 SMSONLINEGH_API_KEY = config('SMSONLINEGH_API_KEY', default='')
 SMSONLINEGH_SENDER_ID = config('SMSONLINEGH_SENDER_ID', default='')
+
+# Client-side key (Places Autocomplete + geolocation reverse-geocoding on
+# the checkout address field) — Maps JS API keys are designed to be used
+# browser-side; restrict by HTTP referrer in Google Cloud Console, not by
+# hiding the key. Blank means the address field just stays a plain text
+# input — see apps/storefront/context_processors.py::google_maps_context.
+GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY', default='')
 
 # Wording, not a secret — a plain setting (not .env) so changing it is a
 # one-line code edit, not a hosting config change. {name_suffix} is filled
