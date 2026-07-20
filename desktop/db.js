@@ -181,5 +181,6 @@ function markOutboxFailed(userDataPath, offlineUuid, errorMessage) {
 module.exports = {
   upsertBooks, searchLocalBooks, lookupLocalBook, adjustLocalStock,
   getSyncMeta, setSyncMeta,
-  addToOutbox, getPendingOutbox, getOutboxPendingCount, markOutboxSynced, markOutboxFailed,
+  addToOutbox, getPendingOutbox, getOutboxPendingCount, getTodayOutbox, getBooksByIds,
+  markOutboxSynced, markOutboxFailed,
 };

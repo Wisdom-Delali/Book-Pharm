@@ -235,40 +235,47 @@ async function loadMyDay() {
   $('myday-list').innerHTML = '<p class="empty-cart">Loading…</p>';
   $('myday-summary').innerHTML = '';
 
-  let serverSales = [];
-  let reachedServer = false;
-  if (apiBaseUrl && navigator.onLine) {
-    try {
-      const res = await apiFetch('/api/sales/mine/');
-      if (res.ok) {
-        serverSales = await res.json();
-        reachedServer = true;
+  // Wrapped end-to-end, not just the network call: an exception anywhere in
+  // here (IPC to the local DB included) must not leave the "Loading…"
+  // placeholder stuck forever with no way to tell something went wrong.
+  try {
+    let serverSales = [];
+    let reachedServer = false;
+    if (apiBaseUrl && navigator.onLine) {
+      try {
+        const res = await apiFetch('/api/sales/mine/');
+        if (res.ok) {
+          serverSales = await res.json();
+          reachedServer = true;
+        }
+      } catch (err) {
+        // Offline in practice — fall through to the local-only view below.
       }
-    } catch (err) {
-      // Offline in practice — fall through to the local-only view below.
     }
-  }
 
-  const knownUuids = new Set(serverSales.map((s) => s.offline_uuid));
-  const rows = serverSales.map((s) => ({ kind: 'sale', sale: s, at: s.created_at }));
+    const knownUuids = new Set(serverSales.map((s) => s.offline_uuid));
+    const rows = serverSales.map((s) => ({ kind: 'sale', sale: s, at: s.created_at }));
 
-  const todayOutbox = await window.localDb.getTodayOutbox();
-  const pendingBookIds = new Set();
-  for (const entry of todayOutbox) {
-    if (knownUuids.has(entry.offline_uuid)) continue;
-    if (entry.status === 'SYNCED' && entry.server_response) {
-      rows.push({ kind: 'sale', sale: entry.server_response, at: entry.server_response.created_at || entry.created_at });
-    } else {
-      entry.payload.items.forEach((i) => pendingBookIds.add(i.book_id));
-      rows.push({ kind: 'pending', entry, at: entry.created_at });
+    const todayOutbox = await window.localDb.getTodayOutbox();
+    const pendingBookIds = new Set();
+    for (const entry of todayOutbox) {
+      if (knownUuids.has(entry.offline_uuid)) continue;
+      if (entry.status === 'SYNCED' && entry.server_response) {
+        rows.push({ kind: 'sale', sale: entry.server_response, at: entry.server_response.created_at || entry.created_at });
+      } else {
+        entry.payload.items.forEach((i) => pendingBookIds.add(i.book_id));
+        rows.push({ kind: 'pending', entry, at: entry.created_at });
+      }
     }
+
+    const pendingBooks = pendingBookIds.size ? await window.localDb.getBooksByIds([...pendingBookIds]) : [];
+    const bookById = new Map(pendingBooks.map((b) => [b.id, b]));
+
+    rows.sort((a, b) => new Date(b.at) - new Date(a.at));
+    renderMyDayList(rows, bookById, reachedServer);
+  } catch (err) {
+    $('myday-list').innerHTML = `<p class="empty-cart">Couldn't load today's sales: ${escapeHtml(err.message)}</p>`;
   }
-
-  const pendingBooks = pendingBookIds.size ? await window.localDb.getBooksByIds([...pendingBookIds]) : [];
-  const bookById = new Map(pendingBooks.map((b) => [b.id, b]));
-
-  rows.sort((a, b) => new Date(b.at) - new Date(a.at));
-  renderMyDayList(rows, bookById, reachedServer);
 }
 
 function renderMyDayList(rows, bookById, reachedServer) {
