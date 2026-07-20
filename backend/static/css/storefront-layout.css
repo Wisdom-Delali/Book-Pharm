@@ -40,6 +40,7 @@ body {
   flex-shrink: 0;
   height: calc(100vh - var(--space-topbar-height));
   position: sticky;
+  margin-left: 1rem;
   top: var(--space-topbar-height);
   overflow-y: auto;
   display: flex;
@@ -90,27 +91,45 @@ body {
   background-image: radial-gradient(var(--color-outline-variant) 1px, transparent 1px);
   background-size: 24px 24px;
 }
-/* Full-bleed, not max-width-centered like .storefront-main below it — this
-   bar now spans the sidebar column too, so its own edge padding (not a
-   centered inner width) is what lines the brand up with the sidebar's left
-   edge and the cart icon up with the main column's right edge. */
+/* Two regions, not one padded row: a brand column locked to the exact same
+   width as .storefront-sidebar below it, then a content region that mirrors
+   .storefront-main's own box (max-width/margin/padding) so whatever sits
+   first inside it — the search bar — lines up with the hero/book-grid edge
+   below, not just with "some padding from the viewport". Hand-matching that
+   offset with a single fixed margin would drift the moment either variable
+   changed; mirroring the real box model can't drift. */
 .storefront-topbar__inner {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  margin-left: 2rem;
   width: 100%;
+}
+.storefront-topbar__brand-col {
+  width: var(--space-sidebar-width);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding-left: var(--space-stack-md);
+}
+.storefront-topbar__content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 0 var(--space-margin, 24px);
 }
 .storefront-topbar__brand {
-  /* On the left, on the same row as search/nav/cart — not a stacked block
-     above them, and not inside the sidebar itself (the sidebar carries no
-     brand of its own): this bar sits directly above the sidebar column, so
-     the brand reads as "on the left nav" while staying level with search. */
+  /* Own column, at the left, same width as the sidebar it sits above — the
+     sidebar carries no brand of its own, this is the only wordmark on the
+     page at any width. Its row is level with search/nav/cart (same
+     .storefront-topbar__inner), just in a separate flex region from them. */
   display: flex;
   flex-direction: column;
   line-height: 1.15;
   text-decoration: none;
-  flex-shrink: 0;
 }
 .storefront-topbar__brand-name {
   font-family: var(--font-display);
@@ -197,10 +216,16 @@ body {
   .storefront-topbar__links { display: none; }
   .storefront-bottomnav { display: flex; }
   .storefront-main { padding-bottom: 5.5rem; }
-  /* Brand now shares the row with search+cart at every width (not sidebar-
-     only), and that row is a lot more crowded on a narrow screen — the
-     name alone is enough of a mark there, the tagline can go. */
+  /* Brand shares the row with search+cart at every width, and that row is
+     a lot more crowded on a narrow screen — the name alone is enough of a
+     mark there, the tagline can go. */
   .storefront-topbar__brand-tagline { display: none; }
+  /* No sidebar to line up with below 900px (it's display:none), so the
+     brand column drops its fixed sidebar-matching width and just shrinks
+     to its own content — same as before the sidebar-alignment column
+     existed, otherwise "Book Pharm" alone would claim 260px of a phone
+     screen and crush search+cart into whatever's left. */
+  .storefront-topbar__brand-col { width: auto; padding-left: 0; }
 
   /* Collapsed to just the icon by default; .is-open (storefront.js, toggled
      by tapping the icon) expands it to take over the topbar row, matching

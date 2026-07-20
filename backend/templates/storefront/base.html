@@ -21,24 +21,28 @@
 <body>
   <header class="storefront-topbar">
     <div class="storefront-topbar__inner">
-      <a class="storefront-topbar__brand" href="{% url 'storefront:home' %}">
-        <span class="storefront-topbar__brand-name">Book Pharm</span>
-        <span class="storefront-topbar__brand-tagline">Literary Apothecary</span>
-      </a>
-      <form class="storefront-topbar__search" method="get" action="{% url 'storefront:book_list' %}">
-        <button type="button" class="storefront-topbar__search-toggle" aria-label="Toggle search">
-          <span class="material-symbols-outlined">search</span>
-        </button>
-        <input type="search" name="q" placeholder="Search for your next adventure..." value="{{ query|default:'' }}">
-      </form>
-      <nav class="storefront-topbar__links">
-        <a href="{% url 'storefront:home' %}" class="{% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">Home</a>
-        <a href="{% url 'storefront:book_list' %}" class="{% if request.resolver_match.url_name == 'book_list' %}is-active{% endif %}">Browse</a>
-      </nav>
-      <a href="{% url 'storefront:cart' %}" class="storefront-topbar__cart" aria-label="Cart">
-        <span class="material-symbols-outlined">shopping_cart</span>
-        <span class="cart-badge" {% if not cart_count %}style="display: none;"{% endif %}>{{ cart_count|default:0 }}</span>
-      </a>
+      <div class="storefront-topbar__brand-col">
+        <a class="storefront-topbar__brand" href="{% url 'storefront:home' %}">
+          <span class="storefront-topbar__brand-name">Book Pharm</span>
+          <span class="storefront-topbar__brand-tagline">Literary Apothecary</span>
+        </a>
+      </div>
+      <div class="storefront-topbar__content">
+        <form class="storefront-topbar__search" method="get" action="{% url 'storefront:book_list' %}">
+          <button type="button" class="storefront-topbar__search-toggle" aria-label="Toggle search">
+            <span class="material-symbols-outlined">search</span>
+          </button>
+          <input type="search" name="q" placeholder="Search for your next adventure..." value="{{ query|default:'' }}">
+        </form>
+        <nav class="storefront-topbar__links">
+          <a href="{% url 'storefront:home' %}" class="{% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">Home</a>
+          <a href="{% url 'storefront:book_list' %}" class="{% if request.resolver_match.url_name == 'book_list' %}is-active{% endif %}">Browse</a>
+        </nav>
+        <a href="{% url 'storefront:cart' %}" class="storefront-topbar__cart" aria-label="Cart">
+          <span class="material-symbols-outlined">shopping_cart</span>
+          <span class="cart-badge" {% if not cart_count %}style="display: none;"{% endif %}>{{ cart_count|default:0 }}</span>
+        </a>
+      </div>
     </div>
   </header>
 
