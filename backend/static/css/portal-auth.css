@@ -1,0 +1,113 @@
+/* Portal login — the only web-rendered sign-in screen in this system (no
+   storefront customer accounts; desktop POS auth is a native Electron
+   screen, not this). Split-screen: plain form on the left, a branded
+   visual on the right, both sitting in a rounded card on the same cream
+   dot-pattern background used everywhere else (rather than a bespoke
+   backdrop) so this still reads as part of Book Pharm, not a separate
+   product. */
+
+.portal-auth-body {
+  margin: 0;
+  background-color: var(--color-background);
+  background-image: radial-gradient(var(--color-outline-variant) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.portal-auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-stack-lg) var(--space-stack-md);
+}
+
+.portal-auth-card {
+  width: 100%;
+  max-width: 960px;
+  min-height: 560px;
+  display: flex;
+  background: var(--color-surface-container-lowest);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(28, 12, 15, 0.16);
+}
+
+.portal-auth-panel { flex: 1 1 50%; min-width: 0; }
+
+.portal-auth-panel--form {
+  padding: var(--space-stack-lg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.portal-auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: var(--color-primary);
+  margin-bottom: var(--space-stack-lg);
+}
+.portal-auth-brand .material-symbols-outlined { font-size: 1.6rem; }
+
+.portal-auth-title { margin: 0 0 0.25rem; font-size: var(--text-headline-lg-size); }
+.portal-auth-subtitle { margin: 0 0 var(--space-stack-lg); color: var(--color-on-surface-variant); }
+
+.portal-auth-form { display: flex; flex-direction: column; gap: var(--space-stack-md); }
+.portal-auth-submit { width: 100%; padding: 0.85rem; font-size: var(--text-body-lg-size); margin-top: 0.25rem; }
+
+.portal-auth-foot { margin-top: var(--space-stack-lg); font-size: var(--text-body-md-size); color: var(--color-on-surface-variant); text-align: center; }
+
+/* Right panel: background-image (photo + gradient) is set inline in
+   login.html, not here — a CSS file can't resolve {% static %}. This rule
+   only handles sizing/layout for whatever image lands on it. */
+.portal-auth-panel--visual {
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  padding: var(--space-stack-lg);
+}
+
+.portal-auth-stat-card {
+  position: absolute;
+  background: rgba(252, 249, 242, 0.95);
+  border-radius: var(--radius-lg);
+  padding: 0.85rem 1.1rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.portal-auth-stat-card__label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-on-surface-variant); }
+.portal-auth-stat-card__value { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; color: var(--color-primary); }
+
+.portal-auth-stat-card--1 { top: 10%; left: 6%; }
+.portal-auth-stat-card--2 { top: 42%; right: 6%; }
+.portal-auth-stat-card--3 { bottom: 22%; left: 10%; }
+
+.portal-auth-visual-quote {
+  position: absolute;
+  bottom: 5%;
+  left: 6%;
+  right: 6%;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.3;
+  margin: 0;
+}
+
+@media (max-width: 860px) {
+  .portal-auth-panel--visual { display: none; }
+  .portal-auth-card { max-width: 420px; min-height: 0; box-shadow: 0 12px 32px rgba(28, 12, 15, 0.12); }
+  .portal-auth-panel--form { padding: var(--space-stack-lg) var(--space-stack-md); }
+}
+
+@media (max-width: 420px) {
+  .portal-auth-page { padding: var(--space-stack-md) var(--space-stack-sm); }
+  .portal-auth-card { border-radius: var(--radius-lg); }
+}

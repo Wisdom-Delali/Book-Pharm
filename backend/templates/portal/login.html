@@ -6,35 +6,64 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Log In | Book Pharm Portal</title>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=EB+Garamond:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <link rel="stylesheet" href="{% static 'css/theme-portal.css' %}">
+  <link rel="stylesheet" href="{% static 'css/portal-auth.css' %}">
 </head>
-<body>
-  <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center;">
-    <div class="card" style="width: 100%; max-width: 380px;">
-      <h1 style="font-size: var(--text-headline-lg-size); margin-bottom: 0.25rem;">Book Pharm</h1>
-      <p class="text-muted" style="margin-bottom: var(--space-stack-md);">Owner Portal</p>
+<body class="portal-auth-body">
+  <div class="portal-auth-page">
+    <div class="portal-auth-card">
 
-      {% include 'partials/_messages.html' %}
-
-      <form method="post" style="display: flex; flex-direction: column; gap: var(--space-stack-md);">
-        {% csrf_token %}
-        {% for error in form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
-        <input type="hidden" name="next" value="{{ next }}">
-
-        <div class="form-field">
-          <label class="form-label" for="{{ form.email.id_for_label }}">Email</label>
-          {{ form.email }}
-          {% for error in form.email.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
-        </div>
-        <div class="form-field">
-          <label class="form-label" for="{{ form.password.id_for_label }}">Password</label>
-          {{ form.password }}
-          {% for error in form.password.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+      <div class="portal-auth-panel portal-auth-panel--form">
+        <div class="portal-auth-brand">
+          <span class="material-symbols-outlined">auto_stories</span>
+          <span>Book Pharm</span>
         </div>
 
-        <button type="submit" class="btn btn--primary" style="width: 100%;">Log In</button>
-      </form>
+        <h1 class="portal-auth-title">Welcome back</h1>
+        <p class="portal-auth-subtitle">Sign in to the owner portal</p>
+
+        {% include 'partials/_messages.html' %}
+
+        <form method="post" class="portal-auth-form">
+          {% csrf_token %}
+          {% for error in form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+          <input type="hidden" name="next" value="{{ next }}">
+
+          <div class="form-field">
+            <label class="form-label" for="{{ form.email.id_for_label }}">Email</label>
+            {{ form.email }}
+            {% for error in form.email.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="{{ form.password.id_for_label }}">Password</label>
+            {{ form.password }}
+            {% for error in form.password.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+          </div>
+
+          <button type="submit" class="btn btn--primary portal-auth-submit">Log In</button>
+        </form>
+
+        <p class="portal-auth-foot">Attendant? Sign in through the desktop POS instead.</p>
+      </div>
+
+      <div class="portal-auth-panel portal-auth-panel--visual" style="background-image: linear-gradient(165deg, rgba(28, 8, 14, 0.90), rgba(87, 0, 19, 0.72)), url('{% static 'img/hero-library.jpg' %}');">
+        <div class="portal-auth-stat-card portal-auth-stat-card--1">
+          <span class="portal-auth-stat-card__label">Today's Sales</span>
+          <span class="portal-auth-stat-card__value">GHS 1,240.00</span>
+        </div>
+        <div class="portal-auth-stat-card portal-auth-stat-card--2">
+          <span class="portal-auth-stat-card__label">Orders This Week</span>
+          <span class="portal-auth-stat-card__value">86</span>
+        </div>
+        <div class="portal-auth-stat-card portal-auth-stat-card--3">
+          <span class="portal-auth-stat-card__label">Low Stock Alerts</span>
+          <span class="portal-auth-stat-card__value">3 titles</span>
+        </div>
+        <p class="portal-auth-visual-quote">Every sale, every shelf,<br>one system.</p>
+      </div>
+
     </div>
   </div>
 </body>
