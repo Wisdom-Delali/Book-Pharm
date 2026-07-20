@@ -25,6 +25,9 @@
         <a href="{% url 'portal:register_create' %}" class="{% if active_nav == 'register' %}is-active{% endif %}">
           <span class="material-symbols-outlined">point_of_sale</span> New Sale
         </a>
+        <a href="{% url 'portal:register_list' %}" class="{% if active_nav == 'register_list' %}is-active{% endif %}">
+          <span class="material-symbols-outlined">history</span> In-Store Sales
+        </a>
         <a href="{% url 'portal:book_list' %}" class="{% if active_nav == 'catalog' %}is-active{% endif %}">
           <span class="material-symbols-outlined">inventory_2</span> Inventory
         </a>

@@ -86,5 +86,8 @@
   --space-stack-md: 16px;
   --space-stack-lg: 64px;
   --space-sidebar-width: 260px;
-  --space-topbar-height: 76px;
+  /* Drives both the topbar's own min-height and the sticky offset/height
+     math on .storefront-sidebar below it — the two must agree exactly or
+     the sidebar either gaps under the topbar or is scrolled beneath it. */
+  --space-topbar-height: 84px;
 }

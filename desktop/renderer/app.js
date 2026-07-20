@@ -222,6 +222,28 @@ window.addEventListener('online', () => {
 });
 window.addEventListener('offline', updateSyncPill);
 
+// Manual contingency for the automatic background worker (retries on its
+// own backoff timer — fine most of the time, but an attendant staring at a
+// stuck "queued" count at a book fair shouldn't have to just wait it out).
+// Cancels whatever's currently scheduled so this doesn't fire a second,
+// redundant batch alongside it — the batch endpoint is idempotent either
+// way (CLAUDE.md §7), this is just about not wasting a round trip.
+$('sync-now-btn').addEventListener('click', async () => {
+  const btn = $('sync-now-btn');
+  if (btn.disabled) return;
+  clearTimeout(syncTimer);
+  btn.disabled = true;
+  btn.classList.add('is-syncing');
+  try {
+    await pullCatalog();
+    syncBackoffMs = SYNC_BACKOFF_MIN;
+    await drainOutbox(); // re-arms the next automatic retry itself when done
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('is-syncing');
+  }
+});
+
 // ---------- My Day: today's sales, offline-aware, past receipts re-viewable ----------
 // Merges two sources: the server's /api/sales/mine/ (authoritative,
 // cross-device — catches anything rung up on a different terminal today)

@@ -8,6 +8,7 @@ reasoning CLAUDE.md gives for the desktop app's own connected path.
 from datetime import date as date_cls
 
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, render
 
 from apps.catalog.models import Book
@@ -15,6 +16,8 @@ from apps.sales.models import Sale
 from apps.sales.services import InsufficientStockError, create_sale
 
 from .manual_sale_items import resolve_manual_items
+
+PAGE_SIZE = 20
 
 
 def _parse_date(value):
@@ -65,8 +68,25 @@ def register_create(request):
 
 
 @login_required
+def register_list(request):
+    # Both sources of an IN_STORE sale — the desktop POS and this same
+    # portal's own register form — write through the same create_sale()
+    # into the same Sale table (CLAUDE.md §6), so one query covers both;
+    # there's nothing here that distinguishes "came from Electron" from
+    # "came from portal/register/new" except who's in the attendant column.
+    sales = Sale.objects.filter(channel=Sale.Channel.IN_STORE).exclude(
+        status=Sale.Status.PENDING
+    ).select_related('customer', 'attendant').order_by('-created_at')
+    paginator = Paginator(sales, PAGE_SIZE)
+    return render(request, 'portal/register/list.html', {
+        'active_nav': 'register_list',
+        'page_obj': paginator.get_page(request.GET.get('page')),
+    })
+
+
+@login_required
 def register_receipt(request, pk):
     sale = get_object_or_404(
         Sale.objects.prefetch_related('items__book'), pk=pk, channel=Sale.Channel.IN_STORE,
     )
-    return render(request, 'portal/register/receipt.html', {'active_nav': 'register', 'sale': sale})
+    return render(request, 'portal/register/receipt.html', {'active_nav': 'register_list', 'sale': sale})

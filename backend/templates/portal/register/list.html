@@ -1,0 +1,44 @@
+{% extends 'portal/base.html' %}
+
+{% block title %}In-Store Sales | Book Pharm Portal{% endblock %}
+
+{% block content %}
+<header class="portal-page-header">
+  <div>
+    <h1>In-Store Sales</h1>
+    <p class="text-muted">Rung up at the counter &mdash; from the desktop POS or this portal's register.</p>
+  </div>
+  <a class="btn btn--primary" href="{% url 'portal:register_create' %}">+ New Sale</a>
+</header>
+
+<div class="card catalog-table-card">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Sale</th>
+        <th>Attendant</th>
+        <th>Customer</th>
+        <th class="text-right">Total</th>
+        <th>Payment</th>
+        <th>Rung Up</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sale in page_obj %}
+      <tr>
+        <td class="mono">#{{ sale.id }}</td>
+        <td>{% if sale.attendant %}{{ sale.attendant.full_name|default:sale.attendant.email }}{% else %}&mdash;{% endif %}</td>
+        <td>{% if sale.customer %}{{ sale.customer.full_name|default:sale.customer.phone }}{% else %}Walk-in{% endif %}</td>
+        <td class="text-right mono">GHS {{ sale.total }}</td>
+        <td>{{ sale.get_payment_method_display }}</td>
+        <td class="text-muted">{{ sale.created_at|date:"M j, g:i A" }}</td>
+        <td class="text-right"><a class="btn btn--secondary" href="{% url 'portal:register_receipt' sale.pk %}">View</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" class="text-muted">No in-store sales yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

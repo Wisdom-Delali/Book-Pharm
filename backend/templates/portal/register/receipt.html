@@ -6,33 +6,58 @@
 <header class="portal-page-header">
   <div>
     <h1>{% if just_created %}Sale Complete{% else %}Sale #{{ sale.id }}{% endif %}</h1>
-    <p class="text-muted">Order #{{ sale.id }} &middot; {{ sale.created_at|date:"M j, Y, g:i A" }}</p>
+    <p class="text-muted">Rung up {{ sale.created_at|date:"M j, Y, g:i A" }}</p>
   </div>
+  {% if just_created %}
   <a class="btn btn--primary" href="{% url 'portal:register_create' %}">+ New Sale</a>
+  {% else %}
+  <a class="btn btn--secondary" href="{% url 'portal:register_list' %}">&larr; In-Store Sales</a>
+  {% endif %}
 </header>
 
-<div class="card" style="max-width: 560px;">
-  <h3>Items</h3>
-  <table class="table">
-    <thead><tr><th>Book</th><th class="text-right">Qty</th><th class="text-right">Total</th></tr></thead>
-    <tbody>
-      {% for item in sale.items.all %}
-      <tr>
-        <td>{{ item.book.title }}</td>
-        <td class="text-right">{{ item.qty }}</td>
-        <td class="text-right mono">GHS {{ item.line_total }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; color: var(--color-on-surface-variant);"><span>Subtotal</span><span class="mono">GHS {{ sale.subtotal }}</span></div>
-  <div style="display: flex; justify-content: space-between; color: var(--color-on-surface-variant);"><span>Discount</span><span class="mono">-GHS {{ sale.discount_amount }}</span></div>
-  <div style="display: flex; justify-content: space-between; font-weight: 700; padding-top: 0.5rem; margin-top: 0.5rem; border-top: 1px dashed var(--color-outline-variant);"><span>Total</span><span class="mono">GHS {{ sale.total }}</span></div>
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-stack-md);">
+  <div class="card">
+    <h3>Items</h3>
+    <table class="table">
+      <thead><tr><th>Book</th><th class="text-right">Qty</th><th class="text-right">Unit Price</th><th class="text-right">Line Total</th></tr></thead>
+      <tbody>
+        {% for item in sale.items.all %}
+        <tr>
+          <td>{{ item.book.title }}</td>
+          <td class="text-right">{{ item.qty }}</td>
+          <td class="text-right mono">GHS {{ item.unit_price }}</td>
+          <td class="text-right mono">GHS {{ item.line_total }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="summary-line" style="display:flex; justify-content:space-between; margin-top: var(--space-stack-sm);"><span>Subtotal</span><span class="mono">GHS {{ sale.subtotal }}</span></div>
+    <div class="summary-line" style="display:flex; justify-content:space-between;"><span>Discount</span><span class="mono">-GHS {{ sale.discount_amount }}</span></div>
+    <div class="summary-line" style="display:flex; justify-content:space-between; font-weight:700;"><span>Total</span><span class="mono">GHS {{ sale.total }}</span></div>
+  </div>
 
-  <p class="text-muted" style="margin-top: 1rem;">
-    Paid by {{ sale.get_payment_method_display }} &middot;
-    Customer: {{ sale.customer.full_name|default:sale.customer.phone }}
-    {% if sale.attendant %}&middot; Rung up by {{ sale.attendant.full_name|default:sale.attendant.email }}{% endif %}
-  </p>
+  <div>
+    <div class="card" style="margin-bottom: var(--space-stack-md);">
+      <h3>Customer</h3>
+      <p><strong>{{ sale.customer.full_name|default:"—" }}</strong></p>
+      <p class="text-muted">{{ sale.customer.phone }}</p>
+      <p class="text-muted">{{ sale.customer.email }}</p>
+    </div>
+
+    <div class="card" style="margin-bottom: var(--space-stack-md);">
+      <h3>Attendant</h3>
+      {% if sale.attendant %}
+      <p><strong>{{ sale.attendant.full_name|default:sale.attendant.email }}</strong></p>
+      <p class="text-muted">{{ sale.attendant.get_role_display }}</p>
+      {% else %}
+      <p class="text-muted">Not recorded.</p>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h3>Payment</h3>
+      <p>{{ sale.get_payment_method_display }} &middot; <span class="badge{% if sale.payment_status == 'PAID' %} badge--ok{% endif %}">{{ sale.get_payment_status_display }}</span></p>
+    </div>
+  </div>
 </div>
 {% endblock %}

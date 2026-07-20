@@ -46,6 +46,7 @@ urlpatterns = [
     path('marketplace/<int:pk>/', marketplace_views.marketplace_detail, name='marketplace_detail'),
     path('marketplace/<int:pk>/return/', marketplace_views.marketplace_return, name='marketplace_return'),
     path('register/', register_views.register_create, name='register_create'),
+    path('register/sales/', register_views.register_list, name='register_list'),
     path('register/<int:pk>/', register_views.register_receipt, name='register_receipt'),
     path('users/', user_views.user_list, name='user_list'),
     path('users/new/', user_views.user_create, name='user_create'),

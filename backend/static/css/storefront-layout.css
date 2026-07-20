@@ -25,19 +25,22 @@ body {
   background-size: 24px 24px;
 }
 
-/* Shell: sticky sidebar + sticky topbar + scrolling main column. Sidebar
-   collapses below 900px in favor of the fixed bottom nav (mockups show the
-   same swap at their md breakpoint). No hard border lines between
+/* Shell: the topbar is a full-width bar above everything else (a sibling of
+   .storefront-shell, not nested inside its right-hand column) — the brand
+   sits at its far left, directly above the sidebar column, on the same row
+   as search/links/cart. Below it, sticky sidebar + scrolling main column.
+   Sidebar collapses below 900px in favor of the fixed bottom nav (mockups
+   show the same swap at their md breakpoint). No hard border lines between
    sidebar/topbar/content — sections are separated by whitespace and subtle
    shadow instead, per art direction. */
-.storefront-shell { display: flex; min-height: 100vh; }
+.storefront-shell { display: flex; min-height: calc(100vh - var(--space-topbar-height)); }
 
 .storefront-sidebar {
   width: var(--space-sidebar-width);
   flex-shrink: 0;
-  height: 100vh;
+  height: calc(100vh - var(--space-topbar-height));
   position: sticky;
-  top: 0;
+  top: var(--space-topbar-height);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -72,7 +75,14 @@ body {
 .storefront-topbar {
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 20;
+  /* Fixed height (not just padding) so .storefront-sidebar below can offset
+     its own sticky `top`/height against the exact same number — see
+     --space-topbar-height. align-items: center absorbs the two-line brand
+     without needing extra vertical padding that would throw that off. */
+  min-height: var(--space-topbar-height);
+  display: flex;
+  align-items: center;
   /* Same dot texture as body, not a flat panel — needs to stay opaque
      (position:sticky, content scrolls under it) but shouldn't read as a
      separate bar sitting on top of the page. */
@@ -80,21 +90,22 @@ body {
   background-image: radial-gradient(var(--color-outline-variant) 1px, transparent 1px);
   background-size: 24px 24px;
 }
-/* Same max-width + centering as .storefront-main, so the brand/search on
-   the widest screens line up with the book grid below instead of sitting
-   at a fixed distance from the viewport edge while content is centered. */
+/* Full-bleed, not max-width-centered like .storefront-main below it — this
+   bar now spans the sidebar column too, so its own edge padding (not a
+   centered inner width) is what lines the brand up with the sidebar's left
+   edge and the cart icon up with the main column's right edge. */
 .storefront-topbar__inner {
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1.5rem var(--space-margin, 24px) 0.75rem;
+  width: 100%;
+  padding: 0 var(--space-margin, 24px);
 }
 .storefront-topbar__brand {
-  /* Same row as search/nav/cart, not a separate line above them — the
-     sidebar carries no brand of its own, so this is the only wordmark on
-     the page at any width. */
+  /* On the left, on the same row as search/nav/cart — not a stacked block
+     above them, and not inside the sidebar itself (the sidebar carries no
+     brand of its own): this bar sits directly above the sidebar column, so
+     the brand reads as "on the left nav" while staying level with search. */
   display: flex;
   flex-direction: column;
   line-height: 1.15;

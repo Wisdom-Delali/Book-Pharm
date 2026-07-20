@@ -132,6 +132,9 @@ input, select { font-family: var(--font-body); }
   font-size: 0.85rem;
 }
 .icon-btn:hover { background: rgba(0,0,0,0.05); }
+.icon-btn:disabled { opacity: 0.5; cursor: default; }
+.icon-btn.is-syncing { animation: sync-spin 0.7s linear infinite; }
+@keyframes sync-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 /* #view-app fills the window as a column (topbar + one flexed content
    area) so both .register and .receipt-view can use flex:1 + min-height:0
