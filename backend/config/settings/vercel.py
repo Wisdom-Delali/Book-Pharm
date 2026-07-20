@@ -69,16 +69,9 @@ VERCEL_DB_ENGINE = config('VERCEL_DB_ENGINE', default='sqlite')
 if VERCEL_DB_ENGINE == 'mysql':
     import ssl
 
-    import pymysql
-
-    # Django's mysql backend imports `MySQLdb` — mysqlclient (the driver
-    # used everywhere else, including cPanel) is a compiled C extension,
-    # and compiling it inside Vercel's Python build image is untested and a
-    # real risk of a failed deploy. PyMySQL is pure Python: this shim makes
-    # `import MySQLdb` transparently resolve to it, so ENGINE stays
-    # 'django.db.backends.mysql' unchanged — nothing else in the codebase
-    # needs to know the driver differs here.
-    pymysql.install_as_MySQLdb()
+    # PyMySQL-as-MySQLdb is already installed globally in base.py (every
+    # settings module needs it now that mysqlclient isn't in
+    # requirements.txt at all — see that file's comment).
 
     # Aiven requires TLS (ssl-mode=REQUIRED) but this UAT instance has no CA
     # certificate configured — this encrypts the connection without

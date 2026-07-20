@@ -5,7 +5,16 @@ only what differs between environments.
 
 from pathlib import Path
 
+import pymysql
 from decouple import Config, Csv, RepositoryEmpty, RepositoryEnv
+
+# django.db.backends.mysql imports `MySQLdb` — mysqlclient (a compiled C
+# extension) no longer ships in requirements.txt, so PyMySQL is the only
+# driver providing that import anywhere DATABASES uses this engine (dev,
+# cPanel prod, and Vercel's optional mysql path alike). Installed once,
+# here, rather than per-settings-module, since every one of them imports
+# from this file before DATABASES is ever touched.
+pymysql.install_as_MySQLdb()
 
 # backend/config/settings/base.py -> backend/ -> repo root (where .env lives, alongside .env.example)
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
