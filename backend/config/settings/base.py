@@ -5,13 +5,22 @@ only what differs between environments.
 
 from pathlib import Path
 
-from decouple import Config, Csv, RepositoryEnv
+from decouple import Config, Csv, RepositoryEmpty, RepositoryEnv
 
 # backend/config/settings/base.py -> backend/ -> repo root (where .env lives, alongside .env.example)
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 REPO_ROOT = BASE_DIR.parent
 
-config = Config(RepositoryEnv(str(REPO_ROOT / '.env')))
+# RepositoryEnv opens the file eagerly (FileNotFoundError at import time if
+# it's missing) — fine for local dev and cPanel, which both deploy a real
+# .env file, but fatal on Vercel, where config arrives as real process env
+# vars with no .env file in the bundle at all. RepositoryEmpty is decouple's
+# own no-file fallback: Config.get() already checks os.environ before the
+# repository regardless of which one backs it, so this doesn't change
+# behavior anywhere a .env file exists — it only changes what happens when
+# one doesn't.
+_env_path = REPO_ROOT / '.env'
+config = Config(RepositoryEnv(str(_env_path)) if _env_path.exists() else RepositoryEmpty())
 
 SECRET_KEY = config('DJANGO_SECRET_KEY')
 
