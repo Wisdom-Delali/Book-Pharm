@@ -274,6 +274,25 @@ A scope correction to Phase 2's original design, not a new feature: `POST /api/s
 
 ---
 
+## Phase 7.11 — Vercel UAT deployment prep (owner request, 2026-07-20)
+
+Not the production target — that's still cPanel per CLAUDE.md §3 and Phase 8. This is a throwaway hosted build so the client can click through the storefront + portal before domain registration / cPanel setup happen. Desktop POS is untouched — it isn't part of this deployment.
+
+- [x] `backend/config/settings/vercel.py` (new) — inherits `prod.py`'s security posture (HTTPS redirect, secure cookies, HSTS), adds `.vercel.app`-wildcard `ALLOWED_HOSTS`/`CSRF_TRUSTED_ORIGINS` (covers every preview deploy, not just one pinned hostname), and `SECURE_PROXY_SSL_HEADER` (Vercel terminates TLS at its edge and forwards over plain HTTP internally — without this, `SECURE_SSL_REDIRECT` infinite-loops)
+- [x] `backend/config/settings/base.py` fixed a real bug this surfaced: `decouple` was hardcoded to open a `.env` **file**, raising `FileNotFoundError` at import time when it's missing — true on Vercel, which injects env vars directly with no `.env` in the bundle. Falls back to `decouple`'s own `RepositoryEmpty` when the file doesn't exist (confirmed via its source: `Config.get()` already checks `os.environ` before the repository regardless of which one backs it, so local dev/cPanel behavior is unchanged)
+- [x] `vercel.json` (repo root) — current (2026) minimal `functions`-key format, pointed at `backend/config/wsgi.py`
+- [x] Database: `VERCEL_DB_ENGINE` env var toggle between two throwaway options, neither the eventual cPanel database —
+  - `sqlite` (**default**) — `backend/vercel_seed_db.sqlite3`, a real `dumpdata`/`loaddata` snapshot of the dev MySQL database (215 rows across 20 models — actual data from this session's live testing, not synthetic placeholders), regenerable via the new `config/settings/sqlite_seed.py` build-time settings module. Bundled read-only with the deployment (Vercel bundles all project files reachable at build time by default — confirmed via Vercel's own docs, no `includeFiles` config needed) and copied to a writable per-instance temp path (`tempfile.gettempdir()` — resolves to `/tmp` on Vercel's Linux runtime, and to a real writable dir on Windows too, so the exact same logic is genuinely testable locally rather than hopefully-correct-on-the-real-target only) on first access each cold start
+  - `mysql` — Aiven's always-free MySQL tier (same engine as production, zero driver/engine changes to the app itself — just a PyMySQL shim so Django's `MySQLdb` import doesn't need `mysqlclient`'s C compilation inside Vercel's build image) with a TLS context matching Aiven's `ssl-mode=REQUIRED`. Picked originally, dropped for `sqlite` when the Aiven hostname wasn't resolving in DNS (looked like the service still provisioning) and a working UAT build was more urgent than continuing to diagnose that — restorable by setting `VERCEL_DB_ENGINE=mysql` plus `DB_HOST`/`DB_PORT`/`DB_USER`/`DB_PASSWORD`/`DB_NAME` in the Vercel dashboard, no code changes needed
+- [x] `MEDIA_ROOT` pointed at the same writable temp path (owner decision: skip real cloud storage for this pass) — a cover-image upload during UAT succeeds instead of crashing the book-edit form; it just doesn't survive a cold start
+- [x] `requirements.txt` — added `PyMySQL==1.2.0` (only imported when `VERCEL_DB_ENGINE=mysql`; harmless pure-Python package either way)
+
+**The SQLite path's real limitation, not papered over:** each cold start gets a *fresh copy* of the bundled seed, and concurrent instances don't share writes — a sale rung up in one instance won't appear if a different (or later, recycled) instance serves the next request. Fine for one person clicking through the app in a single sitting; not for a multi-session UAT where data needs to persist across visits, or multiple people testing at once. The `mysql`/Aiven path doesn't have this caveat and is the one to switch to once its DNS resolves.
+
+**Done when:** the settings module correctly serves and persists data within one warm instance, and env vars are documented for whichever database engine is active. ✅ Verified locally end-to-end (Vercel account access — creating the project, setting dashboard env vars, deploying — is outside what this session can do): cleared any prior temp copy to simulate a true cold start, confirmed the bundled seed gets copied and read correctly (`Books: 10, Sales: 57`, matching the dump exactly), and confirmed the copy is genuinely writable (created and deleted a `Category` row in a separate process against the same temp file, simulating a second request against the same warm instance). `manage.py check` passes clean against `config.settings.vercel` with no database connection required. **Not verified:** an actual deployed Vercel instance — that requires the user's Vercel account, which this session doesn't have access to.
+
+---
+
 ## Phase 8 — Deploy & handover
 
 - [ ] Register the domain (client has no domain yet — this is a real blocker for launch, raise it early)
