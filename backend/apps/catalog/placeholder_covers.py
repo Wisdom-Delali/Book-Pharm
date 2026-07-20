@@ -3,11 +3,22 @@ sample/dev books that don't have a real one. There's nothing to fetch for
 fictional seed titles, and generating locally avoids both a copyright
 question and a network dependency — consistent with this project's
 offline-first ethos elsewhere.
+
+placeholder_cover_url() is a second, URL-based flavor of the same idea
+(owner request, 2026-07-20): a local upload (what generate_placeholder_cover()
+below produces) lives on disk under MEDIA_ROOT, which isn't part of the
+database and doesn't survive a deployment that doesn't also ship/persist
+media files — Vercel's UAT environment, specifically (see
+config/settings/vercel.py). Book.cover_image_url exists for exactly that
+gap: a plain URL renders correctly regardless of deployment or filesystem
+state. Both flavors share PALETTE and the same title-hash color pick, so a
+given book reads as the same color whichever one is actually in play.
 """
 
 import hashlib
 import io
 from pathlib import Path
+from urllib.parse import quote
 
 from django.core.files.base import ContentFile
 from PIL import Image, ImageDraw, ImageFont
@@ -66,11 +77,28 @@ def _wrap_text(draw, text, font, max_width):
     return lines
 
 
+def _pick_palette(title):
+    """Deterministic on title, not random — the same book always gets the
+    same color whether it's asked for today or after a redeploy, and
+    whether it comes out as a generated PNG or a placeholder URL."""
+    index = int(hashlib.md5(title.encode('utf-8')).hexdigest(), 16) % len(PALETTE)
+    return PALETTE[index]
+
+
+def placeholder_cover_url(title):
+    """A placehold.co URL rendering the title as text, in the same
+    color/palette pick as generate_placeholder_cover() below — set on
+    Book.cover_image_url, not cover_image, so nothing needs to be uploaded
+    or stored on disk. See module docstring for why this exists alongside
+    the PNG-generating flavor rather than replacing it."""
+    bg, fg = _pick_palette(title)
+    return f'https://placehold.co/{WIDTH}x{HEIGHT}/{bg.lstrip("#")}/{fg.lstrip("#")}.png?text={quote(title)}'
+
+
 def generate_placeholder_cover(title, author=''):
     """Returns a django ContentFile of PNG bytes — pass straight to
     book.cover_image.save(name, generate_placeholder_cover(...))."""
-    index = int(hashlib.md5(title.encode('utf-8')).hexdigest(), 16) % len(PALETTE)
-    bg, fg = PALETTE[index]
+    bg, fg = _pick_palette(title)
 
     img = Image.new('RGB', (WIDTH, HEIGHT), bg)
     draw = ImageDraw.Draw(img)

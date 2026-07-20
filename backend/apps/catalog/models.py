@@ -69,6 +69,13 @@ class Book(models.Model):
     stock_qty = models.IntegerField(default=0)
     low_stock_threshold = models.PositiveIntegerField(default=5)
     cover_image = models.ImageField(upload_to='book_covers/', blank=True, null=True)
+    # A URL alternative to cover_image (owner request, 2026-07-20): renders
+    # correctly regardless of deployment/filesystem state, unlike a local
+    # upload — see apps/catalog/placeholder_covers.py's module docstring
+    # for why that distinction matters (Vercel's ephemeral MEDIA_ROOT).
+    # Blank on any book with a genuine local upload and nothing else; see
+    # cover_url below for which one actually gets displayed.
+    cover_image_url = models.URLField(max_length=500, blank=True)
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -85,6 +92,20 @@ class Book(models.Model):
     @property
     def is_low_stock(self):
         return self.stock_qty <= self.low_stock_threshold
+
+    @property
+    def cover_url(self):
+        """What every template actually displays — cover_image_url wins
+        when set (portable, works on any deployment), falling back to the
+        local upload otherwise. Not the reverse: a URL provided on purpose
+        should win over whatever a given deployment's disk happens to
+        have, and a deployment with no persistent disk (Vercel) has no
+        working cover_image at all regardless of what the database says."""
+        if self.cover_image_url:
+            return self.cover_image_url
+        if self.cover_image:
+            return self.cover_image.url
+        return ''
 
     def clean(self):
         # Surfaces a clean form-validation error for a malformed ISBN.

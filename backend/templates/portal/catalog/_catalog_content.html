@@ -50,7 +50,7 @@
           <td>
             <div class="book-cell">
               <div class="book-cell__cover">
-                {% if book.cover_image %}<img src="{{ book.cover_image.url }}" alt="">{% endif %}
+                {% if book.cover_url %}<img src="{{ book.cover_url }}" alt="">{% endif %}
               </div>
               <div>
                 <strong>{{ book.title }}</strong><br>

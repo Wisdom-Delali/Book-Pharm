@@ -7,7 +7,8 @@
 <meta property="og:title" content="{{ book.title }} | Book Pharm">
 <meta property="og:type" content="product">
 {% if book.description %}<meta property="og:description" content="{{ book.description|truncatewords:25 }}">{% endif %}
-{% if book.cover_image %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url }}">{% endif %}
+{% if book.cover_image_url %}<meta property="og:image" content="{{ book.cover_image_url }}">
+{% elif book.cover_image %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url }}">{% endif %}
 <script type="application/ld+json">{{ structured_data_json|safe }}</script>
 {% endblock %}
 
@@ -20,7 +21,7 @@
 
 <div class="book-detail">
   <div class="book-detail__cover">
-    {% if book.cover_image %}<img src="{{ book.cover_image.url }}" alt="{{ book.title }} cover">{% endif %}
+    {% if book.cover_url %}<img src="{{ book.cover_url }}" alt="{{ book.title }} cover">{% endif %}
     <span class="book-detail__price-tag">GHS {{ book.selling_price }}</span>
   </div>
   <div>

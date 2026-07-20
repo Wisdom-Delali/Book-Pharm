@@ -19,7 +19,7 @@ with the price for space in the same row.
 <div class="book-card{% if book.stock_qty <= 0 %} book-card--sold-out{% endif %}">
   <a class="book-card__link" href="{% url 'storefront:book_detail' book.slug %}">
     <div class="book-card__cover">
-      {% if book.cover_image %}<img src="{{ book.cover_image.url }}" alt="{{ book.title }} cover" loading="lazy">{% endif %}
+      {% if book.cover_url %}<img src="{{ book.cover_url }}" alt="{{ book.title }} cover" loading="lazy">{% endif %}
       {% if book.stock_qty <= 0 %}
       <span class="book-card__badge book-card__badge--sold-out">Sold Out</span>
       {% elif badge %}

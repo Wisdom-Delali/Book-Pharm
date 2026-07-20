@@ -10,7 +10,7 @@
   {% for item in items %}
   <div class="cart-row">
     <a href="{% url 'storefront:book_detail' item.book.slug %}" class="cart-row__cover">
-      {% if item.book.cover_image %}<img src="{{ item.book.cover_image.url }}" alt="">{% endif %}
+      {% if item.book.cover_url %}<img src="{{ item.book.cover_url }}" alt="">{% endif %}
     </a>
     <div class="cart-row__info">
       <a href="{% url 'storefront:book_detail' item.book.slug %}" class="cart-row__title">{{ item.book.title }}</a>

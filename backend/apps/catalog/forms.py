@@ -17,6 +17,13 @@ class BookForm(forms.ModelForm):
         help_text='Leave blank if this title has no ISBN — an internal code is generated automatically.',
     )
 
+    cover_image_url = forms.URLField(
+        required=False,
+        widget=forms.URLInput(attrs={'placeholder': 'https://...'}),
+        help_text='Optional. Takes priority over an uploaded cover if both are set — useful for a deployment that '
+                   "doesn't keep uploaded files (e.g. a hosted preview build).",
+    )
+
     # Freeform text, not a ModelMultipleChoiceField — tags are user-created
     # on the fly (unlike Category, a fixed, admin-managed list), so typing a
     # name that doesn't exist yet should just create it. See clean_tags()
@@ -32,7 +39,8 @@ class BookForm(forms.ModelForm):
         model = Book
         fields = [
             'title', 'author', 'isbn', 'category', 'cost_price', 'selling_price',
-            'stock_qty', 'low_stock_threshold', 'cover_image', 'description', 'is_active',
+            'stock_qty', 'low_stock_threshold', 'cover_image', 'cover_image_url',
+            'description', 'is_active',
         ]
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),

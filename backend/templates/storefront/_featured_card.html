@@ -9,7 +9,7 @@ Params: book, badge, avg_rating, review_count, full_stars.
 <div class="featured-card">
   <a class="featured-card__cover-link" href="{% url 'storefront:book_detail' book.slug %}">
     <div class="featured-card__cover">
-      {% if book.cover_image %}<img src="{{ book.cover_image.url }}" alt="{{ book.title }} cover" loading="lazy">{% endif %}
+      {% if book.cover_url %}<img src="{{ book.cover_url }}" alt="{{ book.title }} cover" loading="lazy">{% endif %}
       <span class="featured-card__badge">{{ badge }}</span>
     </div>
   </a>
