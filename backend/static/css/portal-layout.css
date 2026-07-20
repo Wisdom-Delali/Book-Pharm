@@ -25,13 +25,32 @@
 
 .portal-sidebar__brand {
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: 700;
   color: var(--color-primary);
   text-decoration: none;
-  display: block;
-  margin-bottom: var(--space-stack-lg);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 }
+.portal-sidebar__brand img { flex-shrink: 0; border-radius: var(--radius-sm); }
+
+.portal-sidebar__divider {
+  height: 1px;
+  background: var(--color-outline-variant);
+  opacity: 0.6;
+  margin: var(--space-stack-md) 0;
+}
+
+.portal-sidebar__section-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-outline);
+  margin: var(--space-stack-md) 0.75rem 0.2rem;
+}
+.portal-sidebar__section-label:first-child { margin-top: 0; }
 
 .portal-sidebar__nav { display: flex; flex-direction: column; gap: var(--space-stack-sm); }
 
@@ -88,6 +107,34 @@
   border-bottom: 1px solid var(--color-outline-variant);
   padding: 0.75rem var(--space-margin);
 }
+/* Books only (submits to portal:book_list?q=, which already filters the
+   Inventory list by title/author/isbn/internal_code) — same expand-on-tap
+   pattern as the storefront's topbar search, but full-width on desktop
+   here rather than the storefront's fixed max-width, since there's no
+   competing nav-links cluster to share the row with. */
+.portal-topbar__search { flex: 1 1 auto; max-width: 640px; position: relative; }
+.portal-topbar__search-toggle {
+  position: absolute;
+  left: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0.3rem;
+  display: flex;
+  color: var(--color-on-surface-variant);
+  cursor: pointer;
+}
+.portal-topbar__search-toggle .material-symbols-outlined { font-size: 1.4rem; }
+.portal-topbar__search input {
+  width: 100%;
+  padding: 0.6rem 1rem 0.6rem 2.5rem;
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-container-low);
+  font-family: var(--font-body);
+}
+
 .portal-topbar__new-sale { display: flex; align-items: center; gap: 0.4rem; }
 
 .portal-topbar__user { position: relative; }
@@ -204,12 +251,54 @@
   .portal-menu-toggle { display: flex; }
 
   .portal-topbar { flex-wrap: nowrap; padding: 0.6rem var(--space-margin, 16px); gap: 0.5rem; }
-  /* Icon-only — "New Sale" spelled out plus a hamburger plus the user
-     trigger doesn't fit a phone-width topbar in one row. */
+  /* Icon-only — "New Sale" spelled out plus a hamburger plus search plus
+     the user trigger doesn't fit a phone-width topbar in one row. */
   .portal-topbar__new-sale-label { display: none; }
   .portal-topbar__new-sale { padding: 0.625rem; }
   .portal-topbar__user-meta { display: none; }
   .portal-topbar__dropdown { right: -0.5rem; }
+
+  /* Collapsed to just the icon by default; .is-open (Alpine, toggled by
+     tapping the icon) expands it to take over the topbar row — same
+     mechanism as the storefront's own mobile search collapse. */
+  .portal-topbar__search { flex: 0 0 auto; max-width: none; }
+  .portal-topbar__search-toggle { position: static; transform: none; padding: 0.3rem; }
+  .portal-topbar__search input {
+    position: absolute;
+    width: 0;
+    padding-left: 0;
+    padding-right: 0;
+    border-color: transparent;
+    opacity: 0;
+    pointer-events: none;
+    transition: width 0.2s ease, opacity 0.15s ease, padding 0.2s ease;
+  }
+  .portal-topbar__search.is-open {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    background: var(--color-surface-container-lowest);
+    padding: 0 var(--space-margin, 16px);
+    z-index: 15;
+  }
+  .portal-topbar__search.is-open .portal-topbar__search-toggle {
+    position: absolute;
+    left: 0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .portal-topbar__search.is-open input {
+    position: static;
+    width: 100%;
+    padding: 0.6rem 2.5rem;
+    opacity: 1;
+    pointer-events: auto;
+    border-color: var(--color-outline-variant);
+  }
 }
 
 /* Catalog: header, toolbar, table, slide-over panel */

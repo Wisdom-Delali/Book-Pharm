@@ -23,8 +23,11 @@
     <div class="storefront-topbar__inner">
       <div class="storefront-topbar__brand-col">
         <a class="storefront-topbar__brand" href="{% url 'storefront:home' %}">
-          <span class="storefront-topbar__brand-name">Book Pharm</span>
-          <span class="storefront-topbar__brand-tagline">Literary Apothecary</span>
+          <img class="storefront-topbar__brand-mark" src="{% static 'img/logo.svg' %}" alt="" width="36" height="36">
+          <span class="storefront-topbar__brand-text">
+            <span class="storefront-topbar__brand-name">Book Pharm</span>
+            <span class="storefront-topbar__brand-tagline">Literary Apothecary</span>
+          </span>
         </a>
       </div>
       <div class="storefront-topbar__content">

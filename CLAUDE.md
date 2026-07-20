@@ -133,8 +133,11 @@ One `Sale` table covers **all three channels** — this is deliberate, so report
 
 **`catalog`**
 - `Category` — name, slug
-- `Book` — `isbn` (nullable, unique-if-set), `internal_code` (generated when no ISBN), title, author, `cost_price`, `selling_price`, `stock_qty`, `low_stock_threshold`, category FK, cover image, description, `is_active`
+- `Tag` — name, slug. Freeform, owner-created, many-per-book — distinct from `Category` (fixed, one-per-book)
+- `Book` — `isbn` (nullable, unique-if-set), `internal_code` (generated when no ISBN), title, author, `cost_price`, `selling_price`, `stock_qty`, `low_stock_threshold`, category FK, tags M2M, cover image, description, `is_active`
   - Profit per book = `selling_price - cost_price`. Never expose `cost_price` on the storefront.
+- `PriceChangeLog` — book FK, `field` (`COST_PRICE`|`SELLING_PRICE`), `old_value`, `new_value`, `changed_by` FK (nullable), `changed_at`. Written by `apps/catalog/services.py::log_price_changes()` from the view layer on edit only, never on creation — see portal book history page (`portal:book_history`)
+- `StockAdjustment` — book FK, `delta`, `resulting_qty`, `reason`, notes, `adjusted_by` FK (nullable), `created_at` — restocks, corrections, damage/loss
 
 **`customers`**
 - `Customer` — `phone` (unique, primary identifier), `full_name`, `email`, `birthday`, `loyalty_points`, `created_at`

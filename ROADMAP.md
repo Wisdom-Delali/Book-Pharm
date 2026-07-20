@@ -225,6 +225,20 @@ A batch of portal UX/ops items, mostly independent of each other:
 
 ---
 
+## Phase 7.8 — Logo, portal book search, price history (owner request, 2026-07-20)
+
+- [x] Logo: a hand-drawn SVG open-book mark (`backend/static/img/logo.svg`, duplicated at `desktop/renderer/logo.svg` since Electron doesn't share Django's static serving) in the existing burgundy/gold palette — icon-only by design, paired with the existing "Book Pharm" text wherever it appears (storefront topbar, portal sidebar + login, desktop sign-in + topbar) rather than baking the wordmark into the image itself, so each surface keeps using its own already-loaded font/sizing
+- [x] Portal sidebar: brand is now the logo + text (was plain text), a faint divider below it, and the 13 nav items are grouped under section labels (Sales / Catalog / Customers / Insights / Admin) instead of one flat list
+- [x] Portal topbar search — books only, submits to the Inventory list's existing `?q=` filter (title/author/ISBN/internal code) rather than a new parallel search path. Same expand-on-tap mechanism as the storefront's mobile search, but full-width on desktop (not the storefront's fixed max-width — no nav-links cluster competing for the row here)
+- [x] `PriceChangeLog` (`apps/catalog`) — one row per `cost_price`/`selling_price` edit. Written by `apps/catalog/services.py::log_price_changes()` from the *view* layer (portal `book_update`, and `BookAdmin.save_model()` for admin edits), not from `Book.save()` itself — detecting "did this change" needs the pre-save value, which the view already has to capture before calling `form.save()`. Never written on creation, only edits. Empty for every book until its price is next changed post-deploy — there's no retroactive data to backfill
+- [x] Book history page (`portal:book_history`, reached via a "View" button on the Inventory list) — three independently-paginated tables: price changes, every sale the book's been part of across all channels (linking out to each channel's own detail page), and stock adjustments (restocks/corrections/damage)
+
+**A bug caught before it shipped:** the history page's price-changed-by / adjusted-by columns used the same chained-`default`-filter pattern that crashed earlier this session (Phase 7.5's "orders not showing" investigation) — both `changed_by` and `adjusted_by` are nullable FKs, and Django's `default` filter eagerly resolves its fallback argument even when unused, so `{{ x.changed_by.full_name|default:x.changed_by.email }}` throws the moment `changed_by` is None rather than falling through. Fixed with `{% if %}` guards before it ever ran against real data.
+
+**Done when:** the logo shows correctly on all three apps, the portal sidebar reads as grouped sections with a real brand mark, searching a book title/author/ISBN from the portal topbar (any width) lands on a filtered Inventory list, and every book's "View" button shows a real, correctly-paginated history. ✅ Verified live: search (including a re-check after an HTML-escaping false alarm in the ampersand-titled test book), the View button and all three history tables, migration applied cleanly, and the null-FK guard against a real null-`adjusted_by`/`changed_by` row. Not verified: the actual expand animation and logo rendering in a real browser/Electron window — no browser or window-automation tool available this session; the SVG itself *was* rendered to PNG and visually inspected before deployment (`cairosvg`, dev-only, not added to `requirements.txt`).
+
+---
+
 ## Phase 8 — Deploy & handover
 
 - [ ] Register the domain (client has no domain yet — this is a real blocker for launch, raise it early)

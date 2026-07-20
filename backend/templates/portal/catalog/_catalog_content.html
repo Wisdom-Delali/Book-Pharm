@@ -76,6 +76,7 @@
             {% endif %}
           </td>
           <td class="text-right">
+            <a class="btn btn--secondary" href="{% url 'portal:book_history' book.pk %}">View</a>
             <button class="btn btn--secondary" hx-get="{% url 'portal:book_update' book.pk %}" hx-target="#catalog-content" hx-swap="outerHTML">Edit</button>
             <button class="btn btn--secondary" hx-get="{% url 'portal:stock_adjust' book.pk %}" hx-target="#catalog-content" hx-swap="outerHTML">Adjust</button>
           </td>

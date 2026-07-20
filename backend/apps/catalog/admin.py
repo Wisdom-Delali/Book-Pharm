@@ -1,7 +1,8 @@
 from django.contrib import admin
 
 from .forms import BookForm
-from .models import Book, Category, StockAdjustment, Tag
+from .models import Book, Category, PriceChangeLog, StockAdjustment, Tag
+from .services import log_price_changes
 
 
 @admin.register(Category)
@@ -29,6 +30,26 @@ class BookAdmin(admin.ModelAdmin):
     @admin.display(boolean=True)
     def is_low_stock(self, obj):
         return obj.is_low_stock
+
+    def save_model(self, request, obj, form, change):
+        old_cost_price = old_selling_price = None
+        if change:
+            old_cost_price, old_selling_price = Book.objects.values_list(
+                'cost_price', 'selling_price'
+            ).get(pk=obj.pk)
+        super().save_model(request, obj, form, change)
+        if change:
+            log_price_changes(obj, old_cost_price, old_selling_price, request.user)
+
+
+@admin.register(PriceChangeLog)
+class PriceChangeLogAdmin(admin.ModelAdmin):
+    list_display = ['book', 'field', 'old_value', 'new_value', 'changed_by', 'changed_at']
+    list_filter = ['field']
+    readonly_fields = ['book', 'field', 'old_value', 'new_value', 'changed_by', 'changed_at']
+
+    def has_add_permission(self, request):
+        return False  # append-only log, written by log_price_changes()
 
 
 @admin.register(StockAdjustment)

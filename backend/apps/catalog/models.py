@@ -115,6 +115,34 @@ class Book(models.Model):
             super().save(update_fields=['slug'])
 
 
+class PriceChangeLog(models.Model):
+    """One row per cost_price/selling_price edit, written by
+    apps/catalog/services.py::log_price_changes() — not by Book.save()
+    itself, since detecting "did this change" needs the pre-save value,
+    and the view layer (which knows who's editing) is a more natural place
+    for that than the model. Never populated on creation, only edits — a
+    brand-new book has an initial price, not a "change"."""
+
+    class Field(models.TextChoices):
+        COST_PRICE = 'COST_PRICE', 'Cost Price'
+        SELLING_PRICE = 'SELLING_PRICE', 'Selling Price'
+
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='price_changes')
+    field = models.CharField(max_length=14, choices=Field.choices)
+    old_value = models.DecimalField(max_digits=10, decimal_places=2)
+    new_value = models.DecimalField(max_digits=10, decimal_places=2)
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name='+'
+    )
+    changed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-changed_at']
+
+    def __str__(self):
+        return f'{self.book} {self.get_field_display()}: {self.old_value} → {self.new_value}'
+
+
 class StockAdjustment(models.Model):
     class Reason(models.TextChoices):
         RESTOCK = 'RESTOCK', 'Restock'

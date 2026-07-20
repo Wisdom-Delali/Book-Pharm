@@ -13,6 +13,7 @@ from django.utils import timezone
 
 from apps.catalog.forms import BookForm, StockAdjustmentForm
 from apps.catalog.models import Book, Category, StockAdjustment, Tag
+from apps.catalog.services import log_price_changes
 from apps.fulfillment.models import Fulfillment
 from apps.reports.utils import range_bounds_utc
 from apps.sales.models import Sale, SaleItem, StockDiscrepancy
@@ -157,9 +158,11 @@ def book_create(request):
 def book_update(request, pk):
     book = get_object_or_404(Book, pk=pk)
     if request.method == 'POST':
+        old_cost_price, old_selling_price = book.cost_price, book.selling_price
         form = BookForm(request.POST, request.FILES, instance=book)
         if form.is_valid():
             form.save()
+            log_price_changes(book, old_cost_price, old_selling_price, request.user)
             return _render_list(request) if _is_htmx(request) else redirect('portal:book_list')
     else:
         form = BookForm(instance=book)
@@ -187,3 +190,33 @@ def stock_adjust(request, pk):
     else:
         form = StockAdjustmentForm()
     return _render_list(request, {'panel_open': True, 'adjustment_form': form, 'adjusting_book': book})
+
+
+@login_required
+def book_history(request, pk):
+    """Everything that's happened to one book: price changes, every sale
+    it's been part of (any channel), and every stock adjustment — three
+    independently-paginated tables, reached via the "View" button on the
+    Inventory list (and the portal-wide book search, which is just that
+    same list filtered by ?q=)."""
+    book = get_object_or_404(Book.objects.select_related('category').prefetch_related('tags'), pk=pk)
+
+    price_page = Paginator(
+        book.price_changes.select_related('changed_by'), PAGE_SIZE
+    ).get_page(request.GET.get('price_page'))
+
+    sales_page = Paginator(
+        book.sale_items.select_related('sale', 'sale__customer').order_by('-sale__created_at'), PAGE_SIZE,
+    ).get_page(request.GET.get('sales_page'))
+
+    stock_page = Paginator(
+        book.stock_adjustments.select_related('adjusted_by'), PAGE_SIZE
+    ).get_page(request.GET.get('stock_page'))
+
+    return render(request, 'portal/catalog/book_history.html', {
+        'active_nav': 'catalog',
+        'book': book,
+        'price_page': price_page,
+        'sales_page': sales_page,
+        'stock_page': stock_page,
+    })

@@ -18,6 +18,7 @@ urlpatterns = [
     path('catalog/books/new/', views.book_create, name='book_create'),
     path('catalog/books/<int:pk>/edit/', views.book_update, name='book_update'),
     path('catalog/books/<int:pk>/adjust-stock/', views.stock_adjust, name='stock_adjust'),
+    path('catalog/books/<int:pk>/history/', views.book_history, name='book_history'),
     path('customers/', customer_views.customer_list, name='customer_list'),
     path('customers/loyalty-settings/', customer_views.loyalty_settings, name='loyalty_settings'),
     path('customers/<int:pk>/', customer_views.customer_detail, name='customer_detail'),

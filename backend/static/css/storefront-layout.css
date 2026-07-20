@@ -127,10 +127,12 @@ body {
      page at any width. Its row is level with search/nav/cart (same
      .storefront-topbar__inner), just in a separate flex region from them. */
   display: flex;
-  flex-direction: column;
-  line-height: 1.15;
+  align-items: center;
+  gap: 0.6rem;
   text-decoration: none;
 }
+.storefront-topbar__brand-mark { flex-shrink: 0; border-radius: var(--radius-sm); }
+.storefront-topbar__brand-text { display: flex; flex-direction: column; line-height: 1.15; }
 .storefront-topbar__brand-name {
   font-family: var(--font-display);
   font-size: 1.4rem;

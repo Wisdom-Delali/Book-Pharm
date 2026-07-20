@@ -1,0 +1,117 @@
+{% extends 'portal/base.html' %}
+
+{% block title %}{{ book.title }} — History | Book Pharm Portal{% endblock %}
+
+{% block content %}
+<header class="portal-page-header">
+  <div>
+    <p class="text-muted"><a href="{% url 'portal:book_list' %}">&larr; Inventory</a></p>
+    <h1>{{ book.title }}</h1>
+    <p class="text-muted">
+      {{ book.author }} &middot; <span class="badge">{{ book.category.name }}</span>
+      {% for tag in book.tags.all %}<span class="badge badge--tag">{{ tag.name }}</span>{% endfor %}
+    </p>
+  </div>
+  <div style="text-align: right;">
+    <p class="text-muted" style="margin: 0;">Cost / Selling price</p>
+    <p class="mono" style="margin: 0.2rem 0 0; font-size: 1.1rem;"><strong>GHS {{ book.cost_price }}</strong> / <strong>GHS {{ book.selling_price }}</strong></p>
+    <p class="text-muted" style="margin: 0.2rem 0 0;">{{ book.stock_qty }} in stock</p>
+  </div>
+</header>
+
+<div class="card" style="margin-bottom: var(--space-stack-md);">
+  <h3>Price History</h3>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Field</th>
+        <th class="text-right">Old</th>
+        <th class="text-right">New</th>
+        <th>Changed By</th>
+        <th>When</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for pc in price_page %}
+      <tr>
+        <td>{{ pc.get_field_display }}</td>
+        <td class="text-right mono">GHS {{ pc.old_value }}</td>
+        <td class="text-right mono">GHS {{ pc.new_value }}</td>
+        <td class="text-muted">{% if pc.changed_by %}{{ pc.changed_by.full_name|default:pc.changed_by.email }}{% else %}&mdash;{% endif %}</td>
+        <td class="text-muted">{{ pc.changed_at|date:"M j, Y g:i A" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="text-muted">No price changes recorded yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include 'portal/_pagination.html' with page_obj=price_page base_url=request.path page_param='price_page' %}
+</div>
+
+<div class="card" style="margin-bottom: var(--space-stack-md);">
+  <h3>Sales History</h3>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Sale</th>
+        <th>Channel</th>
+        <th class="text-right">Qty</th>
+        <th class="text-right">Unit Price</th>
+        <th class="text-right">Line Total</th>
+        <th>When</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in sales_page %}
+      <tr>
+        <td class="mono">
+          {% if item.sale.channel == 'ONLINE' %}<a href="{% url 'portal:order_detail' item.sale.pk %}">#{{ item.sale.pk }}</a>
+          {% elif item.sale.channel == 'IN_STORE' %}<a href="{% url 'portal:register_receipt' item.sale.pk %}">#{{ item.sale.pk }}</a>
+          {% elif item.sale.channel == 'JUMIA' %}<a href="{% url 'portal:marketplace_detail' item.sale.pk %}">#{{ item.sale.pk }}</a>
+          {% else %}#{{ item.sale.pk }}{% endif %}
+        </td>
+        <td><span class="badge">{{ item.sale.get_channel_display }}</span></td>
+        <td class="text-right">{{ item.qty }}</td>
+        <td class="text-right mono">GHS {{ item.unit_price }}</td>
+        <td class="text-right mono">GHS {{ item.line_total }}</td>
+        <td class="text-muted">{{ item.sale.created_at|date:"M j, Y g:i A" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="text-muted">No sales yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include 'portal/_pagination.html' with page_obj=sales_page base_url=request.path page_param='sales_page' %}
+</div>
+
+<div class="card">
+  <h3>Stock Adjustments (Purchases / Restocks)</h3>
+  <table class="table">
+    <thead>
+      <tr>
+        <th class="text-right">Delta</th>
+        <th class="text-right">Resulting Qty</th>
+        <th>Reason</th>
+        <th>Notes</th>
+        <th>By</th>
+        <th>When</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for adj in stock_page %}
+      <tr>
+        <td class="text-right mono{% if adj.delta < 0 %} text-error{% endif %}">{{ adj.delta|stringformat:"+d" }}</td>
+        <td class="text-right">{{ adj.resulting_qty }}</td>
+        <td><span class="badge">{{ adj.get_reason_display }}</span></td>
+        <td class="text-muted">{{ adj.notes|default:"—" }}</td>
+        <td class="text-muted">{% if adj.adjusted_by %}{{ adj.adjusted_by.full_name|default:adj.adjusted_by.email }}{% else %}&mdash;{% endif %}</td>
+        <td class="text-muted">{{ adj.created_at|date:"M j, Y g:i A" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="text-muted">No stock adjustments yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include 'portal/_pagination.html' with page_obj=stock_page base_url=request.path page_param='stock_page' %}
+</div>
+{% endblock %}

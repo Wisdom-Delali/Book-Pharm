@@ -18,19 +18,22 @@
   <div class="portal-shell" x-data="{ sidebarOpen: false }">
     <div class="portal-sidebar-backdrop" x-show="sidebarOpen" x-cloak @click="sidebarOpen = false"></div>
     <aside class="portal-sidebar" :class="{ 'is-open': sidebarOpen }">
-      <a class="portal-sidebar__brand" href="{% url 'portal:dashboard' %}">Book Pharm</a>
+      <a class="portal-sidebar__brand" href="{% url 'portal:dashboard' %}">
+        <img src="{% static 'img/logo.svg' %}" alt="" width="32" height="32">
+        <span>Book Pharm</span>
+      </a>
+      <div class="portal-sidebar__divider"></div>
       <nav class="portal-sidebar__nav" @click="sidebarOpen = false">
         <a href="{% url 'portal:dashboard' %}" class="{% if active_nav == 'dashboard' %}is-active{% endif %}">
           <span class="material-symbols-outlined">space_dashboard</span> Dashboard
         </a>
+
+        <p class="portal-sidebar__section-label">Sales</p>
         <a href="{% url 'portal:register_create' %}" class="{% if active_nav == 'register' %}is-active{% endif %}">
           <span class="material-symbols-outlined">point_of_sale</span> New Sale
         </a>
         <a href="{% url 'portal:register_list' %}" class="{% if active_nav == 'register_list' %}is-active{% endif %}">
           <span class="material-symbols-outlined">history</span> In-Store Sales
-        </a>
-        <a href="{% url 'portal:book_list' %}" class="{% if active_nav == 'catalog' %}is-active{% endif %}">
-          <span class="material-symbols-outlined">inventory_2</span> Inventory
         </a>
         <a href="{% url 'portal:order_list' %}" class="{% if active_nav == 'orders' %}is-active{% endif %}">
           <span class="material-symbols-outlined">receipt_long</span> Orders
@@ -38,6 +41,19 @@
         <a href="{% url 'portal:marketplace_list' %}" class="{% if active_nav == 'marketplace' %}is-active{% endif %}">
           <span class="material-symbols-outlined">storefront</span> Marketplace (Jumia)
         </a>
+
+        <p class="portal-sidebar__section-label">Catalog</p>
+        <a href="{% url 'portal:book_list' %}" class="{% if active_nav == 'catalog' %}is-active{% endif %}">
+          <span class="material-symbols-outlined">inventory_2</span> Inventory
+        </a>
+        <a href="{% url 'portal:delivery_settings' %}" class="{% if active_nav == 'delivery' %}is-active{% endif %}">
+          <span class="material-symbols-outlined">local_shipping</span> Delivery
+        </a>
+        <a href="{% url 'portal:reconciliation_list' %}" class="{% if active_nav == 'reconciliation' %}is-active{% endif %}">
+          <span class="material-symbols-outlined">fact_check</span> Reconciliation
+        </a>
+
+        <p class="portal-sidebar__section-label">Customers</p>
         <a href="{% url 'portal:customer_list' %}" class="{% if active_nav == 'customers' %}is-active{% endif %}">
           <span class="material-symbols-outlined">group</span> Customers &amp; Loyalty
         </a>
@@ -47,18 +63,16 @@
         <a href="{% url 'portal:discount_list' %}" class="{% if active_nav == 'discounts' %}is-active{% endif %}">
           <span class="material-symbols-outlined">sell</span> Discounts
         </a>
-        <a href="{% url 'portal:delivery_settings' %}" class="{% if active_nav == 'delivery' %}is-active{% endif %}">
-          <span class="material-symbols-outlined">local_shipping</span> Delivery
-        </a>
-        <a href="{% url 'portal:reconciliation_list' %}" class="{% if active_nav == 'reconciliation' %}is-active{% endif %}">
-          <span class="material-symbols-outlined">fact_check</span> Reconciliation
-        </a>
+
+        <p class="portal-sidebar__section-label">Insights</p>
         <a href="{% url 'portal:reports_sales' %}" class="{% if active_nav == 'reports' %}is-active{% endif %}">
           <span class="material-symbols-outlined">bar_chart</span> Reports
         </a>
         <a href="{% url 'portal:expense_list' %}" class="{% if active_nav == 'expenses' %}is-active{% endif %}">
           <span class="material-symbols-outlined">payments</span> Expenses
         </a>
+
+        <p class="portal-sidebar__section-label">Admin</p>
         <a href="{% url 'portal:user_list' %}" class="{% if active_nav == 'users' %}is-active{% endif %}">
           <span class="material-symbols-outlined">manage_accounts</span> Users
         </a>
@@ -80,6 +94,12 @@
         <button type="button" class="portal-menu-toggle" @click="sidebarOpen = !sidebarOpen" aria-label="Toggle navigation">
           <span class="material-symbols-outlined">menu</span>
         </button>
+        <form class="portal-topbar__search" method="get" action="{% url 'portal:book_list' %}" x-data="{ searchOpen: false }" :class="{ 'is-open': searchOpen }">
+          <button type="button" class="portal-topbar__search-toggle" @click="searchOpen = !searchOpen" aria-label="Toggle search">
+            <span class="material-symbols-outlined">search</span>
+          </button>
+          <input type="search" name="q" placeholder="Search books by title, author, ISBN, or code...">
+        </form>
         <a href="{% url 'portal:register_create' %}" class="btn btn--primary portal-topbar__new-sale">
           <span class="material-symbols-outlined">point_of_sale</span> <span class="portal-topbar__new-sale-label">New Sale</span>
         </a>
