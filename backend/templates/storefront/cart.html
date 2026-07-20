@@ -17,13 +17,16 @@
       <span class="cart-row__author text-muted">{{ item.book.author }}</span>
       <span class="cart-row__unit-price mono text-muted">GHS {{ item.book.selling_price }} each</span>
     </div>
-    <form method="post" action="{% url 'storefront:cart_update' item.book.id %}" class="cart-row__qty">
+    <form method="post" action="{% url 'storefront:cart_update' item.book.id %}" class="cart-row__qty js-cart-qty-form">
       {% csrf_token %}
-      <input type="number" name="qty" value="{{ item.qty }}" min="1" max="{{ item.book.stock_qty }}" aria-label="Quantity">
-      <button type="submit" class="btn btn--secondary">Update</button>
+      <div class="qty-stepper">
+        <button type="button" data-step="-1" aria-label="Decrease quantity">&minus;</button>
+        <input type="number" name="qty" value="{{ item.qty }}" min="1" max="{{ item.book.stock_qty }}" aria-label="Quantity">
+        <button type="button" data-step="1" aria-label="Increase quantity">+</button>
+      </div>
     </form>
     <div class="cart-row__total mono">GHS {{ item.line_total }}</div>
-    <form method="post" action="{% url 'storefront:cart_remove' item.book.id %}" class="cart-row__remove">
+    <form method="post" action="{% url 'storefront:cart_remove' item.book.id %}" class="cart-row__remove js-cart-remove-form">
       {% csrf_token %}
       <button type="submit" aria-label="Remove {{ item.book.title }} from cart" title="Remove">
         <span class="material-symbols-outlined">delete</span>

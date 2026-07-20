@@ -167,13 +167,33 @@ def cart_add(request, book_id):
 def cart_update(request, book_id):
     if request.method == 'POST':
         qty = int(request.POST.get('qty', 0))
-        Cart(request).set_qty(book_id, qty)
+        cart = Cart(request)
+        cart.set_qty(book_id, qty)
+        if is_ajax(request):
+            # The quick +/- stepper (WISDOM.md #4) submits this on every
+            # click — no page reload, so the JSON response carries
+            # everything the page needs to patch in place: this row's own
+            # total (or a removal flag, if qty was dragged to 0), plus the
+            # cart-wide subtotal and badge count, which change regardless
+            # of which row triggered the update.
+            item = next((i for i in cart.get_items() if i['book'].id == book_id), None)
+            return JsonResponse({
+                'ok': True,
+                'removed': item is None,
+                'qty': item['qty'] if item else 0,
+                'line_total': str(item['line_total']) if item else '0.00',
+                'subtotal': str(cart.subtotal()),
+                'cart_count': len(cart),
+            })
     return redirect('storefront:cart')
 
 
 def cart_remove(request, book_id):
     if request.method == 'POST':
-        Cart(request).remove(book_id)
+        cart = Cart(request)
+        cart.remove(book_id)
+        if is_ajax(request):
+            return JsonResponse({'ok': True, 'subtotal': str(cart.subtotal()), 'cart_count': len(cart)})
     return redirect('storefront:cart')
 
 

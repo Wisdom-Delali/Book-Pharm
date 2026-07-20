@@ -1,7 +1,7 @@
 1. [done] Home screen to match picture — rebuilt (2026-07-18): sidebar+topbar shell, hero, featured/new-arrivals rails, shop-by-category.
 2. [done] Product screen to match picture — rebuilt (2026-07-18): price-tag badge on cover, real star rating, quantity stepper, related books.
 3. [done] Quick "Add to cart" button for products — cart-icon button on every book card (home, browse, related), no need to open the product page first.
-4. Quick "+" and "-" button in cart to increase or decrease qty (the product-page qty selector now has this — see #2 — but the cart page itself still uses a plain number input + Update button)
+4. [done] Quick "+" and "-" button in cart to increase or decrease qty — cart rows now use the same qty-stepper as the product page (2026-07-19), and each click submits immediately via AJAX (updates that row's total, the cart subtotal, and the badge count with no page reload) rather than needing a separate "Update" click. Typing a value directly still works too (submits on blur/change). The delete button also became AJAX at the same time, since leaving it as a full-page-reload right next to an instant qty stepper would've been a jarring inconsistency.
 5. For location, try getting device current location or allow entering location address (will use Google Maps API) — key available when this is picked up, see checkout flow
 6. [done] Book descriptions, excerpts — already rendered on the rebuilt product page when a book has one
 7. [done] Change primary btn color to a shade of red. the current is too dull — storefront buttons now use the burgundy/red token, matching the mockup's actual Add to Cart color; gold stays reserved for price tags

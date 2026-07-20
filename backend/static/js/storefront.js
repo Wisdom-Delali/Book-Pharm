@@ -70,21 +70,111 @@ function flashQuickAddButtons(buttons) {
   });
 }
 
+// ---------- Cart page: quick +/- qty stepper + delete, both no-reload ----------
+// (WISDOM.md #4) Unlike the book-detail page's stepper (adjusts the input,
+// waits for an explicit "Add to Cart" click), a cart row's qty is already
+// committed — "quick" here means each +/- click submits immediately, no
+// separate confirm step. Typing an exact number and tabbing away submits
+// the same way (the `change` listener below), so there's still a precise
+// path for a large quantity without clicking + repeatedly.
+
+function clampStep(input, step) {
+  const min = parseInt(input.min || '1', 10);
+  const max = parseInt(input.max || '99', 10);
+  const current = parseInt(input.value, 10) || min;
+  return Math.min(max, Math.max(min, current + step));
+}
+
+async function handleCartQtyUpdate(form) {
+  const row = form.closest('.cart-row');
+  const controls = form.querySelectorAll('button, input');
+  controls.forEach((el) => { el.disabled = true; });
+
+  try {
+    const res = await fetch(form.action, {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      body: new FormData(form),
+    });
+    if (!res.ok) throw new Error('update failed');
+    const data = await res.json();
+    if (data.removed) {
+      row.remove();
+      if (!document.querySelector('.cart-row')) location.reload(); // last item — let the server render the empty-cart state
+    } else {
+      const totalEl = row.querySelector('.cart-row__total');
+      if (totalEl) totalEl.textContent = 'GHS ' + data.line_total;
+    }
+    applyCartTotals(data);
+  } catch (err) {
+    showToast('Could not update quantity. Please try again.', 'error');
+  } finally {
+    controls.forEach((el) => { el.disabled = false; });
+  }
+}
+
+async function handleCartRemove(form) {
+  const row = form.closest('.cart-row');
+  form.querySelectorAll('button').forEach((b) => { b.disabled = true; });
+  try {
+    const res = await fetch(form.action, {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      body: new FormData(form),
+    });
+    if (!res.ok) throw new Error('remove failed');
+    const data = await res.json();
+    row.remove();
+    if (!document.querySelector('.cart-row')) location.reload();
+    applyCartTotals(data);
+  } catch (err) {
+    showToast('Could not remove that item. Please try again.', 'error');
+    form.querySelectorAll('button').forEach((b) => { b.disabled = false; });
+  }
+}
+
+function applyCartTotals(data) {
+  const subtotalEl = document.querySelector('.summary-total .value');
+  if (subtotalEl && data.subtotal !== undefined) subtotalEl.textContent = 'GHS ' + data.subtotal;
+  if (data.cart_count !== undefined) updateCartBadges(data.cart_count);
+}
+
 document.addEventListener('submit', (event) => {
-  if (!event.target.matches('.js-add-to-cart-form')) return;
-  event.preventDefault();
-  handleAddToCart(event.target);
+  if (event.target.matches('.js-add-to-cart-form')) {
+    event.preventDefault();
+    handleAddToCart(event.target);
+  } else if (event.target.matches('.js-cart-qty-form')) {
+    event.preventDefault();
+    handleCartQtyUpdate(event.target);
+  } else if (event.target.matches('.js-cart-remove-form')) {
+    event.preventDefault();
+    handleCartRemove(event.target);
+  }
+});
+
+document.addEventListener('change', (event) => {
+  if (!event.target.matches('.js-cart-qty-form input[name="qty"]')) return;
+  event.target.closest('form').requestSubmit();
 });
 
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.qty-stepper button[data-step]').forEach((btn) => {
+    const cartForm = btn.closest('.js-cart-qty-form');
+    if (cartForm) {
+      // Cart row: adjust, then submit immediately — see handleCartQtyUpdate.
+      btn.addEventListener('click', () => {
+        const input = cartForm.querySelector('input[name="qty"]');
+        const next = clampStep(input, parseInt(btn.dataset.step, 10));
+        if (next === parseInt(input.value, 10)) return;
+        input.value = next;
+        cartForm.requestSubmit();
+      });
+      return;
+    }
+    // Book-detail page: adjust only, "Add to Cart" is a separate click.
     btn.addEventListener('click', () => {
       const input = btn.parentElement.querySelector('input[name="qty"]');
-      const step = parseInt(btn.dataset.step, 10);
-      const min = parseInt(input.min || '1', 10);
-      const max = parseInt(input.max || '99', 10);
-      const next = (parseInt(input.value, 10) || min) + step;
-      input.value = Math.min(max, Math.max(min, next));
+      input.value = clampStep(input, parseInt(btn.dataset.step, 10));
     });
   });
 
