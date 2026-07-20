@@ -11,6 +11,30 @@
   <a class="btn btn--primary" href="{% url 'portal:register_create' %}">+ New Sale</a>
 </header>
 
+<form class="toolbar card" method="get">
+  <div class="form-field">
+    <label class="form-label" for="filter-start">From</label>
+    <input type="date" name="start" id="filter-start" value="{{ start }}">
+  </div>
+  <div class="form-field">
+    <label class="form-label" for="filter-end">To</label>
+    <input type="date" name="end" id="filter-end" value="{{ end }}">
+  </div>
+  <div class="form-field">
+    <label class="form-label" for="filter-payment">Payment method</label>
+    <select name="payment_method" id="filter-payment">
+      <option value="">All</option>
+      {% for value, label in payment_methods %}
+      <option value="{{ value }}" {% if selected_payment_method == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit" class="btn btn--secondary">Filter</button>
+  {% if start or end or selected_payment_method %}
+  <a href="{% url 'portal:register_list' %}" class="btn btn--secondary">Clear</a>
+  {% endif %}
+</form>
+
 <div class="card catalog-table-card">
   <table class="table">
     <thead>
@@ -40,5 +64,6 @@
       {% endfor %}
     </tbody>
   </table>
+  {% include 'portal/_pagination.html' with base_url=request.path querystring=querystring %}
 </div>
 {% endblock %}

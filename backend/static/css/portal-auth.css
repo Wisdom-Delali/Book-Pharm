@@ -35,11 +35,29 @@
 .portal-auth-panel { flex: 1 1 50%; min-width: 0; }
 
 .portal-auth-panel--form {
+  position: relative;
   padding: var(--space-stack-lg);
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
+
+/* Absolutely positioned so it doesn't push the vertically-centered
+   brand/form block down — sits in its own corner regardless. */
+.portal-auth-back {
+  position: absolute;
+  top: var(--space-stack-md);
+  left: var(--space-stack-lg);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-on-surface-variant);
+  text-decoration: none;
+}
+.portal-auth-back:hover { color: var(--color-primary); }
+.portal-auth-back .material-symbols-outlined { font-size: 1.1rem; }
 
 .portal-auth-brand {
   display: flex;

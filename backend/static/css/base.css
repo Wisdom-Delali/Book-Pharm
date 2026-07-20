@@ -88,6 +88,8 @@ a { color: var(--color-primary); }
 
 button:disabled { opacity: 0.5; cursor: not-allowed; }
 
+[x-cloak] { display: none !important; }
+
 input[type="text"], input[type="search"], input[type="number"], input[type="email"],
 input[type="password"], input[type="date"],
 select, textarea {

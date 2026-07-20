@@ -30,9 +30,9 @@
   <h2>Featured</h2>
   <a href="{% url 'storefront:book_list' %}?sort=new">See all</a>
 </div>
-<div class="book-grid">
+<div class="featured-grid">
   {% for entry in featured_books %}
-  {% include 'storefront/_book_card.html' with book=entry.book badge=entry.badge %}
+  {% include 'storefront/_featured_card.html' with book=entry.book badge=entry.badge avg_rating=entry.avg_rating review_count=entry.review_count full_stars=entry.full_stars %}
   {% endfor %}
 </div>
 {% endif %}

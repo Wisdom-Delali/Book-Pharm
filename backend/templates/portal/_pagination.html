@@ -1,0 +1,31 @@
+{% comment %}
+Generic portal pagination control.
+Required: page_obj, base_url (a resolved URL, e.g. {% url 'portal:user_list' %}).
+Optional: querystring — extra "k=v&k2=v2" to preserve filters across pages
+(no leading/trailing &); hx_target — e.g. "#discount-content", set on the
+panel-based list pages so paging fits the same instant-swap navigation as
+the rest of the page instead of a full reload; page_param — defaults to
+"page", set to something else (e.g. "loyalty_page") when a page has more
+than one independently-paginated table so the two don't collide.
+{% endcomment %}
+{% if page_obj.paginator.num_pages > 1 %}
+{% with page_param=page_param|default:'page' %}
+<div class="pagination">
+  <p class="text-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ page_obj.paginator.count }} total)</p>
+  <div class="pagination__controls">
+    {% if page_obj.has_previous %}
+    <a class="btn btn--secondary" href="{{ base_url }}?{{ querystring }}{{ page_param }}={{ page_obj.previous_page_number }}"
+       {% if hx_target %}hx-get="{{ base_url }}?{{ querystring }}{{ page_param }}={{ page_obj.previous_page_number }}" hx-target="{{ hx_target }}" hx-swap="outerHTML"{% endif %}>Previous</a>
+    {% else %}
+    <button class="btn btn--secondary" disabled>Previous</button>
+    {% endif %}
+    {% if page_obj.has_next %}
+    <a class="btn btn--secondary" href="{{ base_url }}?{{ querystring }}{{ page_param }}={{ page_obj.next_page_number }}"
+       {% if hx_target %}hx-get="{{ base_url }}?{{ querystring }}{{ page_param }}={{ page_obj.next_page_number }}" hx-target="{{ hx_target }}" hx-swap="outerHTML"{% endif %}>Next</a>
+    {% else %}
+    <button class="btn btn--secondary" disabled>Next</button>
+    {% endif %}
+  </div>
+</div>
+{% endwith %}
+{% endif %}

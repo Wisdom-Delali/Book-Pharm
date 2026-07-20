@@ -39,6 +39,29 @@ class UserCreateForm(forms.ModelForm):
         return user
 
 
+class AdminResetPasswordForm(forms.Form):
+    """Owner resets an Attendant's password to a value the owner chooses —
+    no email-reset flow, no current-password confirmation (the owner isn't
+    the account holder and can't know it): same "just set it directly"
+    reasoning as UserCreateForm's own password fields, applied to an
+    existing account instead of a new one."""
+
+    password1 = forms.CharField(label='New password', widget=forms.PasswordInput)
+    password2 = forms.CharField(label='Confirm new password', widget=forms.PasswordInput)
+
+    def clean(self):
+        cleaned = super().clean()
+        password1, password2 = cleaned.get('password1'), cleaned.get('password2')
+        if password1 and password2 and password1 != password2:
+            self.add_error('password2', 'Passwords do not match.')
+        if password1:
+            try:
+                validate_password(password1)
+            except ValidationError as exc:
+                self.add_error('password1', exc)
+        return cleaned
+
+
 class EmailLoginForm(forms.Form):
     email = forms.EmailField(widget=forms.EmailInput(attrs={'autofocus': True}))
     password = forms.CharField(widget=forms.PasswordInput)

@@ -31,7 +31,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for book in books %}
+      {% for book in page_obj %}
       <tr>
         <td>{{ book.title }}</td>
         <td><span class="badge">{{ book.category.name }}</span></td>
@@ -45,11 +45,12 @@
     </tbody>
     <tfoot>
       <tr>
-        <td colspan="3"><strong>Total</strong></td>
+        <td colspan="3"><strong>Total (all books)</strong></td>
         <td class="text-right mono"><strong>GHS {{ totals.cost_value|default:0 }}</strong></td>
         <td class="text-right mono"><strong>GHS {{ totals.retail_value|default:0 }}</strong></td>
       </tr>
     </tfoot>
   </table>
+  {% include 'portal/_pagination.html' with base_url=request.path %}
 </div>
 {% endblock %}

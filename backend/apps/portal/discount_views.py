@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.sales.forms import DiscountRuleForm
@@ -8,12 +9,15 @@ from .htmx import is_htmx as _is_htmx
 
 CONTENT_TEMPLATE = 'portal/discounts/_content.html'
 PAGE_TEMPLATE = 'portal/discounts/list.html'
+PAGE_SIZE = 20
 
 
-def _list_context():
+def _list_context(request):
+    qs = DiscountRule.objects.select_related('category', 'book').all()
+    paginator = Paginator(qs, PAGE_SIZE)
     return {
         'active_nav': 'discounts',
-        'rules': DiscountRule.objects.select_related('category', 'book').all(),
+        'page_obj': paginator.get_page(request.GET.get('page')),
         'panel_open': False,
         'form': None,
         'editing_rule': None,
@@ -21,7 +25,7 @@ def _list_context():
 
 
 def _render_list(request, extra_context=None):
-    context = _list_context()
+    context = _list_context(request)
     context.update(extra_context or {})
     template = CONTENT_TEMPLATE if _is_htmx(request) else PAGE_TEMPLATE
     return render(request, template, context)

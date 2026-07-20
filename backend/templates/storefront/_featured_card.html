@@ -1,0 +1,60 @@
+{% comment %}
+Richer card for the homepage Featured section specifically — home() always
+slices to exactly 2 books, so there's room for more than the standard
+_book_card.html shows: rating, category, a description excerpt. Reuses the
+same hidden-form + .js-add-to-cart-form AJAX add-to-cart mechanism as
+_book_card.html (storefront.js already handles it — nothing new to wire up).
+Params: book, badge, avg_rating, review_count, full_stars.
+{% endcomment %}
+<div class="featured-card">
+  <a class="featured-card__cover-link" href="{% url 'storefront:book_detail' book.slug %}">
+    <div class="featured-card__cover">
+      {% if book.cover_image %}<img src="{{ book.cover_image.url }}" alt="{{ book.title }} cover" loading="lazy">{% endif %}
+      <span class="featured-card__badge">{{ badge }}</span>
+    </div>
+  </a>
+  <div class="featured-card__body">
+    <span class="featured-card__category">{{ book.category.name }}</span>
+    <a class="featured-card__title-link" href="{% url 'storefront:book_detail' book.slug %}">
+      <h3 class="featured-card__title">{{ book.title }}</h3>
+    </a>
+    <p class="featured-card__author">{{ book.author }}</p>
+
+    <div class="rating-row" style="margin: 0.3rem 0 0;">
+      <span class="star-display">{% for i in "12345" %}{% if forloop.counter <= full_stars %}&#9733;{% else %}&#9734;{% endif %}{% endfor %}</span>
+      {% if review_count %}
+      <span class="text-muted" style="font-size: 0.8rem;">{{ avg_rating|floatformat:1 }} ({{ review_count }})</span>
+      {% else %}
+      <span class="text-muted" style="font-size: 0.8rem;">No reviews yet</span>
+      {% endif %}
+    </div>
+
+    {% if book.description %}
+    <p class="featured-card__excerpt">{{ book.description|truncatewords:22 }}</p>
+    {% endif %}
+
+    {% if book.tags.all %}
+    <div class="tag-chips">
+      {% for tag in book.tags.all %}<span class="badge badge--tag">{{ tag.name }}</span>{% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="featured-card__footer">
+      <span class="featured-card__price">GHS {{ book.selling_price }}</span>
+      {% if book.stock_qty > 0 %}
+      <button type="submit" form="quick-add-{{ book.id }}" class="btn btn--primary featured-card__add">
+        <span class="material-symbols-outlined">add_shopping_cart</span> Add to Cart
+      </button>
+      {% else %}
+      <button type="button" class="book-card__sold-out-btn" disabled>Sold Out</button>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% if book.stock_qty > 0 %}
+<form id="quick-add-{{ book.id }}" method="post" action="{% url 'storefront:cart_add' book.id %}" class="js-add-to-cart-form" hidden>
+  {% csrf_token %}
+  <input type="hidden" name="qty" value="1">
+  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+</form>
+{% endif %}

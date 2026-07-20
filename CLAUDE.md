@@ -67,6 +67,7 @@ These come from the client's completed questionnaire. **They are decided — don
 - **Profit tracking:** cost price vs. selling price per book
 - **Devices:** shop + occasional book fairs → **offline support with later sync is mandatory**
 - **Access:** three tiers, added 2026-07-19, owner request — **Superuser** (developer/Django-admin access, never listed or manageable in the portal), **Owner** (full portal access, including creating/revoking other accounts), **Attendant** (desktop POS only, rejected at the portal login view). `apps.accounts.models.User.Role` was modeled for this from Phase 0 (`OWNER`/`ATTENDANT`, formerly `OWNER`/`STAFF`) — this is that anticipated next step, not a redesign. The owner can also ring up an in-store sale directly from the portal (`portal:register_create`), the same `create_sale()` path the desktop POS uses.
+  - **Password management**, added 2026-07-20: the Owner changes their own password self-service (`portal:change_password`, current-password required, standard Django `PasswordChangeForm`). The Owner can reset an **Attendant's** password directly to a value of their choosing (`portal:user_reset_password`, "just a number input"-style — no email flow) — scoped to Attendant only; Owner-to-Owner resets are a different permission question and aren't built.
 
 ### Explicitly out of scope
 

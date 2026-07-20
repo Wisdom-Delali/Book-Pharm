@@ -3,9 +3,12 @@ from datetime import timezone as dt_timezone
 from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db.models import Count, F, Sum
 from django.db.models.functions import TruncDate, TruncMonth, TruncWeek
 from django.shortcuts import render
+
+REPORT_PAGE_SIZE = 25
 
 from apps.catalog.models import Book
 from apps.expenses.models import Expense
@@ -64,7 +67,9 @@ def sales_report(request):
 
     context = _base_context(start, end, granularity, 'sales')
     context.update({
-        'rows': rows,
+        # totals/chart use the full (unpaginated) rows — only the table
+        # display below is paged.
+        'page_obj': Paginator(rows, REPORT_PAGE_SIZE).get_page(request.GET.get('page')),
         'totals': totals,
         'by_channel': by_channel,
         'selected_channel': channel,
@@ -111,7 +116,10 @@ def profit_report(request):
         )
 
     context = _base_context(start, end, granularity, 'profit')
-    context.update({'rows': rows, 'totals': totals})
+    context.update({
+        'page_obj': Paginator(rows, REPORT_PAGE_SIZE).get_page(request.GET.get('page')),
+        'totals': totals,
+    })
     return render(request, 'portal/reports/profit.html', context)
 
 
@@ -141,7 +149,11 @@ def stock_report(request):
 
     context = {
         'active_nav': 'reports', 'report_tab': 'stock',
-        'books': books, 'totals': totals,
+        # Aggregates are computed above, on the full (unsliced) queryset —
+        # pagination below is display-only and must never affect them, or
+        # the footer total would silently only reflect the current page.
+        'page_obj': Paginator(books, REPORT_PAGE_SIZE).get_page(request.GET.get('page')),
+        'totals': totals,
         'low_stock_count': low_stock_count, 'out_of_stock_count': out_of_stock_count,
         'total_books': books.count(),
     }

@@ -17,6 +17,10 @@
   background: var(--color-surface-container-low);
   border-right: 1px solid var(--color-outline-variant);
   padding: var(--space-stack-lg) var(--space-stack-md);
+  /* Inert on desktop (transform never changes here) — declared on the base
+     rule rather than duplicated inside the media query below, since it's
+     the same transition either way, just only ever triggered under 900px. */
+  transition: transform 0.25s ease;
 }
 
 .portal-sidebar__brand {
@@ -85,20 +89,127 @@
   padding: 0.75rem var(--space-margin);
 }
 .portal-topbar__new-sale { display: flex; align-items: center; gap: 0.4rem; }
-.portal-topbar__user { display: flex; align-items: center; gap: 0.5rem; }
-.portal-topbar__user .material-symbols-outlined { font-size: 2rem; color: var(--color-on-surface-variant); }
+
+.portal-topbar__user { position: relative; }
+.portal-topbar__user-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  padding: 0.3rem 0.4rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+}
+.portal-topbar__user-trigger:hover { background: var(--color-surface-container-low); }
+.portal-topbar__user-trigger .material-symbols-outlined { font-size: 2rem; color: var(--color-on-surface-variant); }
 .portal-topbar__user-name { font-weight: 700; font-size: 0.85rem; display: block; }
 .portal-topbar__user-role { font-size: 0.7rem; color: var(--color-on-surface-variant); }
+.portal-topbar__user-chevron { font-size: 1.2rem !important; color: var(--color-on-surface-variant); transition: transform 0.15s ease; }
+.portal-topbar__user-chevron.is-open { transform: rotate(180deg); }
+
+.portal-topbar__dropdown {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  min-width: 230px;
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
+  padding: 0.5rem;
+  z-index: 20;
+}
+.portal-topbar__dropdown-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.5rem 0.6rem 0.75rem;
+  margin-bottom: 0.25rem;
+  border-bottom: 1px solid var(--color-outline-variant);
+}
+.portal-topbar__dropdown-header .mono { font-size: 0.75rem; color: var(--color-on-surface-variant); }
+.portal-topbar__dropdown-header .badge { margin-top: 0.3rem; align-self: flex-start; }
+.portal-topbar__dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.6rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-on-surface);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.portal-topbar__dropdown-item:hover { background: var(--color-surface-container-low); }
+.portal-topbar__dropdown-item--danger { color: var(--color-error); }
+.portal-topbar__dropdown-item .material-symbols-outlined { font-size: 1.2rem; color: inherit; }
 
 .portal-main {
   flex-grow: 1;
   padding: var(--space-margin);
 }
 
-@media (max-width: 768px) {
+/* Hamburger toggle — hidden on desktop, where the sidebar is always
+   visible (position: sticky, in normal flow) and there's nothing to
+   toggle. margin-right: auto pins it to the left of the topbar even
+   though the topbar itself is justify-content: flex-end (for New
+   Sale/user, which stay grouped at the right). */
+.portal-menu-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0.4rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--color-on-surface);
+  margin-right: auto;
+}
+.portal-menu-toggle:hover { background: var(--color-surface-container-low); }
+.portal-menu-toggle .material-symbols-outlined { font-size: 1.6rem; }
+
+.portal-sidebar-backdrop { display: none; }
+
+@media (max-width: 900px) {
   .portal-shell { flex-direction: column; }
-  .portal-sidebar { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--color-outline-variant); }
-  .portal-topbar { flex-wrap: wrap; }
+
+  /* Off-canvas: fixed + translated out of view rather than the old
+     "static, full-width, stacked above the content" approach — with 13
+     nav items that pushed the entire page's real content below a wall of
+     links on every mobile load, which wasn't really "responsive" so much
+     as "present but useless". */
+  .portal-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: min(300px, 85vw);
+    height: 100vh;
+    z-index: 100;
+    transform: translateX(-100%);
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.2);
+  }
+  .portal-sidebar.is-open { transform: translateX(0); }
+
+  .portal-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(28, 12, 15, 0.4);
+    z-index: 90;
+  }
+
+  .portal-menu-toggle { display: flex; }
+
+  .portal-topbar { flex-wrap: nowrap; padding: 0.6rem var(--space-margin, 16px); gap: 0.5rem; }
+  /* Icon-only — "New Sale" spelled out plus a hamburger plus the user
+     trigger doesn't fit a phone-width topbar in one row. */
+  .portal-topbar__new-sale-label { display: none; }
+  .portal-topbar__new-sale { padding: 0.625rem; }
+  .portal-topbar__user-meta { display: none; }
+  .portal-topbar__dropdown { right: -0.5rem; }
 }
 
 /* Catalog: header, toolbar, table, slide-over panel */

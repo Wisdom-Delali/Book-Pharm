@@ -122,6 +122,21 @@
     addressField.style.display = needsAddress ? 'block' : 'none';
     if (needsAddress) addressLabel.textContent = ADDRESS_LABELS[value];
     if (addressInput) addressInput.required = needsAddress;
+
+    // Rider Delivery (Yango/Bolt/Uber) never has a calculated fee — Book
+    // Pharm charges for the books only, the ride is paid to the driver
+    // directly (CLAUDE.md §4). The address field is shared with DELIVERY
+    // (same input, same lat/lng capture), so without this check switching
+    // to Rider Delivery after picking a point would leave a stale — or a
+    // freshly re-triggered — "Estimated delivery fee" showing, which would
+    // flatly contradict the "No delivery fee" note right above it.
+    if (feePreview) {
+      if (value === 'DELIVERY') {
+        updateFeePreview();
+      } else {
+        feePreview.style.display = 'none';
+      }
+    }
   }
 
   document.querySelectorAll('input[name="fulfillment_type"]').forEach((el) => {
@@ -133,9 +148,16 @@
   // configured (feePreview is null otherwise) — a zone dropdown already
   // labels its own price, but distance pricing has nothing to show the
   // customer until a point is picked, so without this they'd see no fee
-  // at all until the payment page.
+  // at all until the payment page. Guarded on fulfillment_type itself, not
+  // just on the change event above — the address field (and its
+  // autocomplete/geolocation handlers, which also call this directly) is
+  // shared with Rider Delivery, which never has a calculated fee.
   async function updateFeePreview() {
-    if (!feePreview || !latInput.value || !lngInput.value) return;
+    const selected = document.querySelector('input[name="fulfillment_type"]:checked');
+    if (!feePreview || !selected || selected.value !== 'DELIVERY' || !latInput.value || !lngInput.value) {
+      if (feePreview) feePreview.style.display = 'none';
+      return;
+    }
     feePreview.style.display = 'block';
     feePreview.classList.remove('text-error');
     feePreview.textContent = 'Calculating delivery fee…';

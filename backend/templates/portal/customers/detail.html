@@ -44,7 +44,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for sale in sales %}
+      {% for sale in sales_page %}
       <tr>
         <td>{% if sale.channel == 'ONLINE' %}<a href="{% url 'portal:order_detail' sale.pk %}">#{{ sale.pk }}</a>{% else %}#{{ sale.pk }}{% endif %}</td>
         <td><span class="badge">{{ sale.get_channel_display }}</span></td>
@@ -61,6 +61,7 @@
       {% endfor %}
     </tbody>
   </table>
+  {% include 'portal/_pagination.html' with page_obj=sales_page base_url=request.path %}
 </div>
 
 <h3 style="margin-top: var(--space-stack-lg);">Loyalty Ledger</h3>
@@ -75,7 +76,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for txn in loyalty_transactions %}
+      {% for txn in loyalty_page %}
       <tr>
         <td class="text-muted">{{ txn.created_at|date:"M j, Y" }}</td>
         <td>{{ txn.get_reason_display }}</td>
@@ -91,5 +92,6 @@
       {% endfor %}
     </tbody>
   </table>
+  {% include 'portal/_pagination.html' with page_obj=loyalty_page base_url=request.path page_param='loyalty_page' %}
 </div>
 {% endblock %}

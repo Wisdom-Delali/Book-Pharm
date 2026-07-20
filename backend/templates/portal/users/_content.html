@@ -22,7 +22,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for u in users %}
+        {% for u in page_obj %}
         <tr>
           <td><strong>{{ u.full_name|default:"—" }}</strong>{% if u.pk == request.user.pk %} <span class="badge">You</span>{% endif %}</td>
           <td class="mono">{{ u.email }}</td>
@@ -31,7 +31,10 @@
             {% if u.is_active %}<span class="badge badge--ok">Active</span>{% else %}<span class="badge badge--error">Revoked</span>{% endif %}
           </td>
           <td class="text-muted">{{ u.date_joined|date:"M j, Y" }}</td>
-          <td class="text-right">
+          <td class="text-right" style="display: flex; gap: 0.4rem; justify-content: flex-end;">
+            {% if u.role == 'ATTENDANT' %}
+            <button class="btn btn--secondary" hx-get="{% url 'portal:user_reset_password' u.pk %}" hx-target="#users-content" hx-swap="outerHTML">Reset Password</button>
+            {% endif %}
             {% if u.pk != request.user.pk %}
             <form method="post" action="{% url 'portal:user_toggle_active' u.pk %}">
               {% csrf_token %}
@@ -45,12 +48,17 @@
         {% endfor %}
       </tbody>
     </table>
+    {% include 'portal/_pagination.html' with base_url=request.path hx_target='#users-content' %}
   </div>
 
   {% if panel_open %}
   <div class="panel-backdrop" hx-get="{% url 'portal:user_list' %}" hx-target="#users-content" hx-swap="outerHTML"></div>
   <aside class="panel">
-    {% include 'portal/users/_form.html' %}
+    {% if resetting_user %}
+      {% include 'portal/users/_reset_password_form.html' %}
+    {% else %}
+      {% include 'portal/users/_form.html' %}
+    {% endif %}
   </aside>
   {% endif %}
 </div>

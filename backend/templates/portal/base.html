@@ -15,10 +15,11 @@
   {% block extra_head %}{% endblock %}
 </head>
 <body>
-  <div class="portal-shell">
-    <aside class="portal-sidebar">
+  <div class="portal-shell" x-data="{ sidebarOpen: false }">
+    <div class="portal-sidebar-backdrop" x-show="sidebarOpen" x-cloak @click="sidebarOpen = false"></div>
+    <aside class="portal-sidebar" :class="{ 'is-open': sidebarOpen }">
       <a class="portal-sidebar__brand" href="{% url 'portal:dashboard' %}">Book Pharm</a>
-      <nav class="portal-sidebar__nav">
+      <nav class="portal-sidebar__nav" @click="sidebarOpen = false">
         <a href="{% url 'portal:dashboard' %}" class="{% if active_nav == 'dashboard' %}is-active{% endif %}">
           <span class="material-symbols-outlined">space_dashboard</span> Dashboard
         </a>
@@ -76,15 +77,34 @@
 
     <div class="portal-columns">
       <header class="portal-topbar">
+        <button type="button" class="portal-menu-toggle" @click="sidebarOpen = !sidebarOpen" aria-label="Toggle navigation">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
         <a href="{% url 'portal:register_create' %}" class="btn btn--primary portal-topbar__new-sale">
-          <span class="material-symbols-outlined">point_of_sale</span> New Sale
+          <span class="material-symbols-outlined">point_of_sale</span> <span class="portal-topbar__new-sale-label">New Sale</span>
         </a>
-        <div class="portal-topbar__user">
-          <span class="material-symbols-outlined">account_circle</span>
-          <span>
-            <span class="portal-topbar__user-name">{{ request.user.full_name|default:request.user.email }}</span>
-            <span class="portal-topbar__user-role">{{ request.user.get_role_display }}</span>
-          </span>
+        <div class="portal-topbar__user" x-data="{ open: false }" @click.outside="open = false">
+          <button type="button" class="portal-topbar__user-trigger" @click="open = !open">
+            <span class="material-symbols-outlined">account_circle</span>
+            <span class="portal-topbar__user-meta">
+              <span class="portal-topbar__user-name">{{ request.user.full_name|default:request.user.email }}</span>
+              <span class="portal-topbar__user-role">{{ request.user.get_role_display }}</span>
+            </span>
+            <span class="material-symbols-outlined portal-topbar__user-chevron" :class="{ 'is-open': open }">expand_more</span>
+          </button>
+          <div class="portal-topbar__dropdown" x-show="open" x-cloak @click="open = false">
+            <div class="portal-topbar__dropdown-header">
+              <strong>{{ request.user.full_name|default:"—" }}</strong>
+              <span class="mono">{{ request.user.email }}</span>
+              <span class="badge">{{ request.user.get_role_display }}</span>
+            </div>
+            <a href="{% url 'portal:change_password' %}" class="portal-topbar__dropdown-item">
+              <span class="material-symbols-outlined">lock_reset</span> Change Password
+            </a>
+            <a href="{% url 'portal:logout' %}" class="portal-topbar__dropdown-item portal-topbar__dropdown-item--danger">
+              <span class="material-symbols-outlined">logout</span> Log Out
+            </a>
+          </div>
         </div>
       </header>
 

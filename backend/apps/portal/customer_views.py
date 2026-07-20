@@ -51,12 +51,14 @@ def customer_list(request):
 def customer_detail(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     sales = customer.sales.select_related('fulfillment').prefetch_related('items').order_by('-created_at')
-    loyalty_transactions = customer.loyalty_transactions.select_related('sale')[:50]
+    loyalty_transactions = customer.loyalty_transactions.select_related('sale').order_by('-created_at')
+    sales_page = Paginator(sales, PAGE_SIZE).get_page(request.GET.get('page'))
+    loyalty_page = Paginator(loyalty_transactions, PAGE_SIZE).get_page(request.GET.get('loyalty_page'))
     return render(request, 'portal/customers/detail.html', {
         'active_nav': 'customers',
         'customer': customer,
-        'sales': sales,
-        'loyalty_transactions': loyalty_transactions,
+        'sales_page': sales_page,
+        'loyalty_page': loyalty_page,
     })
 
 

@@ -68,9 +68,16 @@ def home(request):
         .select_related('category').prefetch_related('tags')
         .order_by('-total_sold', '-created_at')[:2]
     )
-    featured_books = [
-        {'book': b, 'badge': 'Bestseller' if b.total_sold > 0 else 'New In'} for b in featured_qs
-    ]
+    featured_books = []
+    for b in featured_qs:
+        rating = Review.objects.filter(sale__items__book=b).aggregate(avg=Avg('rating'), count=Count('id'))
+        featured_books.append({
+            'book': b,
+            'badge': 'Bestseller' if b.total_sold > 0 else 'New In',
+            'avg_rating': rating['avg'] or 0,
+            'review_count': rating['count'],
+            'full_stars': round(rating['avg'] or 0),
+        })
     featured_ids = [entry['book'].id for entry in featured_books]
 
     new_arrivals = list(

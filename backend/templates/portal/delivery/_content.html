@@ -49,7 +49,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for rule in rules %}
+        {% for rule in page_obj %}
         <tr>
           <td>{{ rule.get_method_display }}</td>
           <td>
@@ -74,6 +74,7 @@
         {% endfor %}
       </tbody>
     </table>
+    {% include 'portal/_pagination.html' with base_url=request.path hx_target='#delivery-content' %}
   </div>
 
   {% if panel_open %}

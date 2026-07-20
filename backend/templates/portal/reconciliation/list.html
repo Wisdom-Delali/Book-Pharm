@@ -43,7 +43,7 @@
   </table>
 </div>
 
-{% if resolved %}
+<h3 style="margin-top: var(--space-stack-lg);">Resolved</h3>
 <div class="card catalog-table-card">
   <table class="table">
     <thead>
@@ -56,7 +56,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for d in resolved %}
+      {% for d in page_obj %}
       <tr>
         <td>{{ d.book.title }}</td>
         <td class="text-right">{{ d.stock_qty_after }}</td>
@@ -64,9 +64,11 @@
         <td class="text-muted">{{ d.resolution_notes }}</td>
         <td class="text-muted">{{ d.resolved_at }}</td>
       </tr>
+      {% empty %}
+      <tr><td colspan="5" class="text-muted">Nothing resolved yet.</td></tr>
       {% endfor %}
     </tbody>
   </table>
+  {% include 'portal/_pagination.html' with base_url=request.path %}
 </div>
-{% endif %}
 {% endblock %}

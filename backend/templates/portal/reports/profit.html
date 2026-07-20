@@ -23,7 +23,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for row in rows %}
+      {% for row in page_obj %}
       <tr>
         <td>{{ row.book__title }}</td>
         <td class="text-right">{{ row.qty_sold }}</td>
@@ -38,7 +38,7 @@
     </tbody>
     <tfoot>
       <tr>
-        <td><strong>Total</strong></td>
+        <td><strong>Total (full range)</strong></td>
         <td class="text-right"><strong>{{ totals.qty_sold|default:0 }}</strong></td>
         <td class="text-right mono"><strong>GHS {{ totals.revenue|default:0 }}</strong></td>
         <td class="text-right mono"><strong>GHS {{ totals.cost|default:0 }}</strong></td>
@@ -47,5 +47,6 @@
       </tr>
     </tfoot>
   </table>
+  {% include 'portal/_pagination.html' with base_url=request.path %}
 </div>
 {% endblock %}

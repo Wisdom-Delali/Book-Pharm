@@ -23,7 +23,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for rule in rules %}
+        {% for rule in page_obj %}
         <tr>
           <td><strong>{{ rule.name }}</strong></td>
           <td>{{ rule.get_discount_type_display }}</td>
@@ -46,6 +46,7 @@
         {% endfor %}
       </tbody>
     </table>
+    {% include 'portal/_pagination.html' with base_url=request.path hx_target='#discount-content' %}
   </div>
 
   {% if panel_open %}

@@ -12,6 +12,7 @@ app_name = 'portal'
 urlpatterns = [
     path('login/', auth_views.login_view, name='login'),
     path('logout/', auth_views.logout_view, name='logout'),
+    path('change-password/', auth_views.change_password, name='change_password'),
     path('', views.dashboard, name='dashboard'),
     path('catalog/', views.book_list, name='book_list'),
     path('catalog/books/new/', views.book_create, name='book_create'),
@@ -57,4 +58,5 @@ urlpatterns = [
     path('users/', user_views.user_list, name='user_list'),
     path('users/new/', user_views.user_create, name='user_create'),
     path('users/<int:pk>/toggle-active/', user_views.user_toggle_active, name='user_toggle_active'),
+    path('users/<int:pk>/reset-password/', user_views.user_reset_password, name='user_reset_password'),
 ]

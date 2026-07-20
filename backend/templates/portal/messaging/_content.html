@@ -22,7 +22,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for campaign in campaigns %}
+        {% for campaign in page_obj %}
         <tr>
           <td><strong>{{ campaign.name }}</strong></td>
           <td><span class="badge">{{ campaign.get_audience_display }}</span></td>
@@ -53,6 +53,7 @@
         {% endfor %}
       </tbody>
     </table>
+    {% include 'portal/_pagination.html' with base_url=request.path hx_target='#messaging-content' %}
   </div>
 
   {% if panel_open %}

@@ -12,6 +12,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, render
 
 from apps.catalog.models import Book
+from apps.reports.utils import range_bounds_utc
 from apps.sales.models import Sale
 from apps.sales.services import InsufficientStockError, create_sale
 
@@ -77,10 +78,34 @@ def register_list(request):
     sales = Sale.objects.filter(channel=Sale.Channel.IN_STORE).exclude(
         status=Sale.Status.PENDING
     ).select_related('customer', 'attendant').order_by('-created_at')
+
+    start_str = request.GET.get('start', '').strip()
+    end_str = request.GET.get('end', '').strip()
+    start = _parse_date(start_str)
+    end = _parse_date(end_str)
+    if start and end:
+        start_dt, end_dt = range_bounds_utc(start, end)
+        sales = sales.filter(created_at__gte=start_dt, created_at__lt=end_dt)
+    elif start:
+        start_dt, _unused = range_bounds_utc(start, start)
+        sales = sales.filter(created_at__gte=start_dt)
+    elif end:
+        _unused, end_dt = range_bounds_utc(end, end)
+        sales = sales.filter(created_at__lt=end_dt)
+
+    payment_method = request.GET.get('payment_method', '').strip()
+    if payment_method:
+        sales = sales.filter(payment_method=payment_method)
+
     paginator = Paginator(sales, PAGE_SIZE)
     return render(request, 'portal/register/list.html', {
         'active_nav': 'register_list',
         'page_obj': paginator.get_page(request.GET.get('page')),
+        'start': start_str,
+        'end': end_str,
+        'selected_payment_method': payment_method,
+        'payment_methods': [(v, l) for v, l in Sale.PaymentMethod.choices if v != Sale.PaymentMethod.MARKETPLACE],
+        'querystring': f'start={start_str}&end={end_str}&payment_method={payment_method}&',
     })
 
 

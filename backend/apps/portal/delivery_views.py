@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.fulfillment.forms import DeliveryPricingRuleForm, ShopLocationForm
@@ -9,14 +10,16 @@ from .htmx import is_htmx as _is_htmx
 
 CONTENT_TEMPLATE = 'portal/delivery/_content.html'
 PAGE_TEMPLATE = 'portal/delivery/list.html'
+PAGE_SIZE = 20
 
 
-def _list_context():
+def _list_context(request):
+    paginator = Paginator(DeliveryPricingRule.objects.all(), PAGE_SIZE)
     return {
         'active_nav': 'delivery',
         'shop_location': ShopLocation.load(),
         'location_form': ShopLocationForm(instance=ShopLocation.load()),
-        'rules': DeliveryPricingRule.objects.all(),
+        'page_obj': paginator.get_page(request.GET.get('page')),
         'panel_open': False,
         'rule_form': None,
         'editing_rule': None,
@@ -24,7 +27,7 @@ def _list_context():
 
 
 def _render_list(request, extra_context=None):
-    context = _list_context()
+    context = _list_context(request)
     context.update(extra_context or {})
     template = CONTENT_TEMPLATE if _is_htmx(request) else PAGE_TEMPLATE
     return render(request, template, context)
