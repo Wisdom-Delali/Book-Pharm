@@ -43,6 +43,16 @@ body {
   flex-direction: column;
   padding: var(--space-stack-lg) var(--space-stack-md) var(--space-stack-md);
 }
+.storefront-sidebar__brand {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-secondary);
+  text-decoration: none;
+  display: block;
+  margin-bottom: 0.15rem;
+}
+.storefront-sidebar__tagline { color: var(--color-on-surface-variant); font-size: 0.75rem; margin-bottom: var(--space-stack-lg); }
 .storefront-sidebar__section-label {
   font-size: 0.7rem;
   font-weight: 700;
@@ -73,18 +83,29 @@ body {
   position: sticky;
   top: 0;
   z-index: 10;
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
   /* Same dot texture as body, not a flat panel — needs to stay opaque
      (position:sticky, content scrolls under it) but shouldn't read as a
      separate bar sitting on top of the page. */
   background-color: var(--color-background);
   background-image: radial-gradient(var(--color-outline-variant) 1px, transparent 1px);
   background-size: 24px 24px;
-  padding: 1.1rem var(--space-margin, 24px) 0.75rem;
+}
+/* Same max-width + centering as .storefront-main, so the brand/search on
+   the widest screens line up with the book grid below instead of sitting
+   at a fixed distance from the viewport edge while content is centered. */
+.storefront-topbar__inner {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem var(--space-margin, 24px) 0.75rem;
 }
 .storefront-topbar__brand {
+  /* Desktop: the sidebar already carries the brand+tagline at its top, so
+     this would just be a redundant second wordmark. Shown only on mobile
+     (media query below), where the sidebar itself is hidden. */
+  display: none;
   font-family: var(--font-display);
   font-size: 1.6rem;
   font-weight: 700;
@@ -164,6 +185,7 @@ body {
 
 @media (max-width: 900px) {
   .storefront-sidebar { display: none; }
+  .storefront-topbar__brand { display: block; }
   .storefront-topbar__links { display: none; }
   .storefront-bottomnav { display: flex; }
   .storefront-main { padding-bottom: 5.5rem; }
@@ -179,8 +201,15 @@ body {
      an absolutely-positioned child can't give its zero-width parent a real
      box, which is what made the icons crowd together instead of sizing
      correctly in the flex row). The input is taken out of flow entirely so
-     it can't contribute any width while collapsed. */
-  .storefront-topbar__search-toggle { position: static; padding: 0.3rem; }
+     it can't contribute any width while collapsed.
+     transform: none is the actual fix for the icon "hanging" above the
+     cart icon — the desktop rule's translateY(-50%) only makes sense
+     paired with position:absolute; top:50% (it corrects for top:50% being
+     measured from the element's own edge, not its center). Changing
+     position to static without resetting the leftover transform still
+     shifts the element up by half its own height, since transform applies
+     regardless of position. */
+  .storefront-topbar__search-toggle { position: static; transform: none; padding: 0.3rem; }
   .storefront-topbar__search input {
     position: absolute;
     width: 0;
@@ -581,7 +610,11 @@ body {
 .summary-total .value { font-family: var(--font-display); font-size: 1.75rem; color: var(--color-primary); }
 
 /* Order confirmation */
-.confirmation-hero { text-align: center; margin: var(--space-stack-lg) 0; }
+/* Top margin deliberately smaller than the bottom one — the page chrome
+   above (topbar padding + .storefront-main padding) already pushes this
+   down before it starts; stacking a full --space-stack-lg on top of that
+   was leaving a lot of empty space before the checkmark. */
+.confirmation-hero { text-align: center; margin: var(--space-stack-sm) 0 var(--space-stack-lg); }
 .confirmation-hero .check { font-size: 3rem; color: var(--color-primary); }
 .order-items { margin: var(--space-stack-md) 0; }
 .order-item-row { display: flex; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid var(--color-outline-variant); }

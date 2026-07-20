@@ -73,6 +73,8 @@ ipcMain.handle('db:setSyncMeta', (_event, key, value) => db.setSyncMeta(userData
 ipcMain.handle('db:addToOutbox', (_event, offlineUuid, payload) => db.addToOutbox(userDataPath(), offlineUuid, payload));
 ipcMain.handle('db:getPendingOutbox', () => db.getPendingOutbox(userDataPath()));
 ipcMain.handle('db:getOutboxPendingCount', () => db.getOutboxPendingCount(userDataPath()));
+ipcMain.handle('db:getTodayOutbox', () => db.getTodayOutbox(userDataPath()));
+ipcMain.handle('db:getBooksByIds', (_event, ids) => db.getBooksByIds(userDataPath(), ids));
 ipcMain.handle('db:markOutboxSynced', (_event, offlineUuid, serverResponse) => db.markOutboxSynced(userDataPath(), offlineUuid, serverResponse));
 ipcMain.handle('db:markOutboxFailed', (_event, offlineUuid, errorMessage) => db.markOutboxFailed(userDataPath(), offlineUuid, errorMessage));
 

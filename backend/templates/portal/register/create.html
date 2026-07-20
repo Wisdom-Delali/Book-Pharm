@@ -1,0 +1,66 @@
+{% extends 'portal/base.html' %}
+
+{% block title %}New Sale | Book Pharm Portal{% endblock %}
+
+{% block content %}
+<header class="portal-page-header">
+  <div>
+    <h1>New Sale</h1>
+    <p class="text-muted">Ring up an in-store sale from the portal — the same record a desktop POS sale would create.</p>
+  </div>
+</header>
+
+<div class="card" style="max-width: 640px;" x-data="{ rows: [{ key: 1 }], nextKey: 2 }">
+  <form method="post">
+    {% csrf_token %}
+    {% for error in errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+
+    <h3>Customer</h3>
+    <div class="form-field">
+      <label class="form-label" for="customer_phone">Phone</label>
+      <input type="text" name="customer_phone" id="customer_phone" placeholder="024 xxx xxxx" required>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+      <div class="form-field">
+        <label class="form-label" for="customer_full_name">Name (optional)</label>
+        <input type="text" name="customer_full_name" id="customer_full_name">
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="customer_email">Email (optional)</label>
+        <input type="email" name="customer_email" id="customer_email">
+      </div>
+    </div>
+    <div class="form-field" style="margin-top: 1rem;">
+      <label class="form-label" for="customer_birthday">Birthday (optional)</label>
+      <input type="date" name="customer_birthday" id="customer_birthday">
+    </div>
+
+    <h3 style="margin-top: 1.5rem;">Books</h3>
+    <template x-for="row in rows" :key="row.key">
+      <div class="jumia-item-row">
+        <select name="book_id" required>
+          <option value="">Select a book...</option>
+          {% for book in books %}
+          <option value="{{ book.id }}">{{ book.title }} &mdash; GHS {{ book.selling_price }} ({{ book.stock_qty }} in stock)</option>
+          {% endfor %}
+        </select>
+        <input type="number" name="qty" min="1" value="1" required>
+        <button type="button" class="jumia-item-row__remove" x-show="rows.length > 1" x-on:click="rows = rows.filter(r => r.key !== row.key)">&times;</button>
+      </div>
+    </template>
+    <button type="button" class="btn btn--secondary" style="margin-top: 0.5rem;" x-on:click="rows.push({ key: nextKey++ })">+ Add another book</button>
+
+    <h3 style="margin-top: 1.5rem;">Payment</h3>
+    <div class="form-field">
+      <label class="form-label" for="payment_method">Method</label>
+      <select name="payment_method" id="payment_method">
+        {% for value, label in payment_methods %}
+        <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn--primary" style="width: 100%; margin-top: 1.5rem;">Complete Sale</button>
+  </form>
+</div>
+{% endblock %}

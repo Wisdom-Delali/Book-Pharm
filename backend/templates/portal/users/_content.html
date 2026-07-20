@@ -1,0 +1,56 @@
+<div id="users-content">
+  <header class="portal-page-header">
+    <div>
+      <h1>Users</h1>
+      <p class="text-muted">Owner accounts manage the portal; attendants sign in on the desktop POS only.</p>
+    </div>
+    <button class="btn btn--primary" hx-get="{% url 'portal:user_create' %}" hx-target="#users-content" hx-swap="outerHTML">
+      + Add User
+    </button>
+  </header>
+
+  <div class="card catalog-table-card">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Joined</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td><strong>{{ u.full_name|default:"—" }}</strong>{% if u.pk == request.user.pk %} <span class="badge">You</span>{% endif %}</td>
+          <td class="mono">{{ u.email }}</td>
+          <td><span class="badge">{{ u.get_role_display }}</span></td>
+          <td>
+            {% if u.is_active %}<span class="badge badge--ok">Active</span>{% else %}<span class="badge badge--error">Revoked</span>{% endif %}
+          </td>
+          <td class="text-muted">{{ u.date_joined|date:"M j, Y" }}</td>
+          <td class="text-right">
+            {% if u.pk != request.user.pk %}
+            <form method="post" action="{% url 'portal:user_toggle_active' u.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn--secondary">{% if u.is_active %}Revoke{% else %}Restore{% endif %}</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-muted">No other users yet — add an attendant to get them onto the desktop POS.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if panel_open %}
+  <div class="panel-backdrop" hx-get="{% url 'portal:user_list' %}" hx-target="#users-content" hx-swap="outerHTML"></div>
+  <aside class="panel">
+    {% include 'portal/users/_form.html' %}
+  </aside>
+  {% endif %}
+</div>

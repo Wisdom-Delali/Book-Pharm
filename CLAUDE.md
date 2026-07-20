@@ -64,13 +64,12 @@ These come from the client's completed questionnaire. **They are decided — don
 - **Priority reports:** sales (daily/weekly/monthly), profit margin per book, stock levels
 - **Profit tracking:** cost price vs. selling price per book
 - **Devices:** shop + occasional book fairs → **offline support with later sync is mandatory**
-- **Access:** owner-only at launch; model must allow staff accounts later without redesign
+- **Access:** three tiers, added 2026-07-19, owner request — **Superuser** (developer/Django-admin access, never listed or manageable in the portal), **Owner** (full portal access, including creating/revoking other accounts), **Attendant** (desktop POS only, rejected at the portal login view). `apps.accounts.models.User.Role` was modeled for this from Phase 0 (`OWNER`/`ATTENDANT`, formerly `OWNER`/`STAFF`) — this is that anticipated next step, not a redesign. The owner can also ring up an in-store sale directly from the portal (`portal:register_create`), the same `create_sale()` path the desktop POS uses.
 
 ### Explicitly out of scope
 
 - **Credit sales / debtor tracking.** The client said no. Do not build it.
 - Multi-branch / multi-location.
-- Staff accounts beyond the single owner login (design for it, don't build it).
 
 ### Still open — ask before implementing
 
@@ -91,7 +90,7 @@ bookpharm/
 │   ├── manage.py
 │   ├── config/              # settings/, urls.py, wsgi.py
 │   ├── apps/
-│   │   ├── accounts/        # auth, roles, device tokens
+│   │   ├── accounts/        # User, Role (Owner/Attendant), email+password auth
 │   │   ├── catalog/         # Book, Category, stock
 │   │   ├── sales/           # Sale, SaleItem, offline sync
 │   │   ├── fulfillment/     # delivery/pickup/rider-delivery, delivery pricing
@@ -125,6 +124,10 @@ bookpharm/
 ## 6. Data model
 
 One `Sale` table covers **all three channels** — this is deliberate, so reports are a single query rather than a union across tables.
+
+**`accounts`**
+- `User` — email (login identity, not username), `full_name`, `role` (`OWNER` | `ATTENDANT`), `is_active`, `is_superuser` (Django/dev access — orthogonal to `role`, see §4)
+  - Portal login rejects `role=ATTENDANT`. `is_superuser=True` accounts are excluded from every portal user-management query, not just hidden in the UI — that exclusion is the actual access boundary, not a display filter.
 
 **`catalog`**
 - `Category` — name, slug
@@ -174,7 +177,7 @@ The attendant sells at book fairs with unreliable internet. Sales must never be 
 
 **The oversell problem — do not paper over this:** two devices offline at the same fair can both sell the last copy. The server must **accept both sales** (a real sale happened; refusing it loses money and data) and **flag the discrepancy** for the owner to reconcile in the portal. Never silently reject a synced sale because stock went negative. Allow `stock_qty` to go negative and surface it as a reconciliation alert.
 
-**Auth:** device-scoped token per POS install. Store it in the OS keychain via Electron's `safeStorage`, not plain-text config.
+**Auth:** per-attendant, not per-device (changed 2026-07-19 — see §4's Access entry). `POST /api/auth/login/` takes email+password and returns that user's DRF token, the same way the desktop app has always authenticated everything else; only how the token is *obtained* changed, from the owner hand-provisioning one per device to each attendant signing in with their own portal-created credentials. The token is still stored in the OS keychain via Electron's `safeStorage`, not plain-text config — logging out clears only the stored credentials, never the local outbox/catalog mirror, which may hold sales that haven't synced yet.
 
 ---
 

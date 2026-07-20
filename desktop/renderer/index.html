@@ -12,21 +12,26 @@
 </head>
 <body>
 
-<!-- Settings / device setup view -->
+<!-- Sign-in view -->
 <section id="view-settings" class="settings-view hidden">
-  <h2>Connect this device</h2>
-  <p style="color: var(--color-secondary); font-size: 0.85rem;">Enter the API address and the device token issued by the owner (from the portal admin).</p>
+  <h2>Sign in</h2>
+  <p style="color: var(--color-secondary); font-size: 0.85rem;">Enter the shop's API address and your Book Pharm email and password. The owner creates accounts from the portal's Users page.</p>
   <div id="settings-error" class="error-banner hidden"></div>
   <div>
     <label for="settings-api-url">API Base URL</label>
     <input type="text" id="settings-api-url" placeholder="http://127.0.0.1:8000">
   </div>
   <div>
-    <label for="settings-token">Device Token</label>
-    <input type="text" id="settings-token" placeholder="Paste token here">
+    <label for="settings-email">Email</label>
+    <input type="email" id="settings-email" placeholder="you@bookpharm.local" autocomplete="username">
   </div>
-  <button id="settings-save">Connect</button>
+  <div>
+    <label for="settings-password">Password</label>
+    <input type="password" id="settings-password" placeholder="Password" autocomplete="current-password">
+  </div>
+  <button id="settings-save">Sign In</button>
   <button id="settings-cancel" class="hidden" style="background: none; color: var(--color-secondary); font-weight: 600;">Back to Register</button>
+  <button id="settings-logout" class="hidden" style="background: none; color: var(--color-error); font-weight: 600;">Log Out</button>
 </section>
 
 <!-- Main POS shell -->
@@ -36,15 +41,19 @@
       <span class="topbar__brand">Book Pharm</span>
       <div class="topbar__attendant">
         <span class="name" id="attendant-name">—</span>
-        <span class="shift">Register</span>
+        <nav class="view-tabs">
+          <button type="button" class="view-tab is-active" id="tab-register" data-view="register">Register</button>
+          <button type="button" class="view-tab" id="tab-myday" data-view="myday">My Day</button>
+        </nav>
       </div>
     </div>
     <div class="topbar__right">
       <span class="sync-pill sync-pill--online" id="sync-pill">
         <span class="sync-dot"></span>
         <span id="sync-label">Online</span>
+        <span class="sync-count hidden" id="sync-count">0</span>
       </span>
-      <button class="icon-btn" id="settings-btn" title="Device settings">&#9881;</button>
+      <button class="icon-btn" id="settings-btn" title="Account &amp; device settings">&#9881;</button>
     </div>
   </header>
 
@@ -119,16 +128,30 @@
     </section>
   </main>
 
+  <!-- My Day view: today's completed sales for whoever is signed in, with
+       past receipts re-viewable — merges the server's cross-device record
+       with anything still sitting in this device's own outbox, so it stays
+       useful offline too. -->
+  <main id="view-myday" class="myday-view hidden">
+    <div class="myday-header">
+      <h1>My Day</h1>
+      <span class="myday-date" id="myday-date"></span>
+    </div>
+    <div class="myday-summary" id="myday-summary"></div>
+    <div class="myday-list" id="myday-list"></div>
+  </main>
+
   <!-- Receipt view -->
   <main id="view-receipt" class="receipt-view hidden">
-    <div class="receipt-success no-print">
+    <div class="receipt-success no-print" id="receipt-success-banner">
       <div class="check">&#10003;</div>
       <h2>Transaction Complete</h2>
       <p>The sale has been recorded.</p>
     </div>
     <div class="receipt" id="receipt-content"></div>
     <div class="receipt-actions no-print">
-      <button class="primary" id="new-transaction">New Transaction</button>
+      <button class="primary hidden" id="new-transaction">New Transaction</button>
+      <button class="secondary hidden" id="back-to-myday">&larr; Back to My Day</button>
       <button class="secondary" id="print-receipt">Print Receipt</button>
     </div>
   </main>

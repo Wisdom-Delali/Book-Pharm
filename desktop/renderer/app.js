@@ -26,15 +26,33 @@ function escapeHtml(str) {
 function showView(name) {
   $('view-settings').classList.toggle('hidden', name !== 'settings');
   $('view-app').classList.toggle('hidden', name !== 'app');
-  if (name === 'app') {
-    $('view-register').classList.remove('hidden');
-    $('view-receipt').classList.add('hidden');
-  }
+  if (name === 'app') showAppView('register');
 }
 
-function showReceiptView() {
-  $('view-register').classList.add('hidden');
-  $('view-receipt').classList.remove('hidden');
+// Register / My Day / Receipt are the three sub-views inside the app shell
+// (as opposed to showView, which switches between the settings screen and
+// the app shell itself). Tabs only make sense for register/myday — a
+// receipt isn't a tab destination, it's reached by checking out or by
+// tapping a My Day row.
+function showAppView(name) {
+  $('view-register').classList.toggle('hidden', name !== 'register');
+  $('view-myday').classList.toggle('hidden', name !== 'myday');
+  $('view-receipt').classList.toggle('hidden', name !== 'receipt');
+  $('tab-register').classList.toggle('is-active', name === 'register');
+  $('tab-myday').classList.toggle('is-active', name === 'myday');
+}
+
+// Single entry point for putting a sale on screen as a receipt, whether
+// it's the one just paid for or a past one opened from My Day — the two
+// only differ in which follow-up actions make sense (fresh: New
+// Transaction + the "sale recorded" banner; historical: Back to My Day,
+// no banner) and whether the offline "will sync" notice applies.
+function openReceipt(sale, paymentMethod, { pending = false, fresh = true } = {}) {
+  renderReceipt(sale, paymentMethod, pending);
+  $('receipt-success-banner').classList.toggle('hidden', !fresh);
+  $('new-transaction').classList.toggle('hidden', !fresh);
+  $('back-to-myday').classList.toggle('hidden', fresh);
+  showAppView('receipt');
 }
 
 async function apiFetch(path, options = {}) {
@@ -84,48 +102,76 @@ async function initApp() {
 
 $('settings-save').addEventListener('click', async () => {
   const urlInput = $('settings-api-url').value.trim().replace(/\/$/, '');
-  const tokenInput = $('settings-token').value.trim();
+  const email = $('settings-email').value.trim();
+  const password = $('settings-password').value;
   const errorEl = $('settings-error');
   errorEl.classList.add('hidden');
 
   const url = urlInput || apiBaseUrl;
-  const token = tokenInput || apiToken;
-  if (!url || !token) {
-    errorEl.textContent = 'API URL and device token are both required.';
+  if (!url || !email || !password) {
+    errorEl.textContent = 'API URL, email, and password are all required.';
     errorEl.classList.remove('hidden');
     return;
   }
 
   try {
-    const res = await fetch(`${url}/api/me/`, { headers: { Authorization: `Token ${token}` } });
-    if (!res.ok) throw new Error(`Server responded ${res.status}. Check the URL and token.`);
-    const me = await res.json();
-    const name = me.full_name || me.email;
-    await window.deviceConfig.set({ apiBaseUrl: url, token });
+    // Every attendant signs in with their own portal-created credentials
+    // now, not a token the owner hand-copies onto the device — the login
+    // endpoint hands back a token the same way, it's just obtained
+    // per-person instead of pre-provisioned per-device.
+    const res = await fetch(`${url}/api/auth/login/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    const body = await res.json();
+    if (!res.ok) throw new Error(body.error || `Server responded ${res.status}.`);
+    const name = body.full_name || body.email;
+    await window.deviceConfig.set({ apiBaseUrl: url, token: body.token });
     apiBaseUrl = url;
-    apiToken = token;
+    apiToken = body.token;
     $('attendant-name').textContent = name;
     await window.localDb.setSyncMeta('attendant_name', name);
-    $('settings-token').value = '';
+    $('settings-password').value = '';
     showView('app');
     startBackgroundWork();
   } catch (err) {
-    errorEl.textContent = `Could not connect: ${err.message}`;
+    errorEl.textContent = `Could not sign in: ${err.message}`;
     errorEl.classList.remove('hidden');
   }
 });
 
 $('settings-btn').addEventListener('click', () => {
   $('settings-api-url').value = apiBaseUrl || '';
-  $('settings-token').value = '';
+  $('settings-email').value = '';
+  $('settings-password').value = '';
   $('settings-error').classList.add('hidden');
   // Already configured and mid-session — offer a way back without forcing
   // a reconnect (this device may just be offline right now, which is fine).
-  $('settings-cancel').classList.toggle('hidden', !(apiBaseUrl && apiToken));
+  const isSignedIn = !!(apiBaseUrl && apiToken);
+  $('settings-cancel').classList.toggle('hidden', !isSignedIn);
+  $('settings-logout').classList.toggle('hidden', !isSignedIn);
   showView('settings');
 });
 
 $('settings-cancel').addEventListener('click', () => showView('app'));
+
+$('settings-logout').addEventListener('click', async () => {
+  // Clears only the stored credentials — never the local outbox/catalog
+  // mirror, which may hold sales that haven't synced yet (CLAUDE.md §7: a
+  // sale is never lost, logging out the attendant who rang it up is not an
+  // exception). The next person to sign in on this device picks up right
+  // where the sync worker left off.
+  await window.deviceConfig.clear();
+  apiBaseUrl = null;
+  apiToken = null;
+  $('settings-api-url').value = '';
+  $('settings-email').value = '';
+  $('settings-password').value = '';
+  $('settings-cancel').classList.add('hidden');
+  $('settings-logout').classList.add('hidden');
+  showView('settings');
+});
 
 let backgroundWorkStarted = false;
 function startBackgroundWork() {
@@ -137,13 +183,23 @@ function startBackgroundWork() {
   updateSyncPill();
 }
 
+$('tab-register').addEventListener('click', () => showAppView('register'));
+$('tab-myday').addEventListener('click', () => { showAppView('myday'); loadMyDay(); });
+
 // ---------- Sync indicator: connectivity + outbox depth ----------
 
 async function updateSyncPill() {
   const pill = $('sync-pill');
   const label = $('sync-label');
+  const countEl = $('sync-count');
   const online = navigator.onLine;
   const pendingCount = apiBaseUrl ? await window.localDb.getOutboxPendingCount() : 0;
+
+  // The label already spells out "Offline (3 queued)" / "Syncing (3)", but
+  // that's meant to be read; the count badge is meant to be *noticed* —
+  // it's the thing that should register mid-sale without stopping to read.
+  countEl.classList.toggle('hidden', pendingCount === 0);
+  countEl.textContent = String(pendingCount);
 
   pill.classList.remove('sync-pill--online', 'sync-pill--offline', 'sync-pill--syncing');
   if (!online) {
@@ -165,6 +221,107 @@ window.addEventListener('online', () => {
   scheduleSyncRetry(0);
 });
 window.addEventListener('offline', updateSyncPill);
+
+// ---------- My Day: today's sales, offline-aware, past receipts re-viewable ----------
+// Merges two sources: the server's /api/sales/mine/ (authoritative,
+// cross-device — catches anything rung up on a different terminal today)
+// and this device's own local outbox (works offline, and is the only
+// source at all for a sale that hasn't synced yet). Local entries whose
+// offline_uuid already showed up from the server are skipped, so a synced
+// sale never appears twice.
+
+async function loadMyDay() {
+  $('myday-date').textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  $('myday-list').innerHTML = '<p class="empty-cart">Loading…</p>';
+  $('myday-summary').innerHTML = '';
+
+  let serverSales = [];
+  let reachedServer = false;
+  if (apiBaseUrl && navigator.onLine) {
+    try {
+      const res = await apiFetch('/api/sales/mine/');
+      if (res.ok) {
+        serverSales = await res.json();
+        reachedServer = true;
+      }
+    } catch (err) {
+      // Offline in practice — fall through to the local-only view below.
+    }
+  }
+
+  const knownUuids = new Set(serverSales.map((s) => s.offline_uuid));
+  const rows = serverSales.map((s) => ({ kind: 'sale', sale: s, at: s.created_at }));
+
+  const todayOutbox = await window.localDb.getTodayOutbox();
+  const pendingBookIds = new Set();
+  for (const entry of todayOutbox) {
+    if (knownUuids.has(entry.offline_uuid)) continue;
+    if (entry.status === 'SYNCED' && entry.server_response) {
+      rows.push({ kind: 'sale', sale: entry.server_response, at: entry.server_response.created_at || entry.created_at });
+    } else {
+      entry.payload.items.forEach((i) => pendingBookIds.add(i.book_id));
+      rows.push({ kind: 'pending', entry, at: entry.created_at });
+    }
+  }
+
+  const pendingBooks = pendingBookIds.size ? await window.localDb.getBooksByIds([...pendingBookIds]) : [];
+  const bookById = new Map(pendingBooks.map((b) => [b.id, b]));
+
+  rows.sort((a, b) => new Date(b.at) - new Date(a.at));
+  renderMyDayList(rows, bookById, reachedServer);
+}
+
+function renderMyDayList(rows, bookById, reachedServer) {
+  const completedSales = rows.filter((r) => r.kind === 'sale').map((r) => r.sale);
+  const totalGhs = completedSales.reduce((sum, s) => sum + Number(s.total), 0);
+  $('myday-summary').innerHTML = `
+    <div class="myday-summary__stat"><span class="value">${completedSales.length}</span><span class="label">Sales</span></div>
+    <div class="myday-summary__stat"><span class="value">${money(totalGhs)}</span><span class="label">Total</span></div>
+    ${!reachedServer ? '<div class="myday-summary__stat"><span class="value">&mdash;</span><span class="label">Offline view (this device only)</span></div>' : ''}
+  `;
+
+  const listEl = $('myday-list');
+  if (rows.length === 0) {
+    listEl.innerHTML = '<p class="empty-cart">No sales yet today.</p>';
+    return;
+  }
+
+  listEl.innerHTML = '';
+  rows.forEach((row) => {
+    const div = document.createElement('div');
+    const time = new Date(row.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    if (row.kind === 'sale') {
+      const s = row.sale;
+      const itemCount = s.items.reduce((n, i) => n + i.qty, 0);
+      div.className = 'myday-row';
+      div.innerHTML = `
+        <span class="myday-row__time">${time}</span>
+        <span class="myday-row__items">${itemCount} item${itemCount === 1 ? '' : 's'} &middot; ${PAYMENT_LABELS[s.payment_method] || s.payment_method}</span>
+        <span class="myday-row__total mono">${money(s.total)}</span>
+      `;
+      div.addEventListener('click', () => openReceipt(s, s.payment_method, { pending: false, fresh: false }));
+    } else {
+      // Not synced yet — only the raw checkout payload exists locally, so
+      // there's no computed total/discount to show, and no receipt to open
+      // until it syncs. Titles come from the catalog mirror since the
+      // payload itself only has {book_id, qty}.
+      const entry = row.entry;
+      const itemCount = entry.payload.items.reduce((n, i) => n + i.qty, 0);
+      const titles = entry.payload.items.map((i) => bookById.get(i.book_id)?.title).filter(Boolean);
+      const itemsLabel = titles.length > 2
+        ? `${titles.slice(0, 2).join(', ')} +${titles.length - 2} more`
+        : (titles.join(', ') || `${itemCount} item${itemCount === 1 ? '' : 's'}`);
+      div.className = 'myday-row myday-row--pending';
+      div.innerHTML = `
+        <span class="myday-row__time">${time}</span>
+        <span class="myday-row__items">${escapeHtml(itemsLabel)}</span>
+        <span class="myday-row__badge">Pending sync</span>
+      `;
+    }
+    listEl.appendChild(div);
+  });
+}
 
 // ---------- Catalog pull (incremental, into the local SQLite mirror) ----------
 
@@ -486,13 +643,12 @@ async function checkout(paymentMethod) {
   }
 
   if (serverSale) {
-    renderReceipt(serverSale, paymentMethod, false);
+    openReceipt(serverSale, paymentMethod, { pending: false, fresh: true });
   } else {
-    renderReceipt(buildLocalReceipt(payload, cart, offlineUuid), paymentMethod, true);
+    openReceipt(buildLocalReceipt(payload, cart, offlineUuid), paymentMethod, { pending: true, fresh: true });
   }
 
   resetForNextTransaction();
-  showReceiptView();
   setPaymentButtonsDisabled(false);
   updateSyncPill();
   scheduleSyncRetry(0);
@@ -565,7 +721,8 @@ function renderReceipt(sale, paymentMethod, pending) {
   `;
 }
 
-$('new-transaction').addEventListener('click', () => showView('app'));
+$('new-transaction').addEventListener('click', () => showAppView('register'));
+$('back-to-myday').addEventListener('click', () => { showAppView('myday'); loadMyDay(); });
 $('print-receipt').addEventListener('click', () => window.print());
 
 // ---------- Sync worker: drains the outbox, retries with backoff ----------

@@ -4,7 +4,7 @@ from apps.reports import views as report_views
 
 from . import (
     auth_views, customer_views, discount_views, expense_views, marketplace_views, messaging_views, orders_views,
-    reconciliation_views, views,
+    reconciliation_views, register_views, user_views, views,
 )
 
 app_name = 'portal'
@@ -45,4 +45,9 @@ urlpatterns = [
     path('marketplace/new/', marketplace_views.marketplace_create, name='marketplace_create'),
     path('marketplace/<int:pk>/', marketplace_views.marketplace_detail, name='marketplace_detail'),
     path('marketplace/<int:pk>/return/', marketplace_views.marketplace_return, name='marketplace_return'),
+    path('register/', register_views.register_create, name='register_create'),
+    path('register/<int:pk>/', register_views.register_receipt, name='register_receipt'),
+    path('users/', user_views.user_list, name='user_list'),
+    path('users/new/', user_views.user_create, name='user_create'),
+    path('users/<int:pk>/toggle-active/', user_views.user_toggle_active, name='user_toggle_active'),
 ]

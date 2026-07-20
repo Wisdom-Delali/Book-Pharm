@@ -8,34 +8,11 @@ from apps.sales.models import Sale
 from apps.sales.services import create_sale, return_sale
 
 from .htmx import is_htmx as _is_htmx
+from .manual_sale_items import resolve_manual_items
 
 CONTENT_TEMPLATE = 'portal/marketplace/_content.html'
 PAGE_TEMPLATE = 'portal/marketplace/list.html'
 PAGE_SIZE = 20
-
-
-def _resolve_manual_items(request):
-    """Repeated book_id/qty inputs from the Alpine-driven line-item rows in
-    _form.html -> the [{'book_id': int, 'qty': int}, ...] shape create_sale()
-    expects. Blank rows (no book chosen) are silently dropped rather than
-    treated as errors — the form always renders at least one row, and an
-    owner who adds a row and reconsiders shouldn't be forced to delete it."""
-    book_ids = request.POST.getlist('book_id')
-    qtys = request.POST.getlist('qty')
-    items, errors = [], []
-    for book_id_str, qty_str in zip(book_ids, qtys):
-        if not book_id_str:
-            continue
-        try:
-            qty = int(qty_str)
-        except ValueError:
-            errors.append('Quantity must be a whole number.')
-            continue
-        if qty < 1:
-            errors.append('Quantity must be at least 1.')
-            continue
-        items.append({'book_id': int(book_id_str), 'qty': qty})
-    return items, errors
 
 
 def _list_context(request):
@@ -67,7 +44,7 @@ def marketplace_create(request):
     errors = []
     if request.method == 'POST':
         external_ref = request.POST.get('external_ref', '').strip()
-        items, errors = _resolve_manual_items(request)
+        items, errors = resolve_manual_items(request)
         if not items:
             errors.append('Add at least one book.')
         if not errors:

@@ -1,0 +1,25 @@
+<div class="panel__header">
+  <h3>Add User</h3>
+  <button class="panel__close" hx-get="{% url 'portal:user_list' %}" hx-target="#users-content" hx-swap="outerHTML">&times;</button>
+</div>
+
+<form class="panel__form" hx-post="{% url 'portal:user_create' %}" hx-target="#users-content" hx-swap="outerHTML">
+  {% csrf_token %}
+  {% for error in form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+
+  {% for field in form %}
+  <div class="form-field">
+    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {% if field.help_text %}<p class="form-help">{{ field.help_text }}</p>{% endif %}
+    {% for error in field.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+  </div>
+  {% endfor %}
+
+  <p class="text-muted" style="font-size: 0.8rem;">Attendants sign in on the desktop POS with this email and password — there's nothing else to configure.</p>
+
+  <div class="panel__actions">
+    <button type="button" class="btn btn--secondary" hx-get="{% url 'portal:user_list' %}" hx-target="#users-content" hx-swap="outerHTML">Cancel</button>
+    <button type="submit" class="btn btn--primary">Create User</button>
+  </div>
+</form>

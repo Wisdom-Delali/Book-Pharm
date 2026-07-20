@@ -34,14 +34,23 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     """
-    Owner-only at launch (CLAUDE.md §4). The `role` field exists so staff
-    accounts can be added later without a model redesign — do not build
-    staff-specific behavior now.
+    Three tiers, not two — `role` and `is_superuser` are deliberately
+    separate axes:
+      - is_superuser=True: developer/system access (Django admin). Never
+        created through the portal, never listed there either — see
+        apps/portal/user_views.py, which filters on is_superuser=False.
+      - role=OWNER: the business admin tier. Full portal access, including
+        managing other users. Doesn't require is_superuser.
+      - role=ATTENDANT: desktop POS only. Rejected at the portal login view
+        (apps/portal/auth_views.py) — this role has no portal use.
+    A single owner-only login was CLAUDE.md's original launch scope; staff
+    accounts are the intentional next step the `role` field was always
+    modeled to support without a redesign.
     """
 
     class Role(models.TextChoices):
         OWNER = 'OWNER', 'Owner'
-        STAFF = 'STAFF', 'Staff'
+        ATTENDANT = 'ATTENDANT', 'Attendant'
 
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=150, blank=True)

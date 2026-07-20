@@ -21,6 +21,8 @@ contextBridge.exposeInMainWorld('localDb', {
   addToOutbox: (offlineUuid, payload) => ipcRenderer.invoke('db:addToOutbox', offlineUuid, payload),
   getPendingOutbox: () => ipcRenderer.invoke('db:getPendingOutbox'),
   getOutboxPendingCount: () => ipcRenderer.invoke('db:getOutboxPendingCount'),
+  getTodayOutbox: () => ipcRenderer.invoke('db:getTodayOutbox'),
+  getBooksByIds: (ids) => ipcRenderer.invoke('db:getBooksByIds', ids),
   markOutboxSynced: (offlineUuid, serverResponse) => ipcRenderer.invoke('db:markOutboxSynced', offlineUuid, serverResponse),
   markOutboxFailed: (offlineUuid, errorMessage) => ipcRenderer.invoke('db:markOutboxFailed', offlineUuid, errorMessage),
 });

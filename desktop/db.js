@@ -137,6 +137,33 @@ function getOutboxPendingCount(userDataPath) {
   return row.c;
 }
 
+function getTodayOutbox(userDataPath) {
+  // Unlike getPendingOutbox (PENDING/FAILED only, for the sync worker),
+  // this is every outbox row from today regardless of status — the "My
+  // Day" tab needs synced sales too, not just the ones still queued.
+  const database = getDb(userDataPath);
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const rows = database.prepare(`
+    SELECT * FROM outbox WHERE created_at >= ? ORDER BY created_at DESC
+  `).all(startOfDay.toISOString());
+  return rows.map((r) => ({
+    ...r,
+    payload: JSON.parse(r.payload),
+    server_response: r.server_response ? JSON.parse(r.server_response) : null,
+  }));
+}
+
+function getBooksByIds(userDataPath, ids) {
+  // Resolves titles for a still-PENDING outbox entry's receipt summary —
+  // the raw checkout payload only has {book_id, qty}, no title/author,
+  // since those live in the catalog mirror, not the outbox itself.
+  if (!ids.length) return [];
+  const database = getDb(userDataPath);
+  const placeholders = ids.map(() => '?').join(',');
+  return database.prepare(`SELECT * FROM books WHERE id IN (${placeholders})`).all(...ids);
+}
+
 function markOutboxSynced(userDataPath, offlineUuid, serverResponse) {
   const database = getDb(userDataPath);
   database.prepare(`

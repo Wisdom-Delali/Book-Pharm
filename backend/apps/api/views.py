@@ -1,8 +1,13 @@
+from datetime import date
+
+from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from rest_framework import generics, status
+from rest_framework.authtoken.models import Token
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -10,6 +15,8 @@ from apps.catalog.codes import normalize_isbn
 from apps.catalog.models import Book
 from apps.customers.models import Customer, LoyaltyProgram
 from apps.customers.phone import normalize_phone
+from apps.reports.utils import range_bounds_utc
+from apps.sales.models import Sale
 from apps.sales.services import InsufficientStockError, create_sale
 
 from .serializers import (
@@ -93,9 +100,35 @@ class CustomerLookupView(APIView):
         return Response(data)
 
 
+class DesktopLoginView(APIView):
+    """POST /api/auth/login/ {email, password} -> {token, ...}. Replaces the
+    old flow of the owner hand-copying a pre-provisioned device token into
+    the app: every attendant (and the owner, if they use the register too)
+    now signs in with their own portal-created credentials, and
+    Sale.attendant attribution follows whoever is actually logged in on
+    that machine rather than being fixed to the device itself. No auth
+    required to reach this endpoint, obviously — it's how auth is obtained."""
+
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = (request.data.get('email') or '').strip()
+        password = request.data.get('password') or ''
+        user = authenticate(request, username=email, password=password)
+        if user is None:
+            return Response({'error': 'Incorrect email or password.'}, status=status.HTTP_401_UNAUTHORIZED)
+        if not user.is_active:
+            return Response({'error': 'This account is inactive.'}, status=status.HTTP_401_UNAUTHORIZED)
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response({
+            'token': token.key, 'email': user.email, 'full_name': user.full_name, 'role': user.role,
+        })
+
+
 class MeView(APIView):
-    """GET /api/me/ — who does this device token belong to. Used by the POS
-    top bar; also doubles as a cheap "is this token still valid" ping."""
+    """GET /api/me/ — who does this token belong to. Used by the POS top
+    bar; also doubles as a cheap "is this token still valid" ping."""
 
     def get(self, request):
         user = request.user
@@ -178,3 +211,30 @@ class SaleBatchSyncView(APIView):
                 results.append({'offline_uuid': str(offline_uuid), 'status': 'rejected', 'error': str(exc)})
 
         return Response({'results': results}, status=status.HTTP_200_OK)
+
+
+class MySalesView(generics.ListAPIView):
+    """GET /api/sales/mine/?date=YYYY-MM-DD (defaults to today, Africa/Accra)
+    — powers the desktop "My Day" tab: this attendant's own sales for the
+    day, with enough detail (via SaleDetailSerializer) to re-open any of
+    them as a receipt without a second request. Scoped by `attendant`, not
+    by channel — correct either way, since attendant is only ever set on
+    sales this device/login actually rang up."""
+
+    serializer_class = SaleDetailSerializer
+
+    def get_queryset(self):
+        date_str = self.request.query_params.get('date', '').strip()
+        try:
+            target_date = date.fromisoformat(date_str) if date_str else timezone.localdate()
+        except ValueError:
+            target_date = timezone.localdate()
+        start_dt, end_dt = range_bounds_utc(target_date, target_date)
+        return (
+            Sale.objects.filter(
+                attendant=self.request.user, created_at__gte=start_dt, created_at__lt=end_dt,
+            )
+            .exclude(status=Sale.Status.PENDING)
+            .prefetch_related('items__book')
+            .order_by('-created_at')
+        )

@@ -174,6 +174,24 @@ The hardest phase. Don't rush it.
 
 ---
 
+## Phase 7.5 — Staff accounts (owner request, 2026-07-19)
+
+Not in the original phase plan — CLAUDE.md §4 had explicitly deferred staff accounts ("design for it, don't build it"). The owner asked for it directly; CLAUDE.md is updated to match (§4, §6, §7 §5's repo-layout comment).
+
+- [x] Three access tiers: Superuser (developer/Django-admin, never listed in the portal), Owner (full portal access + user management), Attendant (desktop POS only) — `User.Role` renamed `STAFF`→`ATTENDANT` (no data migration needed; no `STAFF` rows existed yet)
+- [x] Portal login rejects `role=ATTENDANT` with a clear message; `is_superuser=True` accounts are excluded at the queryset level everywhere in user management, not just hidden in a template — a real access boundary, not a display filter
+- [x] Portal: user management (`portal:user_list`) — create Owner/Attendant accounts with a password set directly (no email-invite flow; not warranted at this scale), revoke/restore access (`is_active` toggle, not delete — preserves `Sale.attendant` history)
+- [x] Portal: Owner can ring up an in-store sale directly (`portal:register_create`) — same `create_sale()` path the desktop POS uses, `allow_oversell=False` (matching the desktop's own connected-path reasoning: someone's live at a screen and can just check stock)
+- [x] Desktop: sign-in is now email+password (per attendant), not a pre-provisioned device token — `POST /api/auth/login/` returns that user's DRF token the same way the app has always authenticated everything else, just obtained differently. Token still lives in `safeStorage`; logging out clears only the stored credentials, never the local outbox (CLAUDE.md §7 — a sale already rung up must never be lost, including by a shift change)
+- [x] Desktop: "My Day" tab — today's sales for whoever is signed in, past receipts re-openable. Merges the server's `/api/sales/mine/` (authoritative, cross-device) with the local outbox (works offline, and is the *only* source for a sale that hasn't synced yet); falls back to local-only with a visible "offline view" note if the server's unreachable
+- [x] Desktop: sync indicator gained a visible pending-count badge on top of the existing "Offline (n queued)"/"Syncing (n)" label text — the label is meant to be read, the badge is meant to register mid-sale without stopping to read it
+
+**Done when:** the owner can create an attendant account from the portal, that attendant can sign into the desktop POS with it, ring up sales attributed to them, and see their own day's sales; a revoked account can no longer sign in anywhere. ✅ Verified 2026-07-19 — attendant creation, portal-login rejection, desktop-login acceptance (real HTTP round-trip against the login endpoint, not just the view function), superuser exclusion (confirmed at the queryset level), and portal-created in-store sales (stock decrement, receipt) were all exercised against the real database. **The desktop UI itself (My Day tab, sign-in screen) could not be visually verified this pass** — no browser/window-automation tool was available in this session — so it was checked statically: every DOM id the new JS references cross-checked one-for-one against `index.html` (found clean), plus the same check repeated for the storefront JS changes made in the same pass.
+
+**A bug found and fixed while building this (storefront, not this phase's own code):** the mobile topbar's search-icon toggle was visibly offset above the cart icon — traced to a leftover `transform: translateY(-50%)` surviving a `position: absolute` → `static` change from an earlier session's mobile-search-expand work. `transform` applies regardless of `position`; only the desktop rule's `top: 50%` needed that translate to correct for it, and nothing reset it for the mobile override. Fixed by resetting `transform: none` alongside the position change.
+
+---
+
 ## Phase 8 — Deploy & handover
 
 - [ ] Register the domain (client has no domain yet — this is a real blocker for launch, raise it early)
