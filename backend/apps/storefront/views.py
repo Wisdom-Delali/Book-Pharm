@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -11,6 +12,7 @@ from django.utils import timezone
 
 from apps.catalog.models import Book, Category, Tag
 from apps.fulfillment.models import DeliveryPricingRule, Fulfillment, Review
+from apps.fulfillment.services import DistanceOutOfRange, distance_pricing_available, resolve_distance_fee
 from apps.payments.models import PaymentTransaction
 from apps.payments.paystack import PaystackError, initialize_transaction, verify_transaction
 from apps.payments.views_helpers import PAYSTACK_CHANNEL_TO_METHOD
@@ -219,7 +221,17 @@ def checkout(request):
             ftype = form.cleaned_data['fulfillment_type']
             zone = form.cleaned_data.get('delivery_zone')
             address = form.cleaned_data.get('address', '')
-            delivery_fee = zone.fee if ftype == Fulfillment.Type.DELIVERY and zone else 0
+            latitude = form.cleaned_data.get('latitude')
+            longitude = form.cleaned_data.get('longitude')
+
+            # clean() already confirmed a distance-based point resolves to a
+            # ring when that method is active — this can't raise here, it's
+            # just re-deriving the fee rather than smuggling it through the
+            # form as a client-trusted value.
+            if ftype == Fulfillment.Type.DELIVERY and distance_pricing_available():
+                delivery_fee, _distance_km = resolve_distance_fee(latitude, longitude)
+            else:
+                delivery_fee = zone.fee if ftype == Fulfillment.Type.DELIVERY and zone else 0
 
             try:
                 sale = create_pending_online_sale(
@@ -231,6 +243,8 @@ def checkout(request):
                     fulfillment_type=ftype,
                     address=address,
                     delivery_fee=delivery_fee,
+                    latitude=latitude,
+                    longitude=longitude,
                 )
             except InsufficientStockError as exc:
                 messages.error(request, str(exc))
@@ -264,7 +278,31 @@ def checkout(request):
 
     return render(request, 'storefront/checkout.html', {
         'form': form, 'items': items, 'subtotal': cart.subtotal(), 'delivery_zones': delivery_zones,
+        'distance_pricing_available': distance_pricing_available(),
     })
+
+
+def delivery_fee_estimate(request):
+    """GET ?lat=&lng= — live preview while the customer picks an address at
+    checkout, before they submit (distance pricing has no fixed label like
+    a zone dropdown does, so without this they'd have no idea what
+    delivery will cost until the payment page). Not authoritative: checkout()
+    re-derives the fee itself from the submitted point rather than trusting
+    whatever this returned."""
+    if not distance_pricing_available():
+        return JsonResponse({'error': 'not_configured'}, status=404)
+    try:
+        lat = Decimal(request.GET.get('lat', ''))
+        lng = Decimal(request.GET.get('lng', ''))
+    except (InvalidOperation, TypeError):
+        return JsonResponse({'error': 'invalid_coordinates'}, status=400)
+
+    try:
+        fee, distance_km = resolve_distance_fee(lat, lng)
+    except DistanceOutOfRange as exc:
+        return JsonResponse({'error': 'out_of_range', 'distance_km': str(round(exc.distance_km, 1))}, status=200)
+
+    return JsonResponse({'fee': str(fee), 'distance_km': str(round(distance_km, 1))})
 
 
 def paystack_callback(request):

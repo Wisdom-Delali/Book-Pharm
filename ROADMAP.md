@@ -194,6 +194,20 @@ Not in the original phase plan — CLAUDE.md §4 had explicitly deferred staff a
 
 ---
 
+## Phase 7.6 — Distance-based delivery pricing & rider dispatch (owner request, 2026-07-20)
+
+Resolves CLAUDE.md §4's old "delivery fee method" open item. Also bakes in the Google Maps integration WISDOM.md #5 had been waiting on (key was supplied mid-session).
+
+- [x] `ShopLocation` (singleton) + `DeliveryPricingRule.radius_km` (replacing the never-implemented `per_km_rate`/`base_fee` linear-formula fields — no data loss, nothing had ever populated them) — `apps/fulfillment/distance.py` (haversine) + `services.py::resolve_distance_fee()` picks the smallest configured ring a point falls inside
+- [x] Portal: new "Delivery" nav section (`portal:delivery_settings`) — shop location via the same Places Autocomplete pattern as checkout, radius-tier CRUD (create/edit/toggle-active, same HTMX panel pattern as Discounts)
+- [x] Checkout: address field gained live Places Autocomplete + a "use my current location" button (geolocation → Geocoding API reverse-lookup), both no-ops with a plain text field when `GOOGLE_MAPS_API_KEY` is blank. When any `DISTANCE_BASED` rule is active, the old fixed-zone dropdown is replaced by a live AJAX fee estimate (`storefront:delivery_fee_estimate`) as soon as a point is picked; a point beyond every configured ring is rejected server-side in `CheckoutForm.clean()` with a message pointing at Pickup/Rider Delivery — never silently capped or waved through. No `DISTANCE_BASED` rules active → checkout behaves exactly as before (fixed-zone dropdown), so this shipped with zero behavior change until the owner actually configures a shop location + rings
+- [x] "View on Map" links (plain Maps URL scheme, no API key needed) added everywhere an address is *displayed*, not just where it's entered: rider queue, online order detail, customer's own order confirmation
+- [x] Rider dispatch (standard Delivery only, not Rider Delivery/Yango-Bolt-Uber): phone number input on the order detail page → SMS with order details + a Google Maps link, sent **synchronously** — a deliberate, scoped exception to CLAUDE.md §8's "never send SMS inline" rule, made after confirming with the owner specifically because this is one bounded call (not a bulk loop) and the existing 15-minute campaign cron cadence would make same-day dispatch impractical
+
+**Done when:** the owner can set the shop's location and a few radius/price rings from the portal, a storefront customer picking a delivery address inside those rings sees a live fee estimate and gets charged correctly at checkout, one outside every ring is blocked with a clear message, and the attendant can text a rider the order + map link on demand. ✅ Verified against the real database and a live server: haversine distance + tier resolution (in-range, ring-boundary, and out-of-range cases), full checkout POST end-to-end (Sale/Fulfillment created with the correct fee and stored coordinates), the fixed-zone fallback when no distance rules are active, the delivery-settings portal screens (shop location save, rule create/edit/toggle), and rider SMS dispatch including its failure path (no `SMSONLINEGH_API_KEY` configured yet — fails gracefully with a message, does not mark the fulfillment as sent). The actual SMS send and the Places Autocomplete/map UI interactions themselves could not be visually verified — no live SMSOnlineGH credentials and no browser/window-automation tool available this session — so those two pieces are unverified beyond code review and the request-response contract each depends on.
+
+---
+
 ## Phase 8 — Deploy & handover
 
 - [ ] Register the domain (client has no domain yet — this is a real blocker for launch, raise it early)

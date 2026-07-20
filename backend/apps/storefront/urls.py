@@ -15,6 +15,7 @@ urlpatterns = [
     path('cart/remove/<int:book_id>/', views.cart_remove, name='cart_remove'),
 
     path('checkout/', views.checkout, name='checkout'),
+    path('checkout/delivery-fee/', views.delivery_fee_estimate, name='delivery_fee_estimate'),
     path('checkout/callback/', views.paystack_callback, name='paystack_callback'),
 
     path('orders/<uuid:offline_uuid>/', views.order_confirmation, name='order_confirmation'),

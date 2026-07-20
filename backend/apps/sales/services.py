@@ -183,7 +183,7 @@ def create_sale(
 @transaction.atomic
 def create_pending_online_sale(
     *, items, customer_phone, customer_full_name='', customer_email='', customer_birthday=None,
-    fulfillment_type, address='', delivery_fee=Decimal('0'),
+    fulfillment_type, address='', delivery_fee=Decimal('0'), latitude=None, longitude=None,
 ):
     """Storefront checkout, before payment. Creates the Sale (PENDING),
     SaleItems, and Fulfillment — but does NOT touch stock. Checked
@@ -225,7 +225,10 @@ def create_pending_online_sale(
             unit_cost_price=unit_cost_price,
         )
 
-    Fulfillment.objects.create(sale=sale, type=fulfillment_type, address=address, fee=delivery_fee)
+    Fulfillment.objects.create(
+        sale=sale, type=fulfillment_type, address=address, fee=delivery_fee,
+        latitude=latitude, longitude=longitude,
+    )
 
     return sale
 

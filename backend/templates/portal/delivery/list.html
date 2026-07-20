@@ -1,0 +1,42 @@
+{% extends 'portal/base.html' %}
+
+{% block title %}Delivery Settings | Book Pharm Portal{% endblock %}
+
+{% block content %}
+{% include 'portal/delivery/_content.html' %}
+{% endblock %}
+
+{% block extra_body %}
+{% if google_maps_api_key %}
+<script>
+  // Page-level (not inside _content.html): that fragment gets swapped
+  // wholesale by HTMX every time the Add/Edit Rule panel opens or closes,
+  // which would re-insert this script tag and reload the whole Maps API
+  // on every click. Loaded once here; htmx:afterSwap re-attaches
+  // Autocomplete to the fresh #id_address input after each swap instead.
+  function attachShopLocationAutocomplete() {
+    const input = document.getElementById('id_address');
+    const latInput = document.getElementById('id_latitude');
+    const lngInput = document.getElementById('id_longitude');
+    if (!input || input.dataset.autocompleteAttached || !window.google || !google.maps.places) return;
+    input.dataset.autocompleteAttached = 'true';
+    const autocomplete = new google.maps.places.Autocomplete(input, {
+      fields: ['formatted_address', 'geometry'],
+      componentRestrictions: { country: 'gh' },
+    });
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      if (place.geometry && place.geometry.location) {
+        input.value = place.formatted_address;
+        latInput.value = place.geometry.location.lat();
+        lngInput.value = place.geometry.location.lng();
+      }
+    });
+  }
+  document.body.addEventListener('htmx:afterSwap', (e) => {
+    if (e.detail.target.id === 'delivery-content') attachShopLocationAutocomplete();
+  });
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places&callback=attachShopLocationAutocomplete" async defer></script>
+{% endif %}
+{% endblock %}

@@ -1,11 +1,21 @@
 from django.contrib import admin
 
-from .models import DeliveryPricingRule, Fulfillment, Review
+from .models import DeliveryPricingRule, Fulfillment, Review, ShopLocation
+
+
+@admin.register(ShopLocation)
+class ShopLocationAdmin(admin.ModelAdmin):
+    list_display = ['address', 'latitude', 'longitude', 'updated_at']
+
+    def has_add_permission(self, request):
+        # Singleton (ShopLocation.load(), always pk=1) — a second row would
+        # just be dead data nothing reads.
+        return not ShopLocation.objects.exists()
 
 
 @admin.register(DeliveryPricingRule)
 class DeliveryPricingRuleAdmin(admin.ModelAdmin):
-    list_display = ['zone_name', 'method', 'fee', 'is_active']
+    list_display = ['method', 'zone_name', 'radius_km', 'fee', 'is_active']
     list_filter = ['method', 'is_active']
 
 

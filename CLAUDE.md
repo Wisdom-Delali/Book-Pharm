@@ -56,6 +56,8 @@ These come from the client's completed questionnaire. **They are decided — don
 - **Low stock:** the owner must be warned when a title is low or out of stock
 - **Payments:** MTN MoMo, Telecel/Vodafone Cash, bank transfer, card
 - **Fulfillment:** customer chooses delivery, in-store pickup, *or* rider delivery (Yango/Bolt/Uber) — added 2026-07-18, owner request. Rider delivery has **no calculated fee**: the customer pays Book Pharm for the books only; the attendant books the actual ride with the customer's phone number and drop-off address, and the ride fare is settled directly between the customer and the rider service. The portal must flag rider-delivery orders as needing a booking until the attendant marks one placed — same pattern as low-stock/reconciliation alerts, so one doesn't get missed during a shift.
+- **Standard delivery pricing: distance-based radius tiers**, confirmed 2026-07-20, owner request (resolves the old "delivery fee method" open item below). The owner sets the shop's own lat/lng once (`ShopLocation`, portal, via the same address-autocomplete picker checkout uses) and configures rings — "up to Xkm from the shop costs GHS Y" (`DeliveryPricingRule` with `method=DISTANCE_BASED`, ordered by `radius_km`). Straight-line (haversine) distance, not driving distance — a deliberate choice, no Distance Matrix API call needed at checkout. A point farther than every configured ring **blocks standard Delivery outright** at checkout (customer must choose Pickup or Rider Delivery instead) — never silently caps at the top tier's price. Fixed-zone rules remain fully supported and are the automatic fallback whenever no `DISTANCE_BASED` rule is active, so a shop that hasn't configured radius pricing sees no behavior change. See `apps/fulfillment/services.py`.
+- **Rider dispatch (standard Delivery only):** the attendant types a phone number (no saved rider accounts — "just a number input", owner's words) into the order detail page and an SMS goes out with the order details and a Google Maps link, sent **synchronously**, not queued — a deliberate, scoped exception to this file's own "never send SMS inline" rule (§8), justified because it's exactly one bounded external call (like the existing Paystack checkout call), not a bulk loop, and the rider needs it now. Do not extend this exception to any bulk/multi-recipient send.
 - **Order confirmation:** customers confirm receipt and can leave feedback/reviews
 - **Marketplace:** Jumia sales tracked as a distinct channel, including returns
 - **Customer data captured at checkout:** phone, full name, email, birthday
@@ -73,7 +75,6 @@ These come from the client's completed questionnaire. **They are decided — don
 
 ### Still open — ask before implementing
 
-- **Delivery fee method:** distance-based vs. fixed zones vs. manual per order. Build the `DeliveryPricingRule` abstraction so any of the three can drop in; default to fixed zones until confirmed.
 - **Discount approval level:** owner-only vs. staff within a limit. Model has an `approval_level` field; default to owner-only.
 
 ---
@@ -144,9 +145,11 @@ One `Sale` table covers **all three channels** — this is deliberate, so report
 - `DiscountRule` — type (`PERCENT` | `FIXED`), value, scope (`GLOBAL` | `CATEGORY` | `BOOK`), target, `approval_level`, `is_active`
 
 **`fulfillment`**
-- `Fulfillment` — sale OneToOne, type (`DELIVERY` | `PICKUP` | `RIDER_DELIVERY`), address, `fee`, status, `confirmed_by_customer_at`, `rider_booked_at` (nullable), `rider_booked_by` FK (nullable)
+- `ShopLocation` — singleton (`load()`, always `pk=1`), `address`, `latitude`/`longitude`. Origin point for distance-based delivery pricing; set once by the owner in the portal.
+- `Fulfillment` — sale OneToOne, type (`DELIVERY` | `PICKUP` | `RIDER_DELIVERY`), address, `latitude`/`longitude` (nullable — captured at checkout from Places Autocomplete or device geolocation), `fee`, status, `confirmed_by_customer_at`, `rider_booked_at`/`rider_booked_by` FK (nullable), `delivery_rider_phone`/`delivery_rider_sms_sent_at`/`delivery_rider_sms_sent_by` FK (nullable)
   - `RIDER_DELIVERY` ("Yango / Bolt / Uber Delivery" in the UI): `fee` is always `0` — Book Pharm never calculates or collects it. `rider_booked_at`/`rider_booked_by` track the attendant manually placing the actual ride; the portal surfaces unbooked ones as an alert.
-- `DeliveryPricingRule` — abstraction over the three *standard delivery* pricing methods (see open items). Does not apply to `RIDER_DELIVERY`, which bypasses fee calculation entirely.
+  - `delivery_rider_*` fields are for standard `DELIVERY` only, and are a completely separate concept from `rider_booked_*` (which is `RIDER_DELIVERY`-only) — see §4's rider dispatch entry. Don't conflate the two "rider" ideas.
+- `DeliveryPricingRule` — `method` (`FIXED_ZONE` | `DISTANCE_BASED` | `MANUAL`), `zone_name` (FIXED_ZONE), `radius_km` (DISTANCE_BASED — upper bound of the ring), `fee`, `is_active`. `DISTANCE_BASED` is resolved by `apps/fulfillment/services.py::resolve_distance_fee()` against `ShopLocation`; checkout prefers it whenever any `DISTANCE_BASED` rule is active, else falls back to `FIXED_ZONE`. Neither applies to `RIDER_DELIVERY`, which bypasses fee calculation entirely. `MANUAL` is modeled, not built.
 - `Review` — sale FK, rating, comment, `created_at`
 
 **`payments`**
@@ -185,7 +188,9 @@ The attendant sells at book fairs with unreliable internet. Sales must never be 
 
 **Paystack** — initialize transaction server-side, redirect/inline checkout, verify via webhook *and* a verify-on-return call (don't trust the redirect alone). Store the full payload in `PaymentTransaction.raw_payload` for reconciliation. The client has been burned before by payments not reflecting — reconciliation records matter more than usual here.
 
-**SMSOnlineGH** — used for birthday greetings, new arrivals, and promotions. Sends go through a management command triggered by cron, writing to `SmsLog`. Never send from a request/response cycle; queue it.
+**SMSOnlineGH** — used for birthday greetings, new arrivals, and promotions. Sends go through a management command triggered by cron, writing to `SmsLog`. Never send from a request/response cycle; queue it. **One deliberate exception:** rider dispatch (§4) sends synchronously from the portal — a single bounded call, not a bulk loop; don't use that as precedent to inline anything else.
+
+**Google Maps** — client-side (Places Autocomplete + Geocoding), key in `GOOGLE_MAPS_API_KEY` (blank-safe: every integration point degrades to a plain text field when unset). Used for: checkout address entry, shop location entry in the portal, and distance-based delivery pricing's straight-line calculation (which does *not* call any Maps API at fee-calculation time — see §4).
 
 ---
 

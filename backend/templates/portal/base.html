@@ -46,6 +46,9 @@
         <a href="{% url 'portal:discount_list' %}" class="{% if active_nav == 'discounts' %}is-active{% endif %}">
           <span class="material-symbols-outlined">sell</span> Discounts
         </a>
+        <a href="{% url 'portal:delivery_settings' %}" class="{% if active_nav == 'delivery' %}is-active{% endif %}">
+          <span class="material-symbols-outlined">local_shipping</span> Delivery
+        </a>
         <a href="{% url 'portal:reconciliation_list' %}" class="{% if active_nav == 'reconciliation' %}is-active{% endif %}">
           <span class="material-symbols-outlined">fact_check</span> Reconciliation
         </a>

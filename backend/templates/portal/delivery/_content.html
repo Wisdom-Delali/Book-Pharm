@@ -1,0 +1,85 @@
+<div id="delivery-content">
+  <header class="portal-page-header">
+    <div>
+      <h1>Delivery Settings</h1>
+      <p class="text-muted">Shop location and how delivery fees are calculated.</p>
+    </div>
+  </header>
+
+  <div class="card" style="margin-bottom: var(--space-stack-md); max-width: 560px;">
+    <h3>Shop Location</h3>
+    <p class="text-muted" style="font-size: 0.85rem;">The origin point distance-based rules below measure from.</p>
+    {% if shop_location.is_configured %}
+    <p class="text-muted" style="font-size: 0.85rem;">Currently: <strong>{{ shop_location.address }}</strong> ({{ shop_location.latitude }}, {{ shop_location.longitude }})</p>
+    {% endif %}
+    <form method="post" action="{% url 'portal:shop_location_update' %}">
+      {% csrf_token %}
+      {% for error in location_form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+      <div class="form-field">
+        <label class="form-label" for="{{ location_form.address.id_for_label }}">Shop address</label>
+        {{ location_form.address }}
+        <p class="form-help">Start typing and pick your shop from the suggestions{% if not google_maps_api_key %} — requires GOOGLE_MAPS_API_KEY to be configured{% endif %}.</p>
+        {% for error in location_form.address.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+      </div>
+      {{ location_form.latitude }}
+      {{ location_form.longitude }}
+      <button type="submit" class="btn btn--primary" style="margin-top: 0.75rem;">Save Location</button>
+    </form>
+  </div>
+
+  <header class="portal-page-header">
+    <div>
+      <h3 style="margin: 0;">Delivery Pricing Rules</h3>
+      <p class="text-muted" style="font-size: 0.85rem;">Distance-based rings take priority at checkout when any are active; fixed zones are the fallback otherwise.</p>
+    </div>
+    <button class="btn btn--primary" hx-get="{% url 'portal:pricing_rule_create' %}" hx-target="#delivery-content" hx-swap="outerHTML">
+      + Add Rule
+    </button>
+  </header>
+
+  <div class="card catalog-table-card">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Zone / Radius</th>
+          <th class="text-right">Fee</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rule in rules %}
+        <tr>
+          <td>{{ rule.get_method_display }}</td>
+          <td>
+            {% if rule.method == 'FIXED_ZONE' %}{{ rule.zone_name }}
+            {% elif rule.method == 'DISTANCE_BASED' %}Up to {{ rule.radius_km }}km
+            {% else %}&mdash;{% endif %}
+          </td>
+          <td class="text-right mono">GHS {{ rule.fee }}</td>
+          <td>
+            {% if rule.is_active %}<span class="badge badge--ok">Active</span>{% else %}<span class="badge">Inactive</span>{% endif %}
+          </td>
+          <td class="text-right">
+            <button class="btn btn--secondary" hx-get="{% url 'portal:pricing_rule_update' rule.pk %}" hx-target="#delivery-content" hx-swap="outerHTML">Edit</button>
+            <form method="post" action="{% url 'portal:pricing_rule_toggle_active' rule.pk %}" style="display: inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn--secondary">{% if rule.is_active %}Deactivate{% else %}Activate{% endif %}</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-muted">No delivery pricing rules yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if panel_open %}
+  <div class="panel-backdrop" hx-get="{% url 'portal:delivery_settings' %}" hx-target="#delivery-content" hx-swap="outerHTML"></div>
+  <aside class="panel">
+    {% include 'portal/delivery/_rule_form.html' %}
+  </aside>
+  {% endif %}
+</div>

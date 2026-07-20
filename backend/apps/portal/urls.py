@@ -3,8 +3,8 @@ from django.urls import path
 from apps.reports import views as report_views
 
 from . import (
-    auth_views, customer_views, discount_views, expense_views, marketplace_views, messaging_views, orders_views,
-    reconciliation_views, register_views, user_views, views,
+    auth_views, customer_views, delivery_views, discount_views, expense_views, marketplace_views, messaging_views,
+    orders_views, reconciliation_views, register_views, user_views, views,
 )
 
 app_name = 'portal'
@@ -28,6 +28,11 @@ urlpatterns = [
     path('discounts/', discount_views.discount_list, name='discount_list'),
     path('discounts/new/', discount_views.discount_create, name='discount_create'),
     path('discounts/<int:pk>/edit/', discount_views.discount_update, name='discount_update'),
+    path('delivery/', delivery_views.delivery_settings, name='delivery_settings'),
+    path('delivery/location/', delivery_views.shop_location_update, name='shop_location_update'),
+    path('delivery/rules/new/', delivery_views.pricing_rule_create, name='pricing_rule_create'),
+    path('delivery/rules/<int:pk>/edit/', delivery_views.pricing_rule_update, name='pricing_rule_update'),
+    path('delivery/rules/<int:pk>/toggle-active/', delivery_views.pricing_rule_toggle_active, name='pricing_rule_toggle_active'),
     path('reconciliation/', reconciliation_views.reconciliation_list, name='reconciliation_list'),
     path('reconciliation/<int:pk>/resolve/', reconciliation_views.reconciliation_resolve, name='reconciliation_resolve'),
     path('expenses/', expense_views.expense_list, name='expense_list'),
@@ -39,6 +44,7 @@ urlpatterns = [
     path('reports/expenses/', report_views.expense_report, name='reports_expenses'),
     path('orders/', orders_views.order_list, name='order_list'),
     path('orders/<int:pk>/', orders_views.order_detail, name='order_detail'),
+    path('orders/<int:pk>/send-to-rider/', orders_views.send_to_rider, name='send_to_rider'),
     path('orders/rider-queue/', orders_views.rider_queue, name='rider_queue'),
     path('orders/fulfillment/<int:pk>/mark-rider-booked/', orders_views.mark_rider_booked, name='mark_rider_booked'),
     path('marketplace/', marketplace_views.marketplace_list, name='marketplace_list'),

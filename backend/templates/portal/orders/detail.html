@@ -59,6 +59,16 @@
           <button type="submit" class="btn btn--primary" style="margin-top: 0.5rem;">Mark Ride Booked</button>
         </form>
         {% endif %}
+      {% elif sale.fulfillment.type == 'DELIVERY' %}
+        {% if sale.fulfillment.delivery_rider_sms_sent_at %}
+        <p class="badge badge--ok">Sent to {{ sale.fulfillment.delivery_rider_phone }} by {{ sale.fulfillment.delivery_rider_sms_sent_by }} at {{ sale.fulfillment.delivery_rider_sms_sent_at|date:"M j, g:i A" }}</p>
+        <p class="text-muted" style="font-size: 0.8rem; margin-top: 0.25rem;">Dispatching someone else instead? Sending again below will text the order to a new number.</p>
+        {% endif %}
+        <form method="post" action="{% url 'portal:send_to_rider' sale.pk %}" style="margin-top: 0.5rem; display: flex; gap: 0.5rem; align-items: flex-start;">
+          {% csrf_token %}
+          <input type="tel" name="rider_phone" placeholder="Rider's phone, e.g. 024 xxx xxxx" style="flex: 1;">
+          <button type="submit" class="btn btn--primary">Send to Rider</button>
+        </form>
       {% endif %}
       {% if sale.fulfillment.confirmed_by_customer_at %}
       <p class="text-muted" style="margin-top: 0.5rem;">Customer confirmed receipt {{ sale.fulfillment.confirmed_by_customer_at|date:"M j, g:i A" }}</p>

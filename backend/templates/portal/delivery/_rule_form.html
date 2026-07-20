@@ -1,0 +1,59 @@
+<div class="panel__header">
+  <h3>{% if editing_rule %}Edit Delivery Rule{% else %}New Delivery Rule{% endif %}</h3>
+  <button class="panel__close" hx-get="{% url 'portal:delivery_settings' %}" hx-target="#delivery-content" hx-swap="outerHTML">&times;</button>
+</div>
+
+<form class="panel__form"
+      hx-post="{% if editing_rule %}{% url 'portal:pricing_rule_update' editing_rule.pk %}{% else %}{% url 'portal:pricing_rule_create' %}{% endif %}"
+      hx-target="#delivery-content" hx-swap="outerHTML">
+  {% csrf_token %}
+  {% for error in rule_form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+
+  <div class="form-field">
+    <label class="form-label" for="{{ rule_form.method.id_for_label }}">{{ rule_form.method.label }}</label>
+    {{ rule_form.method }}
+  </div>
+
+  <div class="form-field" id="rule-zone-field">
+    <label class="form-label" for="{{ rule_form.zone_name.id_for_label }}">{{ rule_form.zone_name.label }}</label>
+    {{ rule_form.zone_name }}
+    <p class="form-help">FIXED_ZONE only, e.g. "Accra Central".</p>
+    {% for error in rule_form.zone_name.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+  </div>
+
+  <div class="form-field" id="rule-radius-field">
+    <label class="form-label" for="{{ rule_form.radius_km.id_for_label }}">{{ rule_form.radius_km.label }}</label>
+    {{ rule_form.radius_km }}
+    <p class="form-help">Upper bound of this ring in km, e.g. 2 for "up to 2km from the shop".</p>
+    {% for error in rule_form.radius_km.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+  </div>
+
+  <div class="form-field">
+    <label class="form-label" for="{{ rule_form.fee.id_for_label }}">{{ rule_form.fee.label }}</label>
+    {{ rule_form.fee }}
+    {% for error in rule_form.fee.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+  </div>
+
+  <div class="form-field">
+    <label class="toolbar__checkbox">{{ rule_form.is_active }} {{ rule_form.is_active.label }}</label>
+  </div>
+
+  <div class="panel__actions">
+    <button type="button" class="btn btn--secondary" hx-get="{% url 'portal:delivery_settings' %}" hx-target="#delivery-content" hx-swap="outerHTML">Cancel</button>
+    <button type="submit" class="btn btn--primary">{% if editing_rule %}Save Changes{% else %}Create Rule{% endif %}</button>
+  </div>
+</form>
+
+<script>
+  (function () {
+    const methodField = document.getElementById('{{ rule_form.method.id_for_label }}');
+    const zoneField = document.getElementById('rule-zone-field');
+    const radiusField = document.getElementById('rule-radius-field');
+    function update() {
+      zoneField.style.display = methodField.value === 'FIXED_ZONE' ? 'block' : 'none';
+      radiusField.style.display = methodField.value === 'DISTANCE_BASED' ? 'block' : 'none';
+    }
+    methodField.addEventListener('change', update);
+    update();
+  })();
+</script>

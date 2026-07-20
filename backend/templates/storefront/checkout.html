@@ -44,11 +44,13 @@
         <label for="ft-rider">🛵 Yango / Bolt / Uber</label>
       </div>
 
+      {% if not distance_pricing_available %}
       <div id="delivery-zone-field" class="form-field" style="display: none;">
         <label class="form-label" for="{{ form.delivery_zone.id_for_label }}">Delivery zone</label>
         {{ form.delivery_zone }}
         {% for error in form.delivery_zone.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
       </div>
+      {% endif %}
 
       <p id="rider-note" class="text-muted" style="font-size: 0.85rem; display: none;">No delivery fee — you'll pay for the books only. We'll book a Yango/Bolt/Uber to bring your order using the phone number and location below; the ride fare is paid directly to the driver.</p>
 
@@ -59,11 +61,16 @@
       <div id="address-field" class="form-field" style="display: none;">
         <label class="form-label" id="address-label" for="{{ form.address.id_for_label }}">Address</label>
         {{ form.address }}
+        {{ form.latitude }}
+        {{ form.longitude }}
         {% if google_maps_api_key %}
         <button type="button" id="use-my-location" class="btn btn--secondary" style="margin-top: 0.5rem; font-size: 0.8rem; padding: 0.4rem 0.9rem;">
           <span class="material-symbols-outlined" style="font-size: 1rem;">my_location</span> Use my current location
         </button>
         <p id="location-status" class="text-muted" style="font-size: 0.8rem; display: none;"></p>
+        {% endif %}
+        {% if distance_pricing_available %}
+        <p id="delivery-fee-preview" class="text-muted" style="font-size: 0.85rem; display: none; margin-top: 0.5rem;"></p>
         {% endif %}
         {% for error in form.address.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
       </div>
@@ -88,12 +95,15 @@
 </form>
 
 <script>
-  const zoneField = document.getElementById('delivery-zone-field');
+  const zoneField = document.getElementById('delivery-zone-field'); // null when distance pricing is active
   const riderNote = document.getElementById('rider-note');
   const pickupNote = document.getElementById('pickup-note');
   const addressField = document.getElementById('address-field');
   const addressLabel = document.getElementById('address-label');
-  const addressInput = addressField.querySelector('textarea, input');
+  const addressInput = addressField.querySelector('textarea, input[type="text"]');
+  const latInput = document.getElementById('{{ form.latitude.id_for_label }}');
+  const lngInput = document.getElementById('{{ form.longitude.id_for_label }}');
+  const feePreview = document.getElementById('delivery-fee-preview'); // null when distance pricing is off
 
   const ADDRESS_LABELS = {
     DELIVERY: 'Full delivery address',
@@ -104,7 +114,7 @@
     const selected = document.querySelector('input[name="fulfillment_type"]:checked');
     const value = selected ? selected.value : 'DELIVERY';
 
-    zoneField.style.display = value === 'DELIVERY' ? 'block' : 'none';
+    if (zoneField) zoneField.style.display = value === 'DELIVERY' ? 'block' : 'none';
     riderNote.style.display = value === 'RIDER_DELIVERY' ? 'block' : 'none';
     pickupNote.style.display = value === 'PICKUP' ? 'block' : 'none';
 
@@ -118,18 +128,53 @@
     el.addEventListener('change', updateFulfillmentFields);
   });
   updateFulfillmentFields();
+
+  // Live estimate, only wired up when distance-based pricing is actually
+  // configured (feePreview is null otherwise) — a zone dropdown already
+  // labels its own price, but distance pricing has nothing to show the
+  // customer until a point is picked, so without this they'd see no fee
+  // at all until the payment page.
+  async function updateFeePreview() {
+    if (!feePreview || !latInput.value || !lngInput.value) return;
+    feePreview.style.display = 'block';
+    feePreview.classList.remove('text-error');
+    feePreview.textContent = 'Calculating delivery fee…';
+    try {
+      const res = await fetch(`{% url 'storefront:delivery_fee_estimate' %}?lat=${latInput.value}&lng=${lngInput.value}`);
+      const data = await res.json();
+      if (res.ok && data.fee) {
+        feePreview.textContent = `Estimated delivery fee: GHS ${Number(data.fee).toFixed(2)} (${data.distance_km}km away)`;
+      } else if (data.error === 'out_of_range') {
+        feePreview.textContent = `Sorry, ${data.distance_km}km is outside our delivery range — try Pickup or Rider Delivery instead.`;
+        feePreview.classList.add('text-error');
+      } else {
+        feePreview.style.display = 'none';
+      }
+    } catch (err) {
+      feePreview.style.display = 'none';
+    }
+  }
 </script>
 
 {% if google_maps_api_key %}
 <script>
-  // Places Autocomplete on the address field — addressInput is declared
-  // above; classic (non-module) <script> tags in one document share the
-  // same top-level scope, so it's visible here without re-querying.
+  // Places Autocomplete on the address field — addressInput/latInput/
+  // lngInput/updateFeePreview are declared above; classic (non-module)
+  // <script> tags in one document share the same top-level scope, so
+  // they're visible here without re-querying.
   function initBookPharmPlaces() {
     if (window.google && google.maps.places && addressInput) {
-      new google.maps.places.Autocomplete(addressInput, {
-        fields: ['formatted_address'],
+      const autocomplete = new google.maps.places.Autocomplete(addressInput, {
+        fields: ['formatted_address', 'geometry'],
         componentRestrictions: { country: 'gh' },
+      });
+      autocomplete.addListener('place_changed', () => {
+        const place = autocomplete.getPlace();
+        if (place.geometry && place.geometry.location) {
+          latInput.value = place.geometry.location.lat();
+          lngInput.value = place.geometry.location.lng();
+          updateFeePreview();
+        }
       });
     }
   }
@@ -150,6 +195,9 @@
         async (pos) => {
           try {
             const { latitude, longitude } = pos.coords;
+            latInput.value = latitude;
+            lngInput.value = longitude;
+            updateFeePreview();
             const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key={{ google_maps_api_key }}`);
             const data = await res.json();
             if (res.ok && data.results && data.results[0]) {
