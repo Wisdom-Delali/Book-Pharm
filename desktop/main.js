@@ -33,8 +33,13 @@ function clearConfig() {
   }
 }
 
+// Module-level, not local to createWindow() — the printer IPC handlers
+// below need it (webContents.getPrintersAsync()/print() operate on a
+// specific window's contents, there's no window-independent API for either).
+let mainWindow = null;
+
 function createWindow() {
-  const win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1360,
     height: 860,
     minWidth: 1024,
@@ -47,7 +52,8 @@ function createWindow() {
       sandbox: true,
     },
   });
-  win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
+  mainWindow.loadFile(path.join(__dirname, 'renderer', 'index.html'));
+  mainWindow.on('closed', () => { mainWindow = null; });
 }
 
 ipcMain.handle('device-config:get', () => readConfig());
@@ -77,6 +83,28 @@ ipcMain.handle('db:getTodayOutbox', () => db.getTodayOutbox(userDataPath()));
 ipcMain.handle('db:getBooksByIds', (_event, ids) => db.getBooksByIds(userDataPath(), ids));
 ipcMain.handle('db:markOutboxSynced', (_event, offlineUuid, serverResponse) => db.markOutboxSynced(userDataPath(), offlineUuid, serverResponse));
 ipcMain.handle('db:markOutboxFailed', (_event, offlineUuid, errorMessage) => db.markOutboxFailed(userDataPath(), offlineUuid, errorMessage));
+
+// ---------- Printing ----------
+// Chosen once in Settings, saved in device config, then every receipt
+// print uses it silently (no OS dialog interrupting a busy checkout) —
+// getPrintersAsync()/print() with a deviceName are both main-process-only,
+// unreachable from the sandboxed renderer via window.print() alone.
+
+ipcMain.handle('printer:list', async () => {
+  if (!mainWindow) return [];
+  const printers = await mainWindow.webContents.getPrintersAsync();
+  return printers.map((p) => ({ name: p.name, displayName: p.displayName || p.name, isDefault: !!p.isDefault }));
+});
+
+ipcMain.handle('printer:print', (_event, options = {}) => {
+  if (!mainWindow) return Promise.resolve({ success: false, failureReason: 'No window available.' });
+  return new Promise((resolve) => {
+    mainWindow.webContents.print(
+      { silent: true, printBackground: true, deviceName: options.deviceName || undefined },
+      (success, failureReason) => resolve({ success, failureReason: failureReason || '' }),
+    );
+  });
+});
 
 app.whenReady().then(() => {
   createWindow();

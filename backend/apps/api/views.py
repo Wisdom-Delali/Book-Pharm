@@ -3,6 +3,7 @@ from datetime import date
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from rest_framework import generics, status
@@ -15,12 +16,18 @@ from apps.catalog.codes import normalize_isbn
 from apps.catalog.models import Book
 from apps.customers.models import Customer, LoyaltyProgram
 from apps.customers.phone import normalize_phone
+from apps.payments.models import PaymentTransaction
+from apps.payments.paystack import PaystackError, charge_mobile_money, verify_transaction
+from apps.payments.views_helpers import PAYSTACK_CHANNEL_TO_METHOD
 from apps.reports.utils import range_bounds_utc
 from apps.sales.models import Sale
-from apps.sales.services import InsufficientStockError, create_sale
+from apps.sales.services import (
+    InsufficientStockError, cancel_pending_sale, create_pending_instore_sale, create_sale, finalize_paid_sale,
+)
 
 from .serializers import (
-    BookSyncSerializer, CustomerSerializer, SaleBatchSyncSerializer, SaleCreateSerializer, SaleDetailSerializer,
+    BookSyncSerializer, CustomerSerializer, MomoChargeSerializer, PaymentTransactionSerializer,
+    SaleBatchSyncSerializer, SaleCreateSerializer, SaleDetailSerializer,
 )
 
 
@@ -238,3 +245,145 @@ class MySalesView(generics.ListAPIView):
             .prefetch_related('items__book')
             .order_by('-created_at')
         )
+
+
+def _synthetic_pos_email(customer):
+    """Paystack's Charge API requires an email; in-store customers only
+    ever give a phone (CLAUDE.md: phone required, rest optional-prompted).
+    A synthetic address is enough — the Charge API uses it as an account
+    identifier, it isn't sent a receipt the way the storefront's
+    redirect-flow checkout email is. `.local` (RFC 6762, not a real public
+    TLD) got rejected outright by Paystack's own validation — confirmed
+    live against the API, not assumed — so this uses `.com` instead."""
+    return f"pos-{customer.phone.lstrip('+')}@bookpharm.com"
+
+
+class MomoChargeView(APIView):
+    """POST /api/sales/momo-charge/ — desktop POS MoMo payment (owner
+    request, 2026-07-20). Creates the sale as PENDING (create_pending_instore_sale()
+    — stock untouched until confirmed, same as online checkout) and, in the
+    same call, sends the Paystack mobile money prompt to the customer's
+    phone. If the sale is created but the Paystack call itself fails, the
+    pending sale is cancelled immediately rather than left orphaned with no
+    corresponding charge attempt to ever check."""
+
+    def post(self, request):
+        serializer = MomoChargeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        try:
+            sale = create_pending_instore_sale(
+                items=data['items'],
+                customer_phone=data['customer_phone'],
+                customer_full_name=data.get('customer_full_name', ''),
+                customer_email=data.get('customer_email', ''),
+                customer_birthday=data.get('customer_birthday'),
+                attendant=request.user,
+            )
+        except InsufficientStockError as exc:
+            return Response(
+                {'error': str(exc), 'book_id': exc.book.id, 'available': exc.available},
+                status=status.HTTP_409_CONFLICT,
+            )
+        except ValueError as exc:
+            return Response({'error': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        email = data.get('customer_email') or _synthetic_pos_email(sale.customer)
+        try:
+            charge_data = charge_mobile_money(
+                email=email, amount_ghs=sale.total, reference=str(sale.offline_uuid),
+                phone=data['momo_phone'], provider=data['momo_provider'],
+            )
+        except PaystackError as exc:
+            cancel_pending_sale(sale)
+            # A PaymentTransaction row even for an attempt that never made it
+            # to Paystack's "prompt sent" state — otherwise a charge that
+            # fails instantly (bad number, network blip) leaves no trace at
+            # all on the Payments page, which defeats its actual purpose.
+            PaymentTransaction.objects.create(
+                sale=sale, provider=PaymentTransaction.Provider.PAYSTACK,
+                provider_ref=str(sale.offline_uuid), amount=sale.total,
+                status=PaymentTransaction.Status.FAILED, raw_payload={'error': str(exc)},
+            )
+            return Response({'error': f'Could not start MoMo charge: {exc}'}, status=status.HTTP_502_BAD_GATEWAY)
+
+        PaymentTransaction.objects.create(
+            sale=sale, provider=PaymentTransaction.Provider.PAYSTACK,
+            provider_ref=str(sale.offline_uuid), amount=sale.total,
+            status=PaymentTransaction.Status.PENDING, raw_payload=charge_data,
+        )
+
+        out = SaleDetailSerializer(sale).data
+        out['paystack_status'] = charge_data.get('status', '')
+        out['paystack_display_text'] = charge_data.get('display_text', '')
+        return Response(out, status=status.HTTP_201_CREATED)
+
+
+class PaymentStatusView(APIView):
+    """GET /api/payments/<offline_uuid>/status/ — checks Paystack for the
+    current state of a MoMo charge and finalizes the sale (stock decrement,
+    PAID/COMPLETED, loyalty points — via the same finalize_paid_sale() the
+    webhook uses) if it's now succeeded. Powers both the desktop app's
+    automatic polling right after sending a charge and its manual "Check
+    Status" button — same call either way, same as CLAUDE.md §8's
+    webhook-plus-verify-on-return principle applied to a POS terminal
+    instead of a browser redirect. A no-op re-check (already PAID, or
+    Paystack still says pending) is cheap and safe to call repeatedly."""
+
+    def get(self, request, offline_uuid):
+        sale = get_object_or_404(Sale, offline_uuid=offline_uuid, channel=Sale.Channel.IN_STORE)
+        paystack_status = ''  # stays blank if already PAID — nothing to check
+
+        if sale.payment_status != Sale.PaymentStatus.PAID:
+            try:
+                data = verify_transaction(str(offline_uuid))
+            except PaystackError as exc:
+                return Response({'error': f'Could not check payment status: {exc}'}, status=status.HTTP_502_BAD_GATEWAY)
+
+            paystack_status = data.get('status', '')
+            if paystack_status == 'success':
+                txn_status = PaymentTransaction.Status.SUCCESS
+            elif paystack_status == 'failed':
+                txn_status = PaymentTransaction.Status.FAILED
+            else:
+                txn_status = PaymentTransaction.Status.PENDING
+            PaymentTransaction.objects.filter(provider_ref=str(offline_uuid)).update(
+                status=txn_status, raw_payload=data,
+            )
+
+            if paystack_status == 'success':
+                method = PAYSTACK_CHANNEL_TO_METHOD.get(data.get('channel'), Sale.PaymentMethod.MOMO)
+                sale = finalize_paid_sale(sale, payment_method=method)
+
+        out = SaleDetailSerializer(sale).data
+        out['paystack_status'] = paystack_status
+        return Response(out)
+
+
+class CancelPendingSaleView(APIView):
+    """POST /api/sales/<offline_uuid>/cancel/ — attendant abandons a pending
+    MoMo charge (failed, timed out, customer changed their mind). No stock
+    reversal needed — create_pending_instore_sale() never touched stock."""
+
+    def post(self, request, offline_uuid):
+        sale = get_object_or_404(Sale, offline_uuid=offline_uuid, channel=Sale.Channel.IN_STORE)
+        sale = cancel_pending_sale(sale)
+        return Response(SaleDetailSerializer(sale).data)
+
+
+class InStorePaymentsListView(generics.ListAPIView):
+    """GET /api/payments/in-store/ — every MoMo-via-Paystack payment attempt
+    rung up on any device, not scoped to the requesting attendant (owner
+    request: "records of payments for both attendant and admin" — whoever's
+    signed into any desktop terminal sees the same shared list, since a
+    charge one attendant started may need another to notice or retry it).
+    Powers the desktop Payments page. Capped at the 200 most recent rather
+    than paginated — a POS "recent activity" view, not an archive browser."""
+
+    serializer_class = PaymentTransactionSerializer
+
+    def get_queryset(self):
+        return PaymentTransaction.objects.filter(
+            sale__channel=Sale.Channel.IN_STORE,
+        ).select_related('sale', 'sale__customer', 'sale__attendant').order_by('-created_at')[:200]

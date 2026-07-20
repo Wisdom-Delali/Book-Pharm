@@ -12,30 +12,51 @@
 </head>
 <body>
 
-<!-- Sign-in view -->
-<section id="view-settings" class="settings-view hidden">
+<!-- Sign-in view — credentials only. Nothing here once signed in; that's
+     the Settings view below now (owner request, 2026-07-20). -->
+<section id="view-login" class="settings-view hidden">
   <div class="settings-view__brand">
     <img src="logo.svg" alt="" width="40" height="40">
     <span>Book Pharm</span>
   </div>
   <h2>Sign in</h2>
   <p style="color: var(--color-secondary); font-size: 0.85rem;">Enter the shop's API address and your Book Pharm email and password. The owner creates accounts from the portal's Users page.</p>
+  <div id="login-error" class="error-banner hidden"></div>
+  <div>
+    <label for="login-api-url">API Base URL</label>
+    <input type="text" id="login-api-url" placeholder="http://127.0.0.1:8000">
+  </div>
+  <div>
+    <label for="login-email">Email</label>
+    <input type="email" id="login-email" placeholder="you@bookpharm.local" autocomplete="username">
+  </div>
+  <div>
+    <label for="login-password">Password</label>
+    <input type="password" id="login-password" placeholder="Password" autocomplete="current-password">
+  </div>
+  <button id="login-save">Sign In</button>
+</section>
+
+<!-- Settings — reachable only while signed in (the gear icon). Printer
+     choice and logout; no credentials here (owner request: those belong
+     on the login screen only — switching account/server means signing out
+     first, same as most apps). -->
+<section id="view-settings" class="settings-view hidden">
+  <div class="settings-view__brand">
+    <img src="logo.svg" alt="" width="40" height="40">
+    <span>Book Pharm</span>
+  </div>
+  <h2>Settings</h2>
   <div id="settings-error" class="error-banner hidden"></div>
   <div>
-    <label for="settings-api-url">API Base URL</label>
-    <input type="text" id="settings-api-url" placeholder="http://127.0.0.1:8000">
+    <label for="settings-printer">Receipt printer</label>
+    <select id="settings-printer">
+      <option value="">System default</option>
+    </select>
   </div>
-  <div>
-    <label for="settings-email">Email</label>
-    <input type="email" id="settings-email" placeholder="you@bookpharm.local" autocomplete="username">
-  </div>
-  <div>
-    <label for="settings-password">Password</label>
-    <input type="password" id="settings-password" placeholder="Password" autocomplete="current-password">
-  </div>
-  <button id="settings-save">Sign In</button>
-  <button id="settings-cancel" class="hidden" style="background: none; color: var(--color-secondary); font-weight: 600;">Back to Register</button>
-  <button id="settings-logout" class="hidden" style="background: none; color: var(--color-error); font-weight: 600;">Log Out</button>
+  <button id="settings-save">Save</button>
+  <button id="settings-cancel" style="background: none; color: var(--color-secondary); font-weight: 600;">Back to Register</button>
+  <button id="settings-logout" style="background: none; color: var(--color-error); font-weight: 600;">Log Out</button>
 </section>
 
 <!-- Main POS shell -->
@@ -48,6 +69,7 @@
         <nav class="view-tabs">
           <button type="button" class="view-tab is-active" id="tab-register" data-view="register">Register</button>
           <button type="button" class="view-tab" id="tab-myday" data-view="myday">My Day</button>
+          <button type="button" class="view-tab" id="tab-payments" data-view="payments">Payments</button>
         </nav>
       </div>
     </div>
@@ -58,12 +80,14 @@
         <span class="sync-count hidden" id="sync-count">0</span>
       </span>
       <button class="icon-btn" id="sync-now-btn" title="Sync now">&#8635;</button>
-      <button class="icon-btn" id="settings-btn" title="Account &amp; device settings">&#9881;</button>
+      <button class="icon-btn" id="settings-btn" title="Settings">&#9881;</button>
     </div>
   </header>
 
   <!-- Register (checkout) view -->
   <main id="view-register" class="register">
+    <div class="order-tabs" id="order-tabs"></div>
+
     <section class="panel-search">
       <div class="search-box">
         <input type="text" id="search-input" placeholder="Scan ISBN or type title..." autocomplete="off">
@@ -123,27 +147,99 @@
       </div>
       <p style="font-size: 0.7rem; color: var(--color-secondary); margin-top: 0.25rem;">Discounts are applied and finalized at checkout.</p>
 
-      <div class="payment-buttons">
+      <div class="payment-buttons" id="payment-buttons">
         <button class="pay-btn-cash" id="pay-cash">Cash Payment</button>
         <div class="pay-row">
           <button class="pay-btn-alt" id="pay-momo">Mobile Money</button>
           <button class="pay-btn-alt" id="pay-card">Card</button>
         </div>
       </div>
+
+      <!-- MoMo: number + network, before the charge is sent -->
+      <div class="momo-panel hidden" id="momo-form">
+        <h4>Mobile Money Payment</h4>
+        <div>
+          <label for="momo-phone">Customer's MoMo number</label>
+          <input type="text" id="momo-phone" placeholder="024 xxx xxxx">
+        </div>
+        <div>
+          <label for="momo-provider">Network</label>
+          <select id="momo-provider">
+            <option value="mtn">MTN</option>
+            <option value="vod">Telecel (Vodafone Cash)</option>
+            <option value="atl">AirtelTigo</option>
+          </select>
+        </div>
+        <div id="momo-form-error" class="error-banner hidden"></div>
+        <button id="momo-send">Send Payment Prompt</button>
+        <button id="momo-form-cancel" class="secondary">Cancel</button>
+      </div>
+
+      <!-- MoMo: prompt sent, waiting on the customer -->
+      <div class="momo-panel hidden" id="momo-pending">
+        <h4>Waiting for Approval</h4>
+        <p id="momo-pending-text">A payment prompt was sent — ask the customer to approve it on their phone.</p>
+        <div id="momo-pending-error" class="error-banner hidden"></div>
+        <button id="momo-check-status">Check Status</button>
+        <button id="momo-cancel" class="secondary">Cancel Charge</button>
+      </div>
     </section>
   </main>
 
-  <!-- My Day view: today's completed sales for whoever is signed in, with
-       past receipts re-viewable — merges the server's cross-device record
-       with anything still sitting in this device's own outbox, so it stays
-       useful offline too. -->
+  <!-- My Day view: completed sales for whoever is signed in, for any one
+       full day (defaults to today), with past receipts re-viewable —
+       merges the server's cross-device record with anything still sitting
+       in this device's own outbox for that day, so it stays useful offline
+       too. -->
   <main id="view-myday" class="myday-view hidden">
     <div class="myday-header">
       <h1>My Day</h1>
-      <span class="myday-date" id="myday-date"></span>
+      <div class="myday-header__controls">
+        <input type="date" id="myday-date-picker">
+        <span class="myday-date" id="myday-date"></span>
+      </div>
     </div>
     <div class="myday-summary" id="myday-summary"></div>
-    <div class="myday-list" id="myday-list"></div>
+    <div class="myday-table-wrap">
+      <table class="myday-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Items</th>
+            <th>Payment</th>
+            <th class="text-right">Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="myday-list"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Payments view: every MoMo-via-Paystack attempt on any device (owner
+       request, 2026-07-20) — shared across attendants/admin, not scoped to
+       whoever's currently signed in, since a charge one attendant started
+       may need someone else to notice or retry it. -->
+  <main id="view-payments" class="payments-view hidden">
+    <div class="myday-header">
+      <h1>Payments</h1>
+      <button class="icon-btn" id="payments-refresh" title="Refresh">&#8635;</button>
+    </div>
+    <div class="myday-table-wrap">
+      <table class="myday-table">
+        <thead>
+          <tr>
+            <th>When</th>
+            <th>Customer</th>
+            <th>Attendant</th>
+            <th class="text-right">Amount</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="payments-list"></tbody>
+      </table>
+    </div>
   </main>
 
   <!-- Receipt view -->

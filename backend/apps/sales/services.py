@@ -1,15 +1,21 @@
 """Sale creation — the one place stock actually moves. The Phase 2
-single-sale API, the Phase 3 offline-sync batch endpoint, and Phase 5's
-online-checkout flow all end up here, so their behavior (discounts,
-idempotency, stock handling) never diverges.
+single-sale API, the Phase 3 offline-sync batch endpoint, Phase 5's
+online-checkout flow, and the desktop POS's MoMo-via-Paystack flow all end
+up here, so their behavior (discounts, idempotency, stock handling) never
+diverges.
 
-Online orders are two-phase, unlike POS/offline sales: payment is
-asynchronous (redirect to Paystack, webhook arrives later), so stock can't
-decrement at checkout time the way it does when cash changes hands at the
-register. create_pending_online_sale() creates the Sale/SaleItems/Fulfillment
-without touching stock; finalize_paid_sale() — called from both the
-Paystack webhook and the verify-on-return view, idempotently — is the actual
-stock-moving step, once payment is confirmed.
+Online orders and desktop MoMo sales are both two-phase, unlike cash/card
+POS or offline sales: payment is asynchronous (redirect to Paystack /
+prompt sent to the customer's phone, confirmation arrives later), so stock
+can't decrement at checkout time the way it does when cash changes hands at
+the register. create_pending_online_sale()/create_pending_instore_sale()
+create the Sale/SaleItems (plus Fulfillment, online only) without touching
+stock; finalize_paid_sale() — called from the Paystack webhook, the
+storefront's verify-on-return view, and the desktop app's manual/automatic
+status check, idempotently — is the actual stock-moving step, once payment
+is confirmed. cancel_pending_sale() is the abandon-it path for a MoMo
+charge that fails or times out — safe with no stock reversal needed, since
+the pending sale never touched stock in the first place.
 """
 
 import uuid
@@ -230,6 +236,72 @@ def create_pending_online_sale(
         latitude=latitude, longitude=longitude,
     )
 
+    return sale
+
+
+@transaction.atomic
+def create_pending_instore_sale(
+    *, items, customer_phone, customer_full_name='', customer_email='', customer_birthday=None, attendant=None,
+):
+    """POS MoMo-via-Paystack payment (owner request, 2026-07-20): unlike
+    create_sale() (cash/card — payment has already happened by the time the
+    attendant hits submit), a MoMo charge is asynchronous — the customer
+    approves a prompt on their phone, confirmation arrives later via webhook
+    or the desktop app's manual status check. Mirrors
+    create_pending_online_sale(): creates the Sale/SaleItems as PENDING and
+    does NOT touch stock — owner decision (2026-07-20): wait for
+    confirmation rather than the optimistic immediate-decrement CASH/CARD
+    already use. finalize_paid_sale() is the actual stock-moving step here
+    too, identical to the online-checkout path.
+
+    No loyalty-point redemption on this path — matches the existing gap in
+    create_pending_online_sale() (resolve_redemption()/apply_redemption()
+    aren't wired into either pending-sale flow), not a new limitation.
+    """
+    if not customer_phone:
+        raise ValueError('Customer phone is required.')
+
+    customer = _get_or_update_customer(customer_phone, customer_full_name, customer_email, customer_birthday)
+    subtotal, discount_amount, resolved_items = _resolve_items(items, allow_oversell=False)
+    total = subtotal - discount_amount
+
+    sale = Sale.objects.create(
+        channel=Sale.Channel.IN_STORE,
+        customer=customer,
+        subtotal=subtotal,
+        discount_amount=discount_amount,
+        total=total,
+        payment_method=Sale.PaymentMethod.MOMO,
+        payment_status=Sale.PaymentStatus.PENDING,
+        status=Sale.Status.PENDING,
+        attendant=attendant,
+        # Doubles as the Paystack charge reference, same convention as
+        # create_pending_online_sale()'s offline_uuid.
+        offline_uuid=uuid.uuid4(),
+    )
+
+    for book, qty, unit_price, line_discount, unit_cost_price in resolved_items:
+        SaleItem.objects.create(
+            sale=sale, book=book, qty=qty, unit_price=unit_price, line_discount=line_discount,
+            unit_cost_price=unit_cost_price,
+        )
+
+    return sale
+
+
+@transaction.atomic
+def cancel_pending_sale(sale):
+    """Attendant explicitly abandons a pending MoMo charge (failed, customer
+    changed their mind, timed out) — safe because create_pending_instore_sale()
+    never touched stock, so there's nothing to reverse; this is just a status
+    flip. Refuses to touch a sale that's already PAID — a confirmation that
+    arrived a moment before the cancel click must win, not the click."""
+    sale = Sale.objects.select_for_update().get(pk=sale.pk)
+    if sale.payment_status == Sale.PaymentStatus.PAID:
+        return sale
+    sale.status = Sale.Status.CANCELLED
+    sale.payment_status = Sale.PaymentStatus.FAILED
+    sale.save(update_fields=['status', 'payment_status'])
     return sale
 
 

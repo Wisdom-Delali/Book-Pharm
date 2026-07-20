@@ -112,7 +112,18 @@
    pattern as the storefront's topbar search, but full-width on desktop
    here rather than the storefront's fixed max-width, since there's no
    competing nav-links cluster to share the row with. */
-.portal-topbar__search { flex: 1 1 auto; max-width: 640px; position: relative; }
+.portal-topbar__search {
+  flex: 1 1 auto;
+  max-width: 640px;
+  position: relative;
+  /* .portal-topbar is justify-content: flex-end (for New Sale/user, which
+     stay grouped at the right) — without this, the leftover space from
+     max-width capping how far search can grow gets pushed *before* it
+     instead of after, floating it away from the left edge instead of
+     pinning it there. Same trick as .portal-menu-toggle's own
+     margin-right: auto, just not display:none on desktop. */
+  margin-right: auto;
+}
 .portal-topbar__search-toggle {
   position: absolute;
   left: 0.7rem;
@@ -260,8 +271,11 @@
 
   /* Collapsed to just the icon by default; .is-open (Alpine, toggled by
      tapping the icon) expands it to take over the topbar row — same
-     mechanism as the storefront's own mobile search collapse. */
-  .portal-topbar__search { flex: 0 0 auto; max-width: none; }
+     mechanism as the storefront's own mobile search collapse. margin-right
+     resets to keep the icon clustered with New Sale/user (the desktop
+     left-float isn't wanted here — .portal-menu-toggle already owns the
+     left-pin job at this width). */
+  .portal-topbar__search { flex: 0 0 auto; max-width: none; margin-right: 0; }
   .portal-topbar__search-toggle { position: static; transform: none; padding: 0.3rem; }
   .portal-topbar__search input {
     position: absolute;

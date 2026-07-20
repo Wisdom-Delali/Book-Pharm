@@ -1,14 +1,20 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 // The bridge between the sandboxed renderer and Node/Electron APIs.
-// Deliberately narrow: device config (needs safeStorage) and the local
-// SQLite mirror/outbox (needs Node's node:sqlite) are the two things the
-// renderer can't do itself. Everything else (HTTP calls, printing) uses
-// standard web APIs already available to the renderer.
+// Deliberately narrow: device config (needs safeStorage), the local
+// SQLite mirror/outbox (needs Node's node:sqlite), and printer selection
+// (getPrintersAsync()/print() with a specific deviceName are main-process-
+// only) are the things the renderer can't do itself. Everything else
+// (HTTP calls) uses standard web APIs already available to the renderer.
 contextBridge.exposeInMainWorld('deviceConfig', {
   get: () => ipcRenderer.invoke('device-config:get'),
   set: (config) => ipcRenderer.invoke('device-config:set', config),
   clear: () => ipcRenderer.invoke('device-config:clear'),
+});
+
+contextBridge.exposeInMainWorld('printerApi', {
+  list: () => ipcRenderer.invoke('printer:list'),
+  print: (options) => ipcRenderer.invoke('printer:print', options),
 });
 
 contextBridge.exposeInMainWorld('localDb', {

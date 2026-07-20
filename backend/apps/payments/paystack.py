@@ -1,7 +1,12 @@
-"""Thin Paystack client. Two calls only: initialize a transaction, verify
-one. CLAUDE.md §8: verify via webhook *and* a verify-on-return call — never
-trust the redirect alone — so both the webhook view and the return view in
-apps/storefront end up calling verify_transaction() with the same reference.
+"""Thin Paystack client. Three calls: initialize a (redirect-flow)
+transaction, charge mobile money directly (prompt/OTP to the customer's
+phone, no redirect), and verify — either flow's reference is checked the
+same way. CLAUDE.md §8: verify via webhook *and* a verify-on-return call —
+never trust the redirect alone — so both the webhook view and the return
+view in apps/storefront end up calling verify_transaction() with the same
+reference. The desktop POS's MoMo flow follows the same principle: webhook
+is the durable confirmation, the manual "check status" button is the
+verify-on-return equivalent for a POS terminal instead of a browser redirect.
 """
 
 import hashlib
@@ -42,6 +47,32 @@ def initialize_transaction(*, email, amount_ghs, reference, callback_url):
     if not body.get('status'):
         raise PaystackError(body.get('message', 'Paystack initialize failed.'))
     return body['data']  # {authorization_url, access_code, reference}
+
+
+def charge_mobile_money(*, email, amount_ghs, reference, phone, provider):
+    """Ghana Mobile Money direct charge — a prompt/OTP request pushed
+    straight to the customer's phone, distinct from initialize_transaction()'s
+    redirect/authorization_url flow. Used by the desktop POS's MoMo payment
+    button (owner request, 2026-07-20): the attendant enters the customer's
+    number, this sends the prompt, and the same reference is then polled via
+    verify_transaction() — no separate verify path needed for this flow.
+    `provider` is Paystack's Ghana mobile money code: 'mtn', 'vod'
+    (Vodafone/Telecel), or 'atl' (AirtelTigo)."""
+    payload = {
+        'email': email,
+        'amount': int(amount_ghs * 100),
+        'currency': 'GHS',
+        'reference': reference,
+        'mobile_money': {'phone': phone, 'provider': provider},
+    }
+    try:
+        res = requests.post(f'{PAYSTACK_BASE_URL}/charge', json=payload, headers=_headers(), timeout=15)
+    except requests.RequestException as exc:
+        raise PaystackError(f'Could not reach Paystack: {exc}') from exc
+    body = res.json()
+    if not body.get('status'):
+        raise PaystackError(body.get('message', 'Paystack charge failed.'))
+    return body['data']  # {reference, status: 'send_otp'|'pay_offline'|'success'|'failed'|..., display_text, ...}
 
 
 def verify_transaction(reference):
