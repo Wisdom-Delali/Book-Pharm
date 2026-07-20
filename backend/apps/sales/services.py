@@ -254,6 +254,19 @@ def create_pending_instore_sale(
     already use. finalize_paid_sale() is the actual stock-moving step here
     too, identical to the online-checkout path.
 
+    allow_oversell=True (owner request, 2026-07-20 — "electron should allow
+    negative stock for orders"): the attendant is ringing up a real customer
+    standing at the register with the book in hand: refusing the sale over a
+    stock-count mismatch loses a sale the shop can, in fact, fulfill. Same
+    principle CLAUDE.md §7 already established for offline sync, extended to
+    every desktop-initiated sale rather than just the ones that happened to
+    go offline. A resulting negative stock_qty is still caught and flagged
+    the normal way (_decrement_stock_for_item -> StockDiscrepancy), so the
+    owner sees it for reconciliation; it's just never a reason to block the
+    sale itself. Deliberately *not* extended to create_pending_online_sale()
+    (no attendant there to smooth over a surprise) or the portal's own
+    register_create (owner request only covered the desktop app).
+
     No loyalty-point redemption on this path — matches the existing gap in
     create_pending_online_sale() (resolve_redemption()/apply_redemption()
     aren't wired into either pending-sale flow), not a new limitation.
@@ -262,7 +275,7 @@ def create_pending_instore_sale(
         raise ValueError('Customer phone is required.')
 
     customer = _get_or_update_customer(customer_phone, customer_full_name, customer_email, customer_birthday)
-    subtotal, discount_amount, resolved_items = _resolve_items(items, allow_oversell=False)
+    subtotal, discount_amount, resolved_items = _resolve_items(items, allow_oversell=True)
     total = subtotal - discount_amount
 
     sale = Sale.objects.create(

@@ -261,6 +261,19 @@ The largest single desktop change since Phase 3 — six related items, all touch
 
 ---
 
+## Phase 7.10 — Desktop sales always allow negative stock (owner request, 2026-07-20)
+
+A scope correction to Phase 2's original design, not a new feature: `POST /api/sales/` (desktop cash/card) and `POST /api/sales/momo-charge/` (desktop MoMo) both rejected a sale outright on insufficient stock — reasonable-sounding in the abstract ("the device is online, it can just check"), wrong in practice, since it means telling a customer standing at the counter with a physical book in hand "sorry, the system says we're out" over what's usually just a stock-count mismatch, not a real absence of the book.
+
+- [x] `create_sale()` calls from `SaleCreateView` now pass `allow_oversell=True`; `create_pending_instore_sale()` (the MoMo pending-sale path) now hardcodes it internally rather than exposing it as a parameter — there's only ever one caller and it should never need to be `False`
+- [x] `InsufficientStockError` can no longer be raised from either call site — the now-dead `except` blocks and the now-unused import were removed rather than left as defensive dead code
+- [x] Deliberately **not** extended to `create_pending_online_sale()` (storefront checkout — no attendant there to smooth over a surprise, per its own existing docstring reasoning) or the portal's own `register_create` (owner ringing up a sale from a keyboard, not a counter — its docstring previously justified itself by pointing at "the desktop app's own connected path," which is exactly the reasoning this change invalidates, so it was reworded to stand on its own)
+- [x] No new reconciliation mechanism needed: `_decrement_stock_for_item()` already flags any resulting negative `stock_qty` as a `StockDiscrepancy` regardless of which caller decremented it, so extending oversell-allowance to these two call sites gets the existing owner-facing alert for free
+
+**Done when:** an attendant can complete a cash/card or MoMo sale from the desktop app for more than the recorded stock, without an error, and the owner sees it flagged for reconciliation same as an offline-sync oversell. ✅ Verified live against the real dev database via Django's test `Client` hitting the actual URL patterns (not just the service function directly): a cash sale for 77 of a book with 27 in stock returned **201** (previously would have been 409), left `stock_qty` at **-50**, and created an **unresolved `StockDiscrepancy`** row automatically; a MoMo charge request for well beyond an already-negative book's stock also returned **201** and created the pending sale without being blocked.
+
+---
+
 ## Phase 8 — Deploy & handover
 
 - [ ] Register the domain (client has no domain yet — this is a real blocker for launch, raise it early)

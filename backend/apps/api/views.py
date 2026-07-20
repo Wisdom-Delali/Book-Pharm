@@ -21,9 +21,7 @@ from apps.payments.paystack import PaystackError, charge_mobile_money, verify_tr
 from apps.payments.views_helpers import PAYSTACK_CHANNEL_TO_METHOD
 from apps.reports.utils import range_bounds_utc
 from apps.sales.models import Sale
-from apps.sales.services import (
-    InsufficientStockError, cancel_pending_sale, create_pending_instore_sale, create_sale, finalize_paid_sale,
-)
+from apps.sales.services import cancel_pending_sale, create_pending_instore_sale, create_sale, finalize_paid_sale
 
 from .serializers import (
     BookSyncSerializer, CustomerSerializer, MomoChargeSerializer, PaymentTransactionSerializer,
@@ -143,10 +141,21 @@ class MeView(APIView):
 
 
 class SaleCreateView(APIView):
-    """POST /api/sales/ — single sale, connected path (Phase 2). Rejects
-    outright on insufficient stock, since the device is online and can just
-    check. The offline batch endpoint (Phase 3) is a different view that
-    calls the same create_sale() with allow_oversell=True."""
+    """POST /api/sales/ — single sale, connected path (Phase 2), desktop
+    POS only (the portal's own in-store register is a separate call site,
+    apps/portal/register_views.py::register_create). allow_oversell=True
+    (owner request, 2026-07-20): the attendant is ringing up a real
+    customer with the book in hand — a stock-count mismatch shouldn't be
+    able to block a sale the shop can actually fulfill. Was
+    allow_oversell=False through Phase 2 ("the device is online, so it can
+    just check"); changed because that reasoning didn't hold up against how
+    the register is actually used. A resulting negative stock_qty is still
+    flagged for the owner via the normal StockDiscrepancy path (create_sale
+    -> _decrement_stock_for_item), same as an offline-sync oversell — it's
+    just never a reason to refuse the sale itself. InsufficientStockError
+    can no longer be raised from this call site (compare the offline batch
+    endpoint below, which has always used allow_oversell=True for the same
+    underlying reason: a sale that already happened must never be rejected)."""
 
     def post(self, request):
         serializer = SaleCreateSerializer(data=request.data)
@@ -164,12 +173,8 @@ class SaleCreateView(APIView):
                 customer_email=data.get('customer_email', ''),
                 customer_birthday=data.get('customer_birthday'),
                 attendant=request.user,
+                allow_oversell=True,
                 redeem_points=data.get('redeem_points', 0),
-            )
-        except InsufficientStockError as exc:
-            return Response(
-                {'error': str(exc), 'book_id': exc.book.id, 'available': exc.available},
-                status=status.HTTP_409_CONFLICT,
             )
         except ValueError as exc:
             return Response({'error': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
@@ -265,7 +270,12 @@ class MomoChargeView(APIView):
     same call, sends the Paystack mobile money prompt to the customer's
     phone. If the sale is created but the Paystack call itself fails, the
     pending sale is cancelled immediately rather than left orphaned with no
-    corresponding charge attempt to ever check."""
+    corresponding charge attempt to ever check.
+
+    create_pending_instore_sale() is always allow_oversell=True (owner
+    request, 2026-07-20, same reasoning as SaleCreateView above) — a stock
+    shortfall is never a reason to refuse a desktop sale, cash/card or MoMo
+    alike, so InsufficientStockError can no longer reach this view either."""
 
     def post(self, request):
         serializer = MomoChargeSerializer(data=request.data)
@@ -280,11 +290,6 @@ class MomoChargeView(APIView):
                 customer_email=data.get('customer_email', ''),
                 customer_birthday=data.get('customer_birthday'),
                 attendant=request.user,
-            )
-        except InsufficientStockError as exc:
-            return Response(
-                {'error': str(exc), 'book_id': exc.book.id, 'available': exc.available},
-                status=status.HTTP_409_CONFLICT,
             )
         except ValueError as exc:
             return Response({'error': str(exc)}, status=status.HTTP_400_BAD_REQUEST)

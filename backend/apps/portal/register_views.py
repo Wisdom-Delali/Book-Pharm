@@ -1,9 +1,11 @@
 """Owner-created in-store sales from the portal — the same create_sale()
 path the desktop POS and its /api/sales/ endpoint use, just entered here
 instead of on the register. allow_oversell defaults to False (unlike
-Jumia's manual entry): this sale is happening live as the owner types, so
-a stock shortfall should be caught and shown immediately, the same
-reasoning CLAUDE.md gives for the desktop app's own connected path.
+Jumia's manual entry, and unlike the desktop app's /api/sales/ endpoint as
+of the 2026-07-20 "electron should allow negative stock" change): this
+sale is happening live as the owner types at a keyboard, not at a counter
+with a customer and a physical book in hand, so a stock shortfall should
+still be caught and shown immediately rather than waved through.
 """
 from datetime import date as date_cls
 

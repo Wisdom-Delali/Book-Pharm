@@ -29,6 +29,18 @@ def _headers():
     }
 
 
+def _error_message(body, fallback):
+    """On a rejected charge, Paystack's top-level `message` is often just a
+    generic envelope string (e.g. "Charge attempted") while the actually
+    useful reason sits in `data.message` (e.g. "Declined. Please use the
+    test mobile money number since you are doing a test transaction.") —
+    confirmed against the real API, not assumed. Prefer the specific one;
+    fall back to the envelope message for errors that never got as far as
+    creating a `data` object at all (bad key, malformed request)."""
+    detail = (body.get('data') or {}).get('message')
+    return detail or body.get('message', fallback)
+
+
 def initialize_transaction(*, email, amount_ghs, reference, callback_url):
     """amount_ghs is a Decimal/GHS amount — Paystack wants the smallest unit
     (pesewas), so multiply by 100 and round to an int here, once, in the one
@@ -45,7 +57,7 @@ def initialize_transaction(*, email, amount_ghs, reference, callback_url):
         raise PaystackError(f'Could not reach Paystack: {exc}') from exc
     body = res.json()
     if not body.get('status'):
-        raise PaystackError(body.get('message', 'Paystack initialize failed.'))
+        raise PaystackError(_error_message(body, 'Paystack initialize failed.'))
     return body['data']  # {authorization_url, access_code, reference}
 
 
@@ -71,7 +83,7 @@ def charge_mobile_money(*, email, amount_ghs, reference, phone, provider):
         raise PaystackError(f'Could not reach Paystack: {exc}') from exc
     body = res.json()
     if not body.get('status'):
-        raise PaystackError(body.get('message', 'Paystack charge failed.'))
+        raise PaystackError(_error_message(body, 'Paystack charge failed.'))
     return body['data']  # {reference, status: 'send_otp'|'pay_offline'|'success'|'failed'|..., display_text, ...}
 
 
@@ -82,7 +94,7 @@ def verify_transaction(reference):
         raise PaystackError(f'Could not reach Paystack: {exc}') from exc
     body = res.json()
     if not body.get('status'):
-        raise PaystackError(body.get('message', 'Paystack verify failed.'))
+        raise PaystackError(_error_message(body, 'Paystack verify failed.'))
     return body['data']  # {status: 'success'|'failed'|..., amount, reference, ...}
 
 
